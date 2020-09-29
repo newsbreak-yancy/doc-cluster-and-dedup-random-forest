@@ -1,3 +1,5 @@
+package com.nb.randomforest.utils;
+
 import weka.classifiers.trees.RandomForest;
 
 import weka.classifiers.Evaluation;
@@ -9,7 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Application {
+public class ModelUtils {
 
     /** file names are defined*/
     public static final String TRAINING_DATA_SET_FILENAME="train.arff";
@@ -25,7 +27,7 @@ public class Application {
     public static Instances getDataSet(String fileName) throws IOException {
         int classIdx = 1;
         ArffLoader loader = new ArffLoader();
-        loader.setSource(Application.class.getResourceAsStream("/" + fileName));
+        loader.setSource(ModelUtils.class.getResourceAsStream("/" + fileName));
         Instances dataSet = loader.getDataSet();
         dataSet.setClassIndex(classIdx);
         return dataSet;
