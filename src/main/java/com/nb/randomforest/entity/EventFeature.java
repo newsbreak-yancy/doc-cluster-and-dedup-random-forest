@@ -3,11 +3,6 @@ package com.nb.randomforest.entity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
-import weka.core.DenseInstance;
-import weka.core.Instance;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.nb.randomforest.utils.FeatureUtils.*;
 

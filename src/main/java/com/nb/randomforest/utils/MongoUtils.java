@@ -52,7 +52,7 @@ public class MongoUtils {
 		filePaths.add(Paths.get(rootDir, "estimate/doc_pair_0911").toAbsolutePath().toString());
 		filePaths.add(Paths.get(rootDir, "estimate/doc_pair_0914").toAbsolutePath().toString());
 		filePaths.add(Paths.get(rootDir, "estimate/doc_pair_0928").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append/data_0928").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append/doc_pair_0928").toAbsolutePath().toString());
 	}
 	
 	

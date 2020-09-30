@@ -7,52 +7,43 @@ import weka.core.*;
 import weka.core.converters.ArffLoader;
 import weka.core.converters.ConverterUtils.DataSource;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ModelUtils {
 
-    /** file names are defined*/
-    public static final String TRAINING_DATA_SET_FILENAME="train.arff";
-    public static final String TESTING_DATA_SET_FILENAME="test.arff";
-
-
     /**
-     * This method is to load the data set.
-     * @param fileName
-     * @return
-     * @throws IOException
+     * Load data set
      */
     public static Instances getDataSet(String fileName) throws IOException {
         int classIdx = 1;
         ArffLoader loader = new ArffLoader();
-        loader.setSource(ModelUtils.class.getResourceAsStream("/" + fileName));
+        loader.setSource(new FileInputStream(new File(fileName)));
         Instances dataSet = loader.getDataSet();
         dataSet.setClassIndex(classIdx);
         return dataSet;
     }
 
     /**
-     * This method is used to train the input and return the statistics.
-     *
-     * @throws Exception
+     * Model training and estimate based on train, test file.
      */
-    public static void train() throws Exception {
+    public static void train(String trainFile, String testFile) throws Exception {
 
-        Instances trainingDataSet = getDataSet(TRAINING_DATA_SET_FILENAME);
-        trainingDataSet.setClassIndex(3);
-        Instances testingDataSet = getDataSet(TESTING_DATA_SET_FILENAME);
-        testingDataSet.setClassIndex(3);
+        Instances trainingDataSet = getDataSet(trainFile);
+        trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
+        Instances testingDataSet = getDataSet(testFile);
+        testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
 
         RandomForest forest = new RandomForest();
-        forest.setNumIterations(1);
-        forest.setBatchSize("10");
-        forest.setDebug(true);
+        forest.setNumIterations(10);
+        forest.setDebug(false);
         forest.setNumFeatures(2);
-        forest.setMaxDepth(2);
+        forest.setMaxDepth(0);
         forest.buildClassifier(trainingDataSet);
-        System.out.println(forest);
     
         Evaluation eval = new Evaluation(trainingDataSet);
         eval.evaluateModel(forest, testingDataSet);
@@ -66,7 +57,7 @@ public class ModelUtils {
         System.out.println(forest);
         
         // dump random forest model to file
-        SerializationHelper.write("/Users/yuxi/NB/RandomForest/src/main/resources/forest.model", forest);
+        SerializationHelper.write(Paths.get(new File(trainFile).getParent(),"forest.model").toString(), forest);
 
     }
     
@@ -126,8 +117,8 @@ public class ModelUtils {
     
     }
     
-    public static void predict2() throws Exception {
-        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/src/main/resources/forest.model");
+    public static void predictABModel() throws Exception {
+        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/_local/train/20200929/forest.model");
         DataSource dataSource = new DataSource("/Users/yuxi/NB/RandomForest/src/main/resources/test.arff");
         Instances testDataset = dataSource.getDataSet();
         testDataset.setClassIndex(testDataset.numAttributes() - 1);
@@ -135,9 +126,23 @@ public class ModelUtils {
             System.out.println(forest.classifyInstance(instance));
         }
     }
+    
+    public static void predictOLModel() throws Exception {
+    
+    }
 
     public static void main(String[] args) throws Exception {
-//        train();
-        predict2();
+        
+        /** Model Training */
+//        String trainFile = "/Users/yuxi/NB/RandomForest/_local/train/20200929/train.arff";
+//        String testFile = "/Users/yuxi/NB/RandomForest/_local/train/20200929/test.arff";
+//        train(trainFile, testFile);
+        
+        /** Model Inference ABTEST*/
+//        predictABModel();
+        
+        /** Model Inference ONLINE */
+        
+        
     }
 }
