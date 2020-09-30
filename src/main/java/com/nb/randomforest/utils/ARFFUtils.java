@@ -135,14 +135,21 @@ public class ARFFUtils {
                 String label = datas[2];
                 String mStr = datas[4];
                 String cStr = datas[5];
-                bw.write(new EventFeature(mapper.readTree(mStr), mapper.readTree(cStr), label).toString());
-                bw.write("\n");
+                try {
+                    EventFeature feature = new EventFeature(mapper.readTree(mStr), mapper.readTree(cStr), label);
+                    bw.write(feature.toString());
+                    bw.write("\n");
+                } catch (Exception e) {
+                    System.out.println(mStr);
+                    System.out.println(cStr);
+                    System.out.println(label);
+                }
             }
         }
         bw.close();
     }
 
     public static void main(String[] args) throws Exception {
-        buildARFF("/Users/yuxi/NB/RandomForest/_local/train/20200929/train_fields_15000", "train");
+        buildARFF("/Users/yuxi/NB/RandomForest/_local/train/20200929/test_fields_1614", "test");
     }
 }
