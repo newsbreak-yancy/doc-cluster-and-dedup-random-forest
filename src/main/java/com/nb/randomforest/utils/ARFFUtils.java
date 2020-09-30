@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import weka.core.*;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -121,7 +122,7 @@ public class ARFFUtils {
         
         // 3. dump header
         File sourceFile = new File(sourcePath);
-        File dumpedFile = new File("/Users/yuxi/NB/RandomForest/_local/" + dumpName + ".arff");
+        File dumpedFile = new File(Paths.get(sourceFile.getParentFile().getAbsolutePath(), dumpName + ".arff").toString());
 //        FileUtils.writeStringToFile(dumpFile, instances.toString(), Charset.defaultCharset(), false);
         BufferedReader br = new BufferedReader(new FileReader(sourceFile));
         BufferedWriter bw = new BufferedWriter(new FileWriter(dumpedFile));
@@ -142,6 +143,6 @@ public class ARFFUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        buildARFF("/Users/yuxi/NB/RandomForest/_local/estimate/doc_pair_0903_fields", "localtest");
+        buildARFF("/Users/yuxi/NB/RandomForest/_local/train/20200929/train_fields_15000", "train");
     }
 }

@@ -76,7 +76,7 @@ public class FeatureUtils {
 		if (master == null || candit == null) {
 			return null;
 		}
-		return new Double(Math.abs(master.longValue() - candit.longValue()));
+		return new Double(Math.abs(master.asLong() - candit.asLong()));
 	}
 	
 	
@@ -87,8 +87,8 @@ public class FeatureUtils {
 		if (master == null || candit == null) {
 			return null;
 		}
-		byte[] a = master.textValue().getBytes();
-		byte[] b = candit.textValue().getBytes();
+		byte[] a = master.asText().getBytes();
+		byte[] b = candit.asText().getBytes();
 		if (a.length != b.length) {
 			return null;
 		}
@@ -120,18 +120,18 @@ public class FeatureUtils {
 		Iterator<String> itrM = master.fieldNames();
 		while (itrM.hasNext()) {
 			String key = itrM.next();
-			masterTotalNum += master.get(key).floatValue();
+			masterTotalNum += master.get(key).asDouble();
 		}
 		Iterator<String> itrC = candit.fieldNames();
 		while (itrC.hasNext()) {
 			String key = itrC.next();
-			canditTotalNum += candit.get(key).floatValue();
+			canditTotalNum += candit.get(key).asDouble();
 		}
 		Iterator<String> itr = master.fieldNames();
 		while (itr.hasNext()) {
 			String key = itr.next();
 			if (candit.has(key)) {
-				weightedOverlapRatio = weightedOverlapRatio + 0.5d * (master.get(key).floatValue() / masterTotalNum) + 0.5d * (candit.get(key).floatValue() / canditTotalNum);
+				weightedOverlapRatio = weightedOverlapRatio + 0.5d * (master.get(key).asDouble() / masterTotalNum) + 0.5d * (candit.get(key).asDouble() / canditTotalNum);
 			}
 		}
 		return weightedOverlapRatio;
@@ -152,11 +152,11 @@ public class FeatureUtils {
 			double ratio = 0d;
 			HashSet<String> _ms = new HashSet<>();
 			for (JsonNode _m : master) {
-				_ms.add(_m.textValue());
+				_ms.add(_m.asText());
 			}
 			HashSet<String> _cs = new HashSet<>();
 			for (JsonNode _c : candit) {
-				_cs.add(_c.textValue());
+				_cs.add(_c.asText());
 			}
 			for (String _m : _ms) {
 				if (_cs.contains(_m)) {
