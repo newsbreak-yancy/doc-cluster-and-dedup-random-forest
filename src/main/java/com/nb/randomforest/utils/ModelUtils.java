@@ -66,65 +66,6 @@ public class ModelUtils {
     
     
     /**
-     *
-     */
-    public static void predict() throws Exception {
-        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/src/main/resources/forest.model");
-    
-        // we need those for creating new instances later
-        final Attribute OverlapRatioORG = new Attribute("OverlapRatioORG");
-        final Attribute OverlapRatioLOC = new Attribute("OverlapRatioLOC");
-        final Attribute OverlapRatioPRS = new Attribute("OverlapRatioPRS");
-        final List<String> classes = new ArrayList<String>() {
-            {
-                add("DIFF");
-                add("EVENT");
-                add("DUP");
-            }
-        };
-    
-        // Instances(...) requires ArrayList<> instead of List<>...
-        ArrayList<Attribute> attributeList = new ArrayList<Attribute>(2) {
-            {
-                add(OverlapRatioORG);
-                add(OverlapRatioLOC);
-                add(OverlapRatioPRS);
-                Attribute attributeClass = new Attribute("Label", classes);
-                add(attributeClass);
-            }
-        };
-        // unpredicted data sets (reference to sample structure for new instances)
-        Instances dataUnpredicted = new Instances("TestInstances",
-            attributeList, 1);
-        // last feature is target variable
-        dataUnpredicted.setClassIndex(dataUnpredicted.numAttributes() - 1);
-    
-        // create new instance: this one should fall into the setosa domain
-        DenseInstance newInstanceSetosa = new DenseInstance(dataUnpredicted.numAttributes()) {
-            {
-                setValue(OverlapRatioORG, 9);
-                setValue(OverlapRatioLOC, 8.5);
-                setValue(OverlapRatioPRS, 9);
-            }
-        };
-    
-        // instance to use in prediction
-        DenseInstance newInstance = newInstanceSetosa;
-        // reference to dataset
-        newInstance.setDataset(dataUnpredicted);
-    
-        // predict new sample
-        try {
-            double result = forest.classifyInstance(newInstance);
-            System.out.println("Index of predicted class label: " + result + ", which corresponds to class: " + classes.get(new Double(result).intValue()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    
-    }
-    
-    
-    /**
      * 基于 DOC Field 文件计算 Precision, Recall
      */
     public static void predictABTestBasedDocField(RandomForest forest, String sourceFile) throws Exception {
@@ -202,29 +143,13 @@ public class ModelUtils {
         double rcrEVT = tpEVT / Double.valueOf(rpEVT);
         System.out.println("## TPR EVT    : " + String.valueOf(tpEVT) + "/" + String.valueOf(ppEVT) + "=" + String.valueOf(tprEVT));
         System.out.println("## RCR EVT    : " + String.valueOf(tpEVT) + "/" + String.valueOf(rpEVT) + "=" + String.valueOf(rcrEVT));
-
-
-//        //batch 模式
-//        String[] strs = new String[]{"DIFF", "EVENT", "DUP"};
-//        double[][] results = forest.distributionsForInstances(testDataset);
-//        for (int j = 0; j < results.length; j++) {
-//            double[] distributes = results[j];
-//            int max = 0;
-//            for (int i = 1; i < distributes.length; i++) {
-//                if (distributes[i] > distributes[max]) {
-//                    max = i;
-//                }
-//            }
-//            System.out.println(String.valueOf(j) + "\t:\t" + strs[max]);
-//        }
     }
     
     
     /**
      *
      */
-    public static void predictOnline(RandomForest forest, String master, List<String> candidates) throws Exception {
-        Long start = System.currentTimeMillis();
+    public static List<Integer> predictOnline(RandomForest forest, JsonNode masterNode, JsonNode canditNodes) throws Exception {
         ArrayList<Attribute> attributes = new ArrayList<>();
         ArrayList<String> attVals = new ArrayList<>();
         Instances instances;
@@ -251,27 +176,26 @@ public class ModelUtils {
         attVals.add("EVENT");
         attVals.add("DUP");
         attributes.add(new Attribute("Label", attVals));
-        
         // 2. create Instances object
         instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
         instances.setClassIndex(instances.numAttributes() - 1);
-        JsonNode masterNode = mapper.readTree(master);
-        for (String candidate : candidates) {
-            JsonNode candiNode = mapper.readTree(candidate);
-            instances.add(new EventFeature(masterNode, candiNode, null).toInstance());
+        for (JsonNode canditNode : canditNodes) {
+            instances.add(new EventFeature(masterNode, canditNode, null).toInstance());
         }
         // 3.
-        double[][] result = forest.distributionsForInstances(instances);
-        for (double[] doubles : result) {
-            for (double aDouble : doubles) {
-                System.out.print(aDouble);
-                System.out.print("\t||\t");
+        List<Integer> cls = new ArrayList<>();
+        double[][] canditResults = forest.distributionsForInstances(instances);
+        for (int j = 0; j < canditResults.length; j++) {
+            double[] canditResult = canditResults[j];
+            int max = 0;
+            for (int i = 1; i < canditResult.length; i++) {
+                if (canditResult[i] > canditResult[max]) {
+                    max = i;
+                }
             }
-            System.out.println();
+            cls.add(max);
         }
-    
-        Long end = System.currentTimeMillis();
-        System.out.println(end - start);
+        return cls;
     }
 
     public static void main(String[] args) throws Exception {

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -33,7 +34,7 @@ public class DocumentEndpoint {
 	 *
 	 */
 	@RequestMapping(method = POST)
-	JsonNode calCandidatesClusterInfo(
+	List<Integer> calCandidatesClusterInfo(
 		@RequestBody Map<String, Object> postBody
 	) {
 		JsonNode masterNode = objectMapper.valueToTree(postBody.get("master"));

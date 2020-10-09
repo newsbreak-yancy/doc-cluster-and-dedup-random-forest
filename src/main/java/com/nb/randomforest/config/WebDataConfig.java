@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import weka.classifiers.trees.RandomForest;
+import weka.core.SerializationHelper;
 
 import java.net.InetAddress;
 import java.util.Arrays;
@@ -42,6 +44,14 @@ public class WebDataConfig {
 		MetricsFactoryUtil.register(metricsFactory);
 		return MetricsFactoryUtil.getRegisteredFactory();
 	}
+	
+	
+	@Bean("RandomForest")
+	public RandomForest randomForest() throws Exception {
+		RandomForest forest = (RandomForest) SerializationHelper.read(WebDataConfig.class.getClassLoader().getResourceAsStream("forest.model"));
+		return forest;
+	}
+	
 	
 	@Bean
 	public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter(ObjectMapper objectMapper) {
