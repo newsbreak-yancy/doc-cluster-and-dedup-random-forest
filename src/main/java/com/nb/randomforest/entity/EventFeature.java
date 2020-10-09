@@ -2,7 +2,12 @@ package com.nb.randomforest.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import weka.core.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.nb.randomforest.utils.FeatureUtils.*;
 
@@ -72,11 +77,11 @@ public class EventFeature {
 	
 
     public EventFeature(JsonNode masterNode, JsonNode canditNode, String label) throws Exception {
-    	if (!label.equals("DIFF") && !label.equals("EVENT") && !label.equals("DUP")) {
-    		throw new Exception("Invalid Label! Required DIFF, EVENT or DUP.");
+    	if (!StringUtils.isEmpty(label) && !label.equals("DIFF") && !label.equals("EVENT") && !label.equals("DUP")) {
+    		throw new Exception("Invalid Label! Required DIFF, EVENT , DUP or null.");
 	    }
-        this.label = StringUtils.isEmpty(label) ? "DIFF" : label;
-        
+        this.label = label;
+    	
 	    String mTitle = preprocess(masterNode.get("stitle").textValue());
 	    String cTitle = preprocess(canditNode.get("stitle").textValue());
         this.titleDist = levenshteinDistance(mTitle, cTitle);
@@ -193,6 +198,29 @@ public class EventFeature {
 		return geoOverlapRatio;
 	}
 	
+	public Instance toInstance() {
+		List<Double> doubleList = new ArrayList<>();
+		doubleList.add(titleDist);
+		doubleList.add(sameSRC);
+		doubleList.add(cWordSpan);
+		doubleList.add(epochSpan);
+		doubleList.add(parghSpan);
+		doubleList.add(simhashDist);
+		doubleList.add(kwsRatio);
+		doubleList.add(channelRatio);
+		doubleList.add(cOrgOverlapRatio);
+		doubleList.add(cLocOverlapRatio);
+		doubleList.add(cPrsOverlapRatio);
+		doubleList.add(tOrgOverlapRatio);
+		doubleList.add(tLocOverlapRatio);
+		doubleList.add(tPrsOverlapRatio);
+		doubleList.add(catOverlapRatio);
+		doubleList.add(geoOverlapRatio);
+		doubleList.add((StringUtils.isEmpty(label) || StringUtils.equals(label, "DIFF")) ? 0d : StringUtils.equals(label, "DIFF") ? 1d : 2d);
+		double[] doubleArray = doubleList.stream().mapToDouble(d -> d == null ? Utils.missingValue() : d.doubleValue()).toArray();
+		return new DenseInstance(1, doubleArray);
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -228,7 +256,7 @@ public class EventFeature {
 		sb.append(",");
 		sb.append(geoOverlapRatio == null ? "?" : geoOverlapRatio.toString());
 		sb.append(",");
-		sb.append(this.label);
+		sb.append(StringUtils.isEmpty(label) ? "?" : label);
     	return sb.toString();
 	}
 	
@@ -239,7 +267,9 @@ public class EventFeature {
 		String cStr = "{\"_id\": \"0WoFOOxs\", \"c_word\": 193, \"channels_v2\": [\"Ohio^^State^^football\", \"Ohio^^State\", \"Shooting\", \"Defensive^^Tackle\", \"Chittenden\", \"Vermont\", \"Shell^^Casings\", \"Garrett\"], \"epoch\": {\"$numberLong\": \"1598791224\"}, \"geotag_v2\": [{\"name\": \"ohio\", \"score\": 1.0, \"pid\": \"ohio\", \"type\": \"state\"}, {\"name\": \"columbus\", \"score\": 0.989151120185852, \"coord\": \"39.961176,-82.998794\", \"pid\": \"columbus,ohio\", \"type\": \"city\"}], \"kws\": [\"Ohio^^State^^football\", \"Ohio^^State^^University\", \"Columbus^^Police\", \"shooting\", \"Columbus^^Fire\", \"Police\", \"COLUMBUS\", \"22-year-old^^Garrett^^suffering\", \"suspect\", \"East^^11th^^Avenue\", \"Chittenden^^Ave.^^Officers\", \"Fire\", \"Haskell^^Garrett\", \"Vermont\", \"ABC\", \"Stubblefield\", \"Haskell\", \"614-461-TIPS\"], \"ne_content_location\": {\"Vermont\": 1, \"Chittenden\": 1, \"Ohio\": 2, \"East 11th Avenue\": 1, \"COLUMBUS\": 1, \"Ohio State Football\": 1}, \"ne_content_organization\": {\"Columbus Fire\": 1, \"Ohio State University Hospital\": 1, \"ABC\": 1, \"Columbus Police\": 2, \"Columbus Police Felony Assault Detective Stubblefield\": 1, \"Ohio State\": 1, \"Central Ohio Crime Stoppers\": 1}, \"ne_content_person\": {\"Haskell Garrett\": 1, \"Garrett\": 3}, \"ne_title_location\": {}, \"ne_title_organization\": {\"Ohio State\": 1}, \"ne_title_person\": {}, \"paragraph_count\": 8.0, \"simhash\": \"4fe1f8bba9e9102229d9a2912860771e\", \"src\": \"myfox28columbus.com\", \"stitle\": \"Ohio State football player injured in overnight shooting near campus\", \"text_category_v2\": {\"first_cat\": {\"CrimePublicsafety\": 0.6951286280185068, \"Sports\": 0.8214851472643709}, \"second_cat\": {\"CrimePublicsafety_ViolentCrime\": 0.6015757232239475, \"Sports_Other\": 0.8214851472643709}, \"third_cat\": {\"CrimePublicsafety_ViolentCrime_Other\": 0.6015757232239475}}}";
 		JsonNode mNode = mapper.readTree(mStr);
 		JsonNode cNode = mapper.readTree(cStr);
-		System.out.println(new EventFeature(mNode, cNode, "DUP"));
+		EventFeature feature = new EventFeature(mNode, cNode, "");
+		System.out.println(feature);
+		System.out.println(feature.toInstance());
 		//69.0,0.0,9.0,0.0,1.0,81.0,0.14646464646464646,0.13392857142857142,0.1875,0.5142857142857142,0.0,0.0,0.0,?,0.3854143638657179,0.75,DIFF
 	}
 }
