@@ -2,10 +2,8 @@ package com.nb.randomforest.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nb.randomforest.entity.EventFeature;
-import org.apache.commons.io.FileUtils;
 import weka.core.*;
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
