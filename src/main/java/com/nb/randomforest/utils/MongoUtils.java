@@ -147,7 +147,7 @@ public class MongoUtils {
 	
 	public static void main(String[] args) throws Exception {
 		for (String filePath : filePaths) {
-			extractDocFields(new File(filePath));
+//			extractDocFields(new File(filePath));
 //			extractDocUrlFromUnlabeledDocPair(new File(filePath));
 		}
 	}

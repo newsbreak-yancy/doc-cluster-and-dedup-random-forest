@@ -13,7 +13,7 @@ import static com.nb.randomforest.utils.FeatureUtils.*;
 
 
 /**
- *
+ * 模型训练数据特征. 包含对应的 序列化 及 实例化方法.
  */
 public class EventFeature {
 	
