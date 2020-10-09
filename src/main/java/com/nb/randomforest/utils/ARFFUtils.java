@@ -78,11 +78,6 @@ public class ARFFUtils {
         vals[4] = instances.attribute(4).addRelation(dataRel);
     }
     
-    
-    public static double nextDouble(final double min, final double max) {
-        return min + ((max - min) * new Random().nextDouble());
-    }
-    
 
     public static void buildARFF(String sourcePath, String dumpName) throws Exception {
         ObjectMapper mapper = new ObjectMapper();

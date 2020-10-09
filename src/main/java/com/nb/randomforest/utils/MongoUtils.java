@@ -60,6 +60,11 @@ public class MongoUtils {
 	}
 	
 	
+	/**
+	 * 基于 doc pair 从 static_feature 或 doc_center 中抽取目标属性
+	 * 已标注数据 : doc_id \t doc_id |t label => doc_id \t doc_id |t label \t isSuccess \t jstr \t jstr
+	 * 未标注数据 : doc_id \t doc_id          => doc_id \t doc_id          |t isSuccess \t jstr \t jstr
+	 */
 	public static void extractDocFields(File docPair) throws Exception {
 		BufferedReader br = new BufferedReader(new FileReader(docPair));
 		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(docPair.getAbsolutePath() + "_fields")));
@@ -98,7 +103,11 @@ public class MongoUtils {
 	}
 	
 	
-	public static void extractDocUrl(File docPair) throws Exception {
+	/**
+	 * 基于 #未标注数据# 的属性构造待标注文档对
+	 * 未标注数据 doc_id \t doc_id \t isSuccess \t jstr |t jstr
+	 */
+	public static void extractDocUrlFromUnlabeledDocPair(File docPair) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		BufferedReader br = new BufferedReader(new FileReader(docPair));
 		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(docPair.getAbsolutePath() + "_urls")));
@@ -127,11 +136,19 @@ public class MongoUtils {
 	}
 	
 	
+	/**
+	 * unlabeled_doc_pair_fields + unlabeled_doc_pair_label => std_doc_pair_fields
+	 */
+	public static void concatFieldsWithLabel() {
+	
+	}
+	
+	
 	
 	public static void main(String[] args) throws Exception {
 		for (String filePath : filePaths) {
 			extractDocFields(new File(filePath));
-//			extractDocUrl(new File(filePath));
+//			extractDocUrlFromUnlabeledDocPair(new File(filePath));
 		}
 	}
 }
