@@ -48,7 +48,7 @@ public class WebDataConfig {
 	
 	@Bean("RandomForest")
 	public RandomForest randomForest() throws Exception {
-		RandomForest forest = (RandomForest) SerializationHelper.read(WebDataConfig.class.getClassLoader().getResourceAsStream("forest.model"));
+		RandomForest forest = (RandomForest) SerializationHelper.read(WebDataConfig.class.getClassLoader().getResourceAsStream("model/forest.model"));
 		return forest;
 	}
 	

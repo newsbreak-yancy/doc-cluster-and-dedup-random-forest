@@ -9,10 +9,7 @@ import weka.classifiers.trees.RandomForest;
 import weka.core.Attribute;
 import weka.core.Instances;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author yuxi
@@ -26,9 +23,8 @@ public class DocumentService {
 	
 	
 	/**
-	 * TODO : 增加阈值
 	 */
-	public List<String> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes) {
+	public List<String[]> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes) {
 		try {
 			Instances instances;
 			ArrayList<String> attVals = new ArrayList<>();
@@ -62,7 +58,7 @@ public class DocumentService {
 				instances.add(new EventFeature(masterNode, canditNode, null).toInstance());
 			}
 			// 3.
-			List<String> cls = new ArrayList<>();
+			List<String[]> cls = new ArrayList<>();
 			double[][] canditResults = randomForest.distributionsForInstances(instances);
 			for (int j = 0; j < canditResults.length; j++) {
 				double[] canditResult = canditResults[j];
@@ -72,10 +68,11 @@ public class DocumentService {
 						max = i;
 					}
 				}
-				cls.add(attVals.get(max));
+				cls.add(new String[]{attVals.get(max), String.valueOf(canditResult[max])});
 			}
 			return cls;
 		} catch (Exception e) {
+			e.printStackTrace();
 			return Collections.emptyList();
 		}
 	}
