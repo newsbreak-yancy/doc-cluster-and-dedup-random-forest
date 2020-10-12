@@ -34,11 +34,11 @@ public class DocumentEndpoint {
 	 *
 	 */
 	@RequestMapping(method = POST)
-	List<Integer> calCandidatesClusterInfo(
+	List<String> calCandidatesClusterInfo(
 		@RequestBody Map<String, Object> postBody
 	) {
 		JsonNode masterNode = objectMapper.valueToTree(postBody.get("master"));
-		JsonNode canditNode = objectMapper.valueToTree(postBody.get("candit"));
-		return documentService.calCandidatesClusterInfo(masterNode, canditNode);
+		JsonNode candidates = objectMapper.valueToTree(postBody.get("candidates"));
+		return documentService.calCandidatesClusterInfo(masterNode, candidates);
 	}
 }

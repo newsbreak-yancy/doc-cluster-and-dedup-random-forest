@@ -28,7 +28,7 @@ public class DocumentService {
 	/**
 	 * TODO : 增加阈值
 	 */
-	public List<Integer> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes) {
+	public List<String> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes) {
 		try {
 			Instances instances;
 			ArrayList<String> attVals = new ArrayList<>();
@@ -62,7 +62,7 @@ public class DocumentService {
 				instances.add(new EventFeature(masterNode, canditNode, null).toInstance());
 			}
 			// 3.
-			List<Integer> cls = new ArrayList<>();
+			List<String> cls = new ArrayList<>();
 			double[][] canditResults = randomForest.distributionsForInstances(instances);
 			for (int j = 0; j < canditResults.length; j++) {
 				double[] canditResult = canditResults[j];
@@ -72,7 +72,7 @@ public class DocumentService {
 						max = i;
 					}
 				}
-				cls.add(max);
+				cls.add(attVals.get(max));
 			}
 			return cls;
 		} catch (Exception e) {
