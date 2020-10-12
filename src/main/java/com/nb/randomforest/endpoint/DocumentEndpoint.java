@@ -34,7 +34,7 @@ public class DocumentEndpoint {
 	 *
 	 */
 	@RequestMapping(method = POST)
-	List<String[]> calCandidatesClusterInfo(
+	List<Object[]> calCandidatesClusterInfo(
 		@RequestBody Map<String, Object> postBody
 	) {
 		JsonNode masterNode = objectMapper.valueToTree(postBody.get("master"));
