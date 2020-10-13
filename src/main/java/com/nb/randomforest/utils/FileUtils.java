@@ -11,10 +11,7 @@ import org.bson.Document;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -22,7 +19,7 @@ import static com.mongodb.client.model.Filters.eq;
  * @author yuxi
  * @date 2020/9/28
  */
-public class MongoUtils {
+public class FileUtils {
 	
 	public static MongoCollection<Document> collectionStatic;
 	
@@ -52,19 +49,25 @@ public class MongoUtils {
 			.append("ne_title_location",1).append("ne_title_organization",1).append("ne_title_person",1)
 			.append("text_category_v2",1).append("geotag_v2",1).append("url", 1);
 		
-		filePaths.add(Paths.get(rootDir, "append_0926_0930/dp_0926_0930_celebrities").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0926_0930/dp_0926_0930_economic").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0926_0930/dp_0926_0930_event").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0926_0930/dp_0926_0930_royal").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0926_0930/dp_0926_0930_tech").toAbsolutePath().toString());
-		
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_1").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_2").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_3").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_4_cluster_yes").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_5_cluster_no").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_6_cluster_unsure").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_7").toAbsolutePath().toString());
+		/** append_0926_0930 */
+		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_celebrities_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_economic_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_event_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_royal_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_tech_fields").toAbsolutePath().toString());
+		/** append_0720~0920 */
+		filePaths.add(Paths.get(rootDir, "append_0720~0920/doc_pair_0720~0920_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0720~0920/doc_pair_0903_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0720~0920/doc_pair_0911_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0720~0920/doc_pair_0914_fields").toAbsolutePath().toString());
+		/** append_history */
+		filePaths.add(Paths.get(rootDir, "append_history/bash_1_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_history/bash_2_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_history/bash_3_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_history/bash_4_cluster_yes_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_history/bash_5_cluster_no_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_history/bash_6_cluster_unsure_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_history/bash_7_fields").toAbsolutePath().toString());
 	}
 	
 	
@@ -145,6 +148,7 @@ public class MongoUtils {
 	
 	
 	/**
+	 * 无标签 Field + Label Pair => 标准 Field 文档
 	 * unlabeled_doc_pair_fields + labeled_doc_pair => std_doc_pair_fields
 	 */
 	public static void concatFieldsWithLabel(String sourcePath) {
@@ -196,14 +200,44 @@ public class MongoUtils {
 	}
 	
 	
+	/**
+	 * 基于标注数据结果 生成 shuffled train_fields, test_fields
+	 */
+	public static void buildModelData(List<String> paths, String targetDir) throws Exception {
+		String trainFieldsPath = Paths.get(targetDir, "train_fields").toString();
+		String testFieldsPath = Paths.get(targetDir, "test_fields").toString();
+		BufferedWriter trainFieldsWriter = new BufferedWriter(new FileWriter(new File(trainFieldsPath)));
+		BufferedWriter testFieldsWriter = new BufferedWriter(new FileWriter(new File(testFieldsPath)));
+		Random rnd = new Random();
+		
+		for (String path : paths) {
+			BufferedReader br = new BufferedReader(new FileReader(new File(path)));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				String[] datas = line.split("\t");
+				String label = datas[2];
+				String isSuccess = datas[3];
+				if (!label.equals("DIFF") && !label.equals("EVENT") && !label.equals("DUP") || !isSuccess.equals("SUCCESS")) {
+					System.out.println(line);
+					continue;
+				}
+				if (rnd.nextInt(10) < 1) {
+					testFieldsWriter.write(line);
+					testFieldsWriter.write("\n");
+				} else {
+					trainFieldsWriter.write(line);
+					trainFieldsWriter.write("\n");
+				}
+			}
+		}
+		
+		testFieldsWriter.close();
+		trainFieldsWriter.close();
+	}
+	
+	
 	
 	public static void main(String[] args) throws Exception {
-		for (String filePath : filePaths) {
-			
-			concatFieldsWithLabel(filePath);
-			
-//			extractDocFields(new File(filePath));
-//			extractDocUrlFromUnlabeledDocPair(new File(filePath));
-		}
+		buildModelData(filePaths, "/Users/yuxi/NB/RandomForest/_local/train/20201013/");
 	}
 }
