@@ -12,7 +12,9 @@ import org.bson.Document;
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -50,13 +52,19 @@ public class MongoUtils {
 			.append("ne_title_location",1).append("ne_title_organization",1).append("ne_title_person",1)
 			.append("text_category_v2",1).append("geotag_v2",1).append("url", 1);
 		
-		filePaths.add(Paths.get(rootDir, "append_history/bash_1").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_2").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_3").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_4_cluster_yes").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_5_cluster_no").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_6_cluster_unsure").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_7").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0926_0930/dp_0926_0930_celebrities").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0926_0930/dp_0926_0930_economic").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0926_0930/dp_0926_0930_event").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0926_0930/dp_0926_0930_royal").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "append_0926_0930/dp_0926_0930_tech").toAbsolutePath().toString());
+		
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_1").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_2").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_3").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_4_cluster_yes").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_5_cluster_no").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_6_cluster_unsure").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_7").toAbsolutePath().toString());
 	}
 	
 	
@@ -137,16 +145,63 @@ public class MongoUtils {
 	
 	
 	/**
-	 * unlabeled_doc_pair_fields + unlabeled_doc_pair_label => std_doc_pair_fields
+	 * unlabeled_doc_pair_fields + labeled_doc_pair => std_doc_pair_fields
 	 */
-	public static void concatFieldsWithLabel() {
-	
+	public static void concatFieldsWithLabel(String sourcePath) {
+		try {
+			File sourceFile = new File(sourcePath);
+			BufferedReader unlabelFieldReader = new BufferedReader(new FileReader(sourceFile));
+			BufferedReader labelPairReader = new BufferedReader(new FileReader(new File(sourceFile.getAbsolutePath() + "_label")));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(new File(sourceFile.getAbsolutePath() + "_fields")));
+			String line = null;
+			Map<String, String> docPair2Field = new HashMap<>();
+			while ((line = unlabelFieldReader.readLine()) != null) {
+				String[] datas = line.split("\t");
+				String docM = datas[0];
+				String fieldM = datas[3];
+				String docC = datas[1];
+				String fieldC = datas[4];
+				String key = docM + "\t" + docC;
+				String value = fieldM + "\t" + fieldC;
+				if (docPair2Field.containsKey(key)) {
+					System.out.println(key);
+				}
+				docPair2Field.put(key, value);
+			}
+			
+			while ((line = labelPairReader.readLine()) != null) {
+				String[] datas = line.split("\t");
+				String docM = datas[0];
+				String docC = datas[1];
+				String label = datas[2];
+				String key = docM + "\t" + docC;
+				if (docPair2Field.containsKey(key)) {
+					bw.write(key);
+					bw.write("\t");
+					bw.write(label);
+					bw.write("\t");
+					bw.write("SUCCESS");
+					bw.write("\t");
+					bw.write(docPair2Field.get(key));
+					bw.write("\n");
+				} else {
+					System.out.println("NotIn : " + key);
+				}
+			}
+			bw.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	
 	
 	public static void main(String[] args) throws Exception {
 		for (String filePath : filePaths) {
+			
+			concatFieldsWithLabel(filePath);
+			
 //			extractDocFields(new File(filePath));
 //			extractDocUrlFromUnlabeledDocPair(new File(filePath));
 		}
