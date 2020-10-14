@@ -78,6 +78,8 @@ public class ModelUtils {
      */
     public static void predictABTestBasedARFF(RandomForest forest, String sourceFile, String docPairFile) throws Exception {
         DataSource dataSource = new DataSource(sourceFile);
+        String badpath = Paths.get(Paths.get(sourceFile).getParent().toString(), "badcase").toString();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(new File(badpath)));
         Instances testDataset = dataSource.getDataSet();
         testDataset.setClassIndex(testDataset.numAttributes() - 1);
     
@@ -106,22 +108,32 @@ public class ModelUtils {
         int ppDUP = 0;
         
         Attribute clsAttribute = testDataset.classAttribute();
-        int i = 22;
+        int i = 22;//打印时便于找到 arff 中对应的结果
         //逐个计算
-        System.out.println("Master\t\tCandidate\tReal\tPredict");
+        bw.write("Master\t\tCandidate\tDIF_WEIGHT\tEVT_WEIGHT\tDUP_WEIGHT\tReal");
+        bw.write("\n");
         for (Instance instance : testDataset) {
-            String pCls = clsAttribute.value(Double.valueOf(forest.classifyInstance(instance)).intValue());
+            double[] distribute = forest.distributionForInstance(instance);
+            double difScr = distribute[0];
+            double evtScr = distribute[1];
+            double dupScr = distribute[2];
+            
+            String pCls = "";
             String rCls = clsAttribute.value(Double.valueOf(instance.value(instance.classIndex())).intValue());
-            if (StringUtils.equals(pCls, "EVENT")) {
+            if (difScr < 0.56d && dupScr < 0.7d) {//EVENT
                 ppEVT++;
-                if (StringUtils.equals(rCls, pCls)) {
+                pCls = "EVENT";
+                if (StringUtils.equals(rCls, "EVENT")) {
                     tpEVT++;
                 }
-            } else if (StringUtils.equals(pCls, "DUP")) {
+            } else if (dupScr >= 0.7d) {//DUP
                 ppDUP++;
-                if (StringUtils.equals(rCls, pCls)) {
+                pCls = "DUP";
+                if (StringUtils.equals(rCls, "DUP")) {
                     tpDUP++;
                 }
+            } else {
+                pCls = "DIFF";
             }
             
             if (StringUtils.equals(rCls, "DUP")) {
@@ -129,12 +141,11 @@ public class ModelUtils {
             } else if (StringUtils.equals(rCls, "EVENT")) {
                 rpEVT++;
             }
-            
-            if (!StringUtils.equals(rCls, pCls)) {
-                System.out.println(indexDocMap.get(i) + "\t" + rCls + "\t" + pCls);
-            }
+            bw.write(indexDocMap.get(i) + "\t" + String.valueOf(difScr) + "\t" + String.valueOf(evtScr) + "\t" + String.valueOf(dupScr) + "\t" + pCls + "\t" + rCls);
+            bw.write("\n");
             i++;
         }
+        bw.close();
         
         double tprDUP = tpDUP / Double.valueOf(ppDUP);
         double rcrDUP = tpDUP / Double.valueOf(rpDUP);
@@ -199,13 +210,13 @@ public class ModelUtils {
         /** Model Training */
         String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
         String testARFFPath = Paths.get(rootDir, "test.arff").toString();
-        train(trainARFFPath, testARFFPath);
+//        train(trainARFFPath, testARFFPath);
 
         /** Model Inference ABTEST*/
         RandomForest forest = (RandomForest) SerializationHelper.read(Paths.get(rootDir, "forest.model").toString());
         predictABTestBasedARFF(forest, testARFFPath, Paths.get(rootDir, "test_fields").toString());
         
-        /** Model Inference ONLINE */
+//        /** Model Inference ONLINE */
 //        ObjectMapper mapper = new ObjectMapper();
 //        String masterStr = "";
 //        String canditStr = "[]";
