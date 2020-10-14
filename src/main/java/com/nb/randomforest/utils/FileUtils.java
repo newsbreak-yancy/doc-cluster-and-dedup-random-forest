@@ -42,11 +42,12 @@ public class FileUtils {
 		MongoDatabase dbCenter = clientCenter.getDatabase("docenter");
 		collectionCenter = dbCenter.getCollection("document");
 		
-		fields.append("_id", 1).append("stitle",1).append("src",1)
+		fields.append("_id", 1).append("stitle",1).append("seg_title", 1).append("src",1)
 			.append("c_word", 1).append("epoch", 1).append("paragraph_count",1)
 			.append("simhash", 1).append("kws", 1).append("channels_v2",1)
 			.append("ne_content_organization",1).append("ne_content_person",1).append("ne_content_location",1)
 			.append("ne_title_location",1).append("ne_title_organization",1).append("ne_title_person",1)
+			.append("text_category",1).append("geotag",1)
 			.append("text_category_v2",1).append("geotag_v2",1).append("url", 1);
 		
 		/** append_0926_0930 */
@@ -61,13 +62,13 @@ public class FileUtils {
 		filePaths.add(Paths.get(rootDir, "append_0720~0920/doc_pair_0911_fields").toAbsolutePath().toString());
 		filePaths.add(Paths.get(rootDir, "append_0720~0920/doc_pair_0914_fields").toAbsolutePath().toString());
 		/** append_history */
-		filePaths.add(Paths.get(rootDir, "append_history/bash_1_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_2_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_3_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_4_cluster_yes_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_5_cluster_no_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_6_cluster_unsure_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_history/bash_7_fields").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_1_fields").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_2_fields").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_3_fields").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_4_cluster_yes_fields").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_5_cluster_no_fields").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_6_cluster_unsure_fields").toAbsolutePath().toString());
+//		filePaths.add(Paths.get(rootDir, "append_history/bash_7_fields").toAbsolutePath().toString());
 	}
 	
 	
@@ -239,5 +240,10 @@ public class FileUtils {
 	
 	public static void main(String[] args) throws Exception {
 		buildModelData(filePaths, "/Users/yuxi/NB/RandomForest/_local/train/20201013/");
+		
+		
+//		for (String filePath : filePaths) {
+//			extractDocFields(new File(filePath));
+//		}
 	}
 }
