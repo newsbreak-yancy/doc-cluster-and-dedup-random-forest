@@ -18,7 +18,6 @@ public class RFModelResult {
 	private Double score;
 	
 	@JsonCreator
-	
 	public RFModelResult(
 		@JsonProperty("doc") String doc,
 		@JsonProperty("label") String label,
@@ -54,5 +53,14 @@ public class RFModelResult {
 	
 	public void setScore(Double score) {
 		this.score = score;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder jsonMsg = new StringBuilder();
+		jsonMsg.append(String.format("\"doc\":\"%s\"", getDoc()));
+		jsonMsg.append(String.format(",\"label\":%s", getLabel()));
+		jsonMsg.append(String.format(",\"score\":\"%d\"", getScore()));
+		return jsonMsg.toString();
 	}
 }
