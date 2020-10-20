@@ -60,7 +60,7 @@ public class RFModelResult {
 		StringBuilder jsonMsg = new StringBuilder();
 		jsonMsg.append(String.format("\"doc\":\"%s\"", getDoc()));
 		jsonMsg.append(String.format(",\"label\":%s", getLabel()));
-		jsonMsg.append(String.format(",\"score\":\"%d\"", getScore()));
+		jsonMsg.append(String.format(",\"score\":\"%4.3f\"", getScore()));
 		return jsonMsg.toString();
 	}
 }
