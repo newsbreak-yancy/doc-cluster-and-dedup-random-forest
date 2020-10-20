@@ -3,8 +3,7 @@ package com.nb.randomforest.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sun.tools.javac.util.Assert;
+//import com.sun.tools.javac.util.Assert;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
@@ -252,8 +251,8 @@ public class FeatureUtils {
 
 
 		/** OverlapRatio */
-		Assert.checkNull(overlapRatio(mapper.createArrayNode(), mapper.createArrayNode()));
-		Assert.checkNonNull(overlapRatio(mapper.createArrayNode().add("TEST"), mapper.createArrayNode()));
+		System.out.println(String.valueOf(overlapRatio(mapper.createArrayNode(), mapper.createArrayNode())));
+		System.out.println(String.valueOf(overlapRatio(mapper.createArrayNode().add("TEST"), mapper.createArrayNode())));
 		//0.15
 		String mStr = "[\"Bengals\", \"Fantasy^^Football\", \"Fantasy^^Football^^players\", \"QB1^^potential\", \"Chargers\", \"NFL\", \"Ravens\", \"Colts\", \"Browns\", \"Steelers\", \"Fantasy^^Football^^owners\", \"quarterback\", \"the^^game\", \"Titans\", \"football^^team\", \"Jaguars\", \"Cleveland^^Browns\", \"Eagles\", \"Aaron^^Rodgers\", \"lineups\"]";
 		String cStr = "[\"completions\", \"Joe^^Burrow\", \"quarterback\", \"games\", \"the^^Eagles\", \"Bengals\", \"rookies\", \"Kyler^^Murray\", \"Joe\", \"Arizona\"]";
@@ -276,7 +275,7 @@ public class FeatureUtils {
 		cStr = "{ \"Greece\" : 4, \"Greecess\" : 2}";
 		JsonNode mNode = mapper.readTree(mStr);
 		JsonNode cNode = mapper.readTree(cStr);
-		Assert.checkNull(weightedOverlapRatio(mNode, null));
+		System.out.println(String.valueOf(weightedOverlapRatio(mNode, null)));
 		//0.0
 		System.out.println(weightedOverlapRatio(mNode, mapper.createObjectNode()));
 		//0.66
