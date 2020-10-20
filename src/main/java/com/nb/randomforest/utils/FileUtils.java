@@ -7,6 +7,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
 import java.io.*;
@@ -237,9 +238,58 @@ public class FileUtils {
 	}
 	
 	
+	public static void calDocPairIsLocal() throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+		BufferedReader br = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/train/20201014/badcase")));
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/train/20201014/doc_pair_islocal")));
+		String line = null;
+		while ((line = br.readLine())!= null) {
+			String[] datas = line.split("\t");
+			String docM = datas[0];
+			String docC = datas[1];
+			Document docMaster;
+			Document docCandit;
+			BasicDBObject fields = new BasicDBObject();
+			fields.append("is_local_news", 1).append("geotag_v2", 1).append("geotag", 1);
+			docMaster = collectionStatic.find(eq("_id", docM)).projection(fields).first();
+			docCandit = collectionStatic.find(eq("_id", docC)).projection(fields).first();
+			if (docMaster == null || docCandit == null) {
+				docMaster = collectionCenter.find(eq("_id", docM)).projection(fields).first();
+				docCandit = collectionCenter.find(eq("_id", docC)).projection(fields).first();
+			}
+			if (docMaster == null || docCandit == null) {
+				System.out.println(line);
+				continue;
+			}
+			String jsM = docMaster.toJson();
+			String jsC = docCandit.toJson();
+			JsonNode nodeM = mapper.readTree(jsM);
+			JsonNode nodeC = mapper.readTree(jsC);
+			bw.write(line);
+			bw.write("\t");
+			if (StringUtils.equals(nodeM.hasNonNull("is_local_news") ? nodeM.get("is_local_news").textValue() : "false", "true") || nodeM.get("geotag").size() != 0 || nodeM.get("geotag_v2").size() != 0) {
+				bw.write("1");
+			} else {
+				bw.write("0");
+			}
+			bw.write("\t");
+			if (StringUtils.equals(nodeC.hasNonNull("is_local_news") ? nodeC.get("is_local_news").textValue() : "false", "true") || nodeC.get("geotag").size() != 0 || nodeC.get("geotag_v2").size() != 0) {
+				bw.write("1");
+			} else {
+				bw.write("0");
+			}
+			bw.write("\n");
+		}
+		bw.close();
+	}
+	
+	
 	
 	public static void main(String[] args) throws Exception {
-		buildModelData(filePaths, "/Users/yuxi/NB/RandomForest/_local/train/20201013/");
+		calDocPairIsLocal();
+		
+		
+//		buildModelData(filePaths, "/Users/yuxi/NB/RandomForest/_local/train/20201013/");
 		
 		
 //		for (String filePath : filePaths) {

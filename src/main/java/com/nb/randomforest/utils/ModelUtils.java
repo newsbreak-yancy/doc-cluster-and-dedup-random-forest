@@ -35,7 +35,7 @@ public class ModelUtils {
     /**
      * Model training and estimate based on train, test file.
      */
-    public static void train(String trainFile, String testFile) throws Exception {
+    public static void trainModel(String trainFile, String testFile) throws Exception {
         Instances trainingDataSet = getDataSet(trainFile);
         trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
         Instances testingDataSet = getDataSet(testFile);
@@ -44,8 +44,8 @@ public class ModelUtils {
         RandomForest forest = new RandomForest();
         forest.setNumIterations(200);
         forest.setDebug(false);
-        forest.setNumFeatures(4);
-        forest.setMaxDepth(0);
+        forest.setNumFeatures(4); // random feature num = log_2{feature num}
+        forest.setComputeAttributeImportance(true);
         forest.buildClassifier(trainingDataSet);
     
         Evaluation eval = new Evaluation(trainingDataSet);
@@ -217,18 +217,17 @@ public class ModelUtils {
             double[] distribute = forest.distributionsForInstances(instances)[0];
             double difScr = distribute[0];
             double evtScr = distribute[1];
-            if (evtScr > 0.95) {
+            if (evtScr > 0.9) {
                 ppDUP++;
                 pCls = "DUP";
                 if (StringUtils.equals(rCls, pCls)) {
                     tpDUP++;
                 }
-            } else if (evtScr > 0.8d) {//EVENT
+            } else if (evtScr > 0.58d) {//EVENT
                 if (!StringUtils.equals(rCls, "DUP")) {
                     ppEVT++;
                 }
                 pCls = "EVENT";
-//                if (StringUtils.equals(rCls, "DUP") || StringUtils.equals(rCls, "EVENT")) {
                 if (StringUtils.equals(rCls, "EVENT")) {
                     tpEVT++;
                 }
@@ -297,7 +296,9 @@ public class ModelUtils {
         instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
         instances.setClassIndex(instances.numAttributes() - 1);
         for (JsonNode canditNode : canditNodes) {
-            instances.add(new EventFeature(masterNode, canditNode, null).toInstance());
+            EventFeature feature = new EventFeature(masterNode, canditNode, null);
+            System.out.println(feature.toString());
+            instances.add(feature.toInstance());
         }
         // 3.
         List<double[]> result = new ArrayList<>();
@@ -310,12 +311,12 @@ public class ModelUtils {
 
     public static void main(String[] args) throws Exception {
         
-        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201014_1/";
+        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201014/";
 
         /** Model Training */
         String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
         String testARFFPath = Paths.get(rootDir, "test.arff").toString();
-//        train(trainARFFPath, testARFFPath);
+//        trainModel(trainARFFPath, testARFFPath);
 
         /** Model Inference ABTEST*/
         RandomForest forest = (RandomForest) SerializationHelper.read(Paths.get(rootDir, "forest.model").toString());
@@ -323,13 +324,11 @@ public class ModelUtils {
         
 //        /** Model Inference ONLINE */
 //        ObjectMapper mapper = new ObjectMapper();
-//        String masterStr = "{\"c_word\" : 588, \"channels\" : [ \"Snapchat^^Users\", \"Instagram\", \"Facebook^^Inc.\", \"Social^^Media^^Content\", \"Active^^Users\" ], \"channels_v2\" : [ \"Social^^Media\", \"TikTok\", \"Active^^Users\", \"Snapchat\", \"Hashtag\" ], \"dup_id\" : \"0XIFnJc7\", \"epoch\" : 1602595003, \"evt_id\" : \"0XHXHZ8Y\", \"geotag\" : [], \"geotag_v2\" : [], \"insert_time\" : \"2020-10-13 17:49:29\", \"kws\" : [ \"real^^followers\", \"Instagram\", \"Hashtags\", \"Snapchat\", \"Facebook\", \"active^^users\", \"social^^media^^apps\", \"Sharing^^Content\", \"uploading^^videos\", \"likes\", \"videos\", \"websites\", \"Popular^^Songs\", \"video\", \"important^^things\", \"conversation\", \"newer^^people\", \"time\", \"happy\", \"today\" ], \"nbr_id\" : \"0XHXHZ8Y\", \"ne_content_location\" : {}, \"ne_content_organization\" : { \"Instagram\" : 1, \"Facebook\" : 1, \"TikTok\" : 1 }, \"ne_content_person\" : { \"Spotify\" : 1, \"Hashtags\" : 1, \"Tiktok\" : 1 }, \"paragraph_count\" : 15.0, \"simhash\" : \"d4e9aeeae889d1ab3a61f64b8236565a\", \"src\" : \"programminginsider.com\", \"stitle\" : \"How to Increase Followers on TikTok\", \"text_category\" : { \"first_cat\" : { \"ArtsEntertainment\" : 0.999937534332275, \"TechnologyElectronics\" : 1.00000488758087 }, \"second_cat\" : { \"ArtsEntertainment_Other\" : 0.999937534332275, \"TechnologyElectronics_Internet\" : 0.968924403190613 } }, \"text_category_v2\" : { \"first_cat\" : { \"ArtsEntertainment\" : 0.670592690922277 }, \"second_cat\" : { \"ArtsEntertainment_TV\" : 0.712832699158752 }, \"third_cat\" : { \"ArtsEntertainment_TV_OnlineVideo\" : 0.713578089647936 } }, \"url\" : \"https://programminginsider.com/how-to-increase-followers-on-tiktok/\" }";
-//        String canditStr = "[{\"c_word\" : 471, \"channels\" : [ \"Teenagers\", \"Instagram\", \"Snapchat\", \"WhatsApp\" ], \"channels_v2\" : [ \"TikTok\", \"Snapchat\", \"Social^^Media\", \"Piper^^Sandler\", \"Music^^Industry\", \"Investment^^Banking\", \"Mark^^Zuckerberg\" ], \"dup_id\" : \"0XIR65L8\", \"epoch\" : 1602622345, \"evt_id\" : \"0XHXHZ8Y\", \"geotag\" : [], \"geotag_v2\" : [], \"insert_time\" : \"2020-10-14 08:44:43\", \"kws\" : [ \"Teens\", \"Instagram^^Stories\", \"Instagram\", \"Snapchat\", \"long-time^^Instagram^^users\", \"social\", \"habits\", \"Digital^^Music^^News\", \"Facebook-owned^^platforms\", \"WhatsApp\", \"behind-the-scenes^^offers\", \"Musical.ly\", \"music^^industry\", \"Piper^^Sandler\", \"Zuckerberg\", \"Oculus^^Rift\", \"Copying^^aspects\", \"Reels\", \"ByteDance\" ], \"nbr_id\" : \"0XIFnJc7\", \"ne_content_location\" : { \"United States\" : 2, \"Lil Nas X\" : 1, \"US\" : 3, \"Snapchat\" : 1 }, \"ne_content_organization\" : { \"Instagram\" : 5, \"TikTok\" : 1, \"Digital Music News\" : 1, \"Facebook\" : 9, \"Instagram Stories\" : 1 }, \"ne_content_person\" : { \"ByteDance\" : 1, \"TikTok\" : 1, \"Fleetwood Mac\" : 1, \"Zuckerberg\" : 1, \"Piper Sandler\" : 1 }, \"ne_title_location\" : { \"US\" : 1 }, \"ne_title_organization\" : {}, \"ne_title_person\" : {}, \"paragraph_count\" : 10.0, \"simhash\" : \"d3b101e2adcb498faa57f659c6165840\", \"src\" : \"Digital Music News\", \"stitle\" : \"TikTok Is More Popular Than Instagram Among US Teens , Study Finds\", \"text_category\" : { \"first_cat\" : { \"ArtsEntertainment\" : 0.999531626701355 }, \"second_cat\" : { \"ArtsEntertainment_Other\" : 0.999531626701355 } }, \"text_category_v2\" : { \"first_cat\" : { \"ArtsEntertainment\" : 0.675440673481129, \"TechnologyElectronics\" : 0.563227407700919 }, \"second_cat\" : { \"ArtsEntertainment_TV\" : 0.677829385635729, \"TechnologyElectronics_Internet\" : 0.528321128129701, \"TechnologyElectronics_Smartphone\" : 0.554593328653523 }, \"third_cat\" : { \"ArtsEntertainment_TV_OnlineVideo\" : 0.617411759748676, \"TechnologyElectronics_Internet_Other\" : 0.528321128129701, \"TechnologyElectronics_Smartphone_Software\" : 0.554593328653523 } }, \"url\" : \"https://www.digitalmusicnews.com/2020/10/13/us-teens-prefer-tiktok-over-instagram/\" }]";
-//
+//        String masterStr = "";
+//        String canditStr = "[]";
 //        List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
 //        for (double[] weight : indexList) {
 //            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]) + "\t" + String.valueOf(weight[2]));
 //        }
-        
     }
 }
