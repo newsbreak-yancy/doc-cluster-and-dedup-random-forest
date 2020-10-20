@@ -35,17 +35,17 @@ public class ModelUtils {
     /**
      * Model training and estimate based on train, test file.
      */
-    public static void train(String trainFile, String testFile) throws Exception {
+    public static void trainModel(String trainFile, String testFile) throws Exception {
         Instances trainingDataSet = getDataSet(trainFile);
         trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
         Instances testingDataSet = getDataSet(testFile);
         testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
 
         RandomForest forest = new RandomForest();
-        forest.setNumIterations(10);
+        forest.setNumIterations(200);
         forest.setDebug(false);
-        forest.setNumFeatures(2);
-        forest.setMaxDepth(0);
+        forest.setNumFeatures(4); // random feature num = log_2{feature num}
+        forest.setComputeAttributeImportance(true);
         forest.buildClassifier(trainingDataSet);
     
         Evaluation eval = new Evaluation(trainingDataSet);
@@ -78,6 +78,8 @@ public class ModelUtils {
      */
     public static void predictABTestBasedARFF(RandomForest forest, String sourceFile, String docPairFile) throws Exception {
         DataSource dataSource = new DataSource(sourceFile);
+        String badpath = Paths.get(Paths.get(sourceFile).getParent().toString(), "badcase").toString();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(new File(badpath)));
         Instances testDataset = dataSource.getDataSet();
         testDataset.setClassIndex(testDataset.numAttributes() - 1);
     
@@ -87,11 +89,8 @@ public class ModelUtils {
         Map<Integer, String> indexDocMap = new HashMap<>();
         while ((line = br.readLine()) != null) {
             String[] docPairFields = line.split("\t");
-            String isSuccess = docPairFields[3];
-            if (StringUtils.equals(isSuccess, "SUCCESS")) {
-                indexDocMap.put(j, docPairFields[0] + "\t" + docPairFields[1]);
-                j++;
-            }
+            indexDocMap.put(j, docPairFields[0] + "\t" + docPairFields[1]);
+            j++;
         }
 
         //Real Positive
@@ -106,21 +105,32 @@ public class ModelUtils {
         int ppDUP = 0;
         
         Attribute clsAttribute = testDataset.classAttribute();
-        int i = 22;
+        int i = 22;//打印时便于找到 arff 中对应的结果
         //逐个计算
+        bw.write("Master\t\tCandidate\tDIF_WEIGHT\tEVT_WEIGHT\tDUP_WEIGHT\tPredict\tReal");
+        bw.write("\n");
         for (Instance instance : testDataset) {
-            String pCls = clsAttribute.value(Double.valueOf(forest.classifyInstance(instance)).intValue());
+            double[] distribute = forest.distributionForInstance(instance);
+            double difScr = distribute[0];
+            double evtScr = distribute[1];
+            double dupScr = distribute[2];
+            
+            String pCls = "";
             String rCls = clsAttribute.value(Double.valueOf(instance.value(instance.classIndex())).intValue());
-            if (StringUtils.equals(pCls, "EVENT")) {
+            if (difScr < 0.56d && dupScr < 0.7d) {//EVENT
                 ppEVT++;
-                if (StringUtils.equals(rCls, pCls)) {
+                pCls = "EVENT";
+                if (StringUtils.equals(rCls, "EVENT")) {
                     tpEVT++;
                 }
-            } else if (StringUtils.equals(pCls, "DUP")) {
+            } else if (dupScr >= 0.7d) {//DUP
                 ppDUP++;
-                if (StringUtils.equals(rCls, pCls)) {
+                pCls = "DUP";
+                if (StringUtils.equals(rCls, "DUP")) {
                     tpDUP++;
                 }
+            } else {
+                pCls = "DIFF";
             }
             
             if (StringUtils.equals(rCls, "DUP")) {
@@ -128,12 +138,11 @@ public class ModelUtils {
             } else if (StringUtils.equals(rCls, "EVENT")) {
                 rpEVT++;
             }
-            
-            if (!StringUtils.equals(rCls, pCls)) {
-                System.out.println(indexDocMap.get(i) + "\t" + rCls + "\t" + pCls);
-            }
+            bw.write(indexDocMap.get(i) + "\t" + String.valueOf(difScr) + "\t" + String.valueOf(evtScr) + "\t" + String.valueOf(dupScr) + "\t" + pCls + "\t" + rCls);
+            bw.write("\n");
             i++;
         }
+        bw.close();
         
         double tprDUP = tpDUP / Double.valueOf(ppDUP);
         double rcrDUP = tpDUP / Double.valueOf(rpDUP);
@@ -149,7 +158,114 @@ public class ModelUtils {
     /**
      *
      */
-    public static List<Integer> predictOnline(RandomForest forest, JsonNode masterNode, JsonNode canditNodes) throws Exception {
+    public static void predictABTestBasedARFF2Class(RandomForest forest, String docPairFile) throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        ArrayList<Attribute> attributes = new ArrayList<>();
+        ArrayList<String> attVals = new ArrayList<>();
+        // - numeric
+        attributes.add(new Attribute("TitleDist"));
+        attributes.add(new Attribute("SameSRC"));
+        attributes.add(new Attribute("CWordSpan"));
+        attributes.add(new Attribute("EpochSpan"));
+        attributes.add(new Attribute("ParghSpan"));
+        attributes.add(new Attribute("SimhashDist"));
+        attributes.add(new Attribute("KWSRatio"));
+        attributes.add(new Attribute("ChannelRatio"));
+        attributes.add(new Attribute("COrgOverlapRatio"));
+        attributes.add(new Attribute("CLocOverlapRatio"));
+        attributes.add(new Attribute("CPrsOverlapRatio"));
+        attributes.add(new Attribute("TOrgOverlapRatio"));
+        attributes.add(new Attribute("TLocOverlapRatio"));
+        attributes.add(new Attribute("TPrsOverlapRatio"));
+        attributes.add(new Attribute("CatOverlapRatio"));
+        attributes.add(new Attribute("GEOOverlapRatio"));
+        // - nominal
+        attVals.add("DIFF");
+        attVals.add("EVENT");
+        attributes.add(new Attribute("Label", attVals));
+        //
+        //Real Positive
+        int rpDUP = 0;
+        int rpEVT = 0;
+        //True Positive
+        int tpDIF = 0;
+        int tpEVT = 0;
+        int tpDUP = 0;
+        //Predict Positive
+        int ppEVT = 0;
+        int ppDUP = 0;
+        //
+        BufferedReader br = new BufferedReader(new FileReader(new File(docPairFile)));
+        String badpath = Paths.get(Paths.get(docPairFile).getParent().toString(), "badcase").toString();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(new File(badpath)));
+        bw.write("Master\t\tCandidate\tDIF_WEIGHT\tEVT_WEIGHT\tPredict\tReal");
+        bw.write("\n");
+        String line = null;
+        while ((line = br.readLine()) != null) {
+            String[] docPairFields = line.split("\t");
+            String mDoc = docPairFields[0];
+            String cDoc = docPairFields[1];
+            String pCls = "";
+            String rCls = docPairFields[2];
+            JsonNode mNode = objectMapper.readTree(docPairFields[4]);
+            JsonNode cNode = objectMapper.readTree(docPairFields[5]);
+            EventFeature feature = new EventFeature(mNode, cNode, rCls);
+            Instances instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
+            instances.setClassIndex(instances.numAttributes() - 1);
+            instances.add(feature.toInstance());
+            double[] distribute = forest.distributionsForInstances(instances)[0];
+            double difScr = distribute[0];
+            double evtScr = distribute[1];
+            if (evtScr > 0.9) {
+                ppDUP++;
+                pCls = "DUP";
+                if (StringUtils.equals(rCls, pCls)) {
+                    tpDUP++;
+                }
+            } else if (evtScr > 0.58d) {//EVENT
+                if (!StringUtils.equals(rCls, "DUP")) {
+                    ppEVT++;
+                }
+                pCls = "EVENT";
+                if (StringUtils.equals(rCls, "EVENT")) {
+                    tpEVT++;
+                }
+            } else {
+                pCls = "DIFF";
+            }
+    
+            if (StringUtils.equals(rCls, "EVENT")) {
+                rpEVT++;
+            }
+            if (StringUtils.equals(rCls, "DUP")) {
+                rpDUP++;
+            }
+    
+            if (!StringUtils.equals(rCls, pCls)) {
+                bw.write(mDoc + "\t" + cDoc + "\t" + String.valueOf(difScr) + "\t" + String.valueOf(evtScr) + "\t" + pCls + "\t" + rCls);
+                bw.write("\n");
+            }
+        }
+        
+        bw.close();
+
+        double tprDUP = tpDUP / Double.valueOf(ppDUP);
+        double rcrDUP = tpDUP / Double.valueOf(rpDUP);
+        System.out.println("## TPR DUP    : " + String.valueOf(tpDUP) + "/" + String.valueOf(ppDUP) + "=" + String.valueOf(tprDUP));
+        System.out.println("## RCR DUP    : " + String.valueOf(tpDUP) + "/" + String.valueOf(rpDUP) + "=" + String.valueOf(rcrDUP));
+
+        double tprEVT = tpEVT / Double.valueOf(ppEVT);
+        double rcrEVT = tpEVT / Double.valueOf(rpEVT);
+        System.out.println("## TPR EVT    : " + String.valueOf(tpEVT) + "/" + String.valueOf(ppEVT) + "=" + String.valueOf(tprEVT));
+        System.out.println("## RCR EVT    : " + String.valueOf(tpEVT) + "/" + String.valueOf(rpEVT) + "=" + String.valueOf(rcrEVT));
+    }
+    
+    
+    /**
+     *
+     */
+    public static List<double[]> predictOnline(RandomForest forest, JsonNode masterNode, JsonNode canditNodes) throws Exception {
         ArrayList<Attribute> attributes = new ArrayList<>();
         ArrayList<String> attVals = new ArrayList<>();
         Instances instances;
@@ -180,39 +296,39 @@ public class ModelUtils {
         instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
         instances.setClassIndex(instances.numAttributes() - 1);
         for (JsonNode canditNode : canditNodes) {
-            instances.add(new EventFeature(masterNode, canditNode, null).toInstance());
+            EventFeature feature = new EventFeature(masterNode, canditNode, null);
+            System.out.println(feature.toString());
+            instances.add(feature.toInstance());
         }
         // 3.
-        List<Integer> cls = new ArrayList<>();
+        List<double[]> result = new ArrayList<>();
         double[][] canditResults = forest.distributionsForInstances(instances);
         for (int j = 0; j < canditResults.length; j++) {
-            double[] canditResult = canditResults[j];
-            int max = 0;
-            for (int i = 1; i < canditResult.length; i++) {
-                if (canditResult[i] > canditResult[max]) {
-                    max = i;
-                }
-            }
-            cls.add(max);
+            result.add(canditResults[j]);
         }
-        return cls;
+        return result;
     }
 
     public static void main(String[] args) throws Exception {
         
+        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201014/";
+
         /** Model Training */
-//        String trainFile = "/Users/yuxi/NB/RandomForest/_local/train/20200929/train.arff";
-//        String testFile = "/Users/yuxi/NB/RandomForest/_local/train/20200929/test.arff";
-//        train(trainFile, testFile);
-        
+        String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
+        String testARFFPath = Paths.get(rootDir, "test.arff").toString();
+//        trainModel(trainARFFPath, testARFFPath);
+
         /** Model Inference ABTEST*/
-        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/_local/train/20200929/forest.model");
-        predictABTestBasedARFF(forest, "/Users/yuxi/NB/RandomForest/_local/train/20200929/test.arff", "/Users/yuxi/NB/RandomForest/_local/train/20200929/test_fields_1614");
+        RandomForest forest = (RandomForest) SerializationHelper.read(Paths.get(rootDir, "forest.model").toString());
+        predictABTestBasedARFF2Class(forest, Paths.get(rootDir, "test_fields").toString());
         
-        /** Model Inference ONLINE */
-//        String masterStr = "{\"_id\": \"0WxXFOiG\", \"c_word\": 184, \"channels_v2\": [\"Ohio^^Stadium\", \"Ohio^^State\", \"Home^^Game\", \"Buckeye\", \"Football^^Season\", \"Football\", \"Ohio\"], \"epoch\": {\"$numberLong\": \"1599975420\"}, \"geotag_v2\": [{\"name\": \"columbus\", \"score\": 1.0, \"coord\": \"39.961176,-82.998794\", \"pid\": \"columbus,ohio\", \"type\": \"city\"}], \"kws\": [\"Buckeye^^football^^fans\", \"football^^fans\", \"football^^season\", \"Ohio^^Stadium\", \"home^^game\", \"Ohio^^State^^University\", \"COLUMBUS\", \"happy\", \"fall\", \"Competition^^Task^^Force\", \"petitions\"], \"ne_content_location\": {\"Buckeye\": 1, \"Ohio\": 2, \"COLUMBUS\": 1, \"Ohio Stadium\": 1}, \"ne_content_organization\": {\"Competition Task Force\": 1, \"Ohio State\": 1, \"Ohio State University\": 1, \"Associated Press\": 1}, \"ne_content_person\": {}, \"ne_title_location\": {\"Buckeye\": 1}, \"ne_title_organization\": {}, \"ne_title_person\": {}, \"paragraph_count\": 7.0, \"simhash\": \"9a9543b818dcd5c37b9ee3b2e2e4778b\", \"src\": \"WTOL-TV\", \"stitle\": \"Buckeye fans disappointed to not have football for what would have been first home game\", \"text_category_v2\": {\"first_cat\": {\"Sports\": 0.9428178147314257}, \"second_cat\": {\"Sports_AmericanFootball\": 0.7154466756639957, \"Sports_College\": 0.6156932023454093}, \"third_cat\": {\"Sports_AmericanFootball_Other\": 0.7154466756639957, \"Sports_College_Other\": 0.6156932023454093}}}";
-//        String canditStr = "{\"_id\": \"0WoFOOxs\", \"c_word\": 193, \"channels_v2\": [\"Ohio^^State^^football\", \"Ohio^^State\", \"Shooting\", \"Defensive^^Tackle\", \"Chittenden\", \"Vermont\", \"Shell^^Casings\", \"Garrett\"], \"epoch\": {\"$numberLong\": \"1598791224\"}, \"geotag_v2\": [{\"name\": \"ohio\", \"score\": 1.0, \"pid\": \"ohio\", \"type\": \"state\"}, {\"name\": \"columbus\", \"score\": 0.989151120185852, \"coord\": \"39.961176,-82.998794\", \"pid\": \"columbus,ohio\", \"type\": \"city\"}], \"kws\": [\"Ohio^^State^^football\", \"Ohio^^State^^University\", \"Columbus^^Police\", \"shooting\", \"Columbus^^Fire\", \"Police\", \"COLUMBUS\", \"22-year-old^^Garrett^^suffering\", \"suspect\", \"East^^11th^^Avenue\", \"Chittenden^^Ave.^^Officers\", \"Fire\", \"Haskell^^Garrett\", \"Vermont\", \"ABC\", \"Stubblefield\", \"Haskell\", \"614-461-TIPS\"], \"ne_content_location\": {\"Vermont\": 1, \"Chittenden\": 1, \"Ohio\": 2, \"East 11th Avenue\": 1, \"COLUMBUS\": 1, \"Ohio State Football\": 1}, \"ne_content_organization\": {\"Columbus Fire\": 1, \"Ohio State University Hospital\": 1, \"ABC\": 1, \"Columbus Police\": 2, \"Columbus Police Felony Assault Detective Stubblefield\": 1, \"Ohio State\": 1, \"Central Ohio Crime Stoppers\": 1}, \"ne_content_person\": {\"Haskell Garrett\": 1, \"Garrett\": 3}, \"ne_title_location\": {}, \"ne_title_organization\": {\"Ohio State\": 1}, \"ne_title_person\": {}, \"paragraph_count\": 8.0, \"simhash\": \"4fe1f8bba9e9102229d9a2912860771e\", \"src\": \"myfox28columbus.com\", \"stitle\": \"Ohio State football player injured in overnight shooting near campus\", \"text_category_v2\": {\"first_cat\": {\"CrimePublicsafety\": 0.6951286280185068, \"Sports\": 0.8214851472643709}, \"second_cat\": {\"CrimePublicsafety_ViolentCrime\": 0.6015757232239475, \"Sports_Other\": 0.8214851472643709}, \"third_cat\": {\"CrimePublicsafety_ViolentCrime_Other\": 0.6015757232239475}}}";
-//        predictOnline(forest, masterStr, Arrays.asList(new String[]{canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr, canditStr, masterStr}));
-        
+//        /** Model Inference ONLINE */
+//        ObjectMapper mapper = new ObjectMapper();
+//        String masterStr = "";
+//        String canditStr = "[]";
+//        List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
+//        for (double[] weight : indexList) {
+//            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]) + "\t" + String.valueOf(weight[2]));
+//        }
     }
 }
