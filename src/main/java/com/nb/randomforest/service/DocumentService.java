@@ -2,6 +2,7 @@ package com.nb.randomforest.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.nb.randomforest.entity.EventFeature;
+import com.nb.randomforest.entity.resource.RFModelResult;
 import com.nb.randomforest.utils.ModelUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,8 +25,9 @@ public class DocumentService {
 	
 	/**
 	 */
-	public List<Object[]> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes) {
+	public List<RFModelResult> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes) {
 		try {
+			
 			Instances instances;
 			ArrayList<String> attVals = new ArrayList<>();
 			ArrayList<Attribute> attributes = new ArrayList<>();
@@ -58,7 +60,7 @@ public class DocumentService {
 				instances.add(new EventFeature(masterNode, canditNode, null).toInstance());
 			}
 			// 3.
-			List<Object[]> cls = new ArrayList<>();
+			List<RFModelResult> cls = new ArrayList<>();
 			double[][] canditResults = randomForest.distributionsForInstances(instances);
 			for (int j = 0; j < canditResults.length; j++) {
 				double[] canditResult = canditResults[j];
@@ -68,7 +70,8 @@ public class DocumentService {
 						max = i;
 					}
 				}
-				cls.add(new Object[]{attVals.get(max), canditResult[max]});
+				String cID = canditNodes.get(j).hasNonNull("_id") ? canditNodes.get(j).get("_id").textValue() : "";
+				cls.add(new RFModelResult(cID, attVals.get(max), canditResult[max]));
 			}
 			return cls;
 		} catch (Exception e) {
