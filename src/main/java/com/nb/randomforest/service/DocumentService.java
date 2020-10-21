@@ -27,7 +27,6 @@ public class DocumentService {
 	 */
 	public List<RFModelResult> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes) {
 		try {
-			
 			Instances instances;
 			ArrayList<String> attVals = new ArrayList<>();
 			ArrayList<Attribute> attributes = new ArrayList<>();

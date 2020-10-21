@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +41,10 @@ public class DocumentEndpoint {
 	) {
 		JsonNode masterNode = objectMapper.valueToTree(postBody.get("master"));
 		JsonNode candidates = objectMapper.valueToTree(postBody.get("candidates"));
-		return documentService.calCandidatesClusterInfo(masterNode, candidates);
+		if (candidates.size() > 0) {
+			return documentService.calCandidatesClusterInfo(masterNode, candidates);
+		} else {
+			return Collections.emptyList();
+		}
 	}
 }
