@@ -3,10 +3,7 @@ package com.nb.randomforest.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
@@ -15,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
 
 /**
  * @author yuxi
@@ -43,13 +41,13 @@ public class FileUtils {
 		MongoDatabase dbCenter = clientCenter.getDatabase("docenter");
 		collectionCenter = dbCenter.getCollection("document");
 		
-		fields.append("_id", 1).append("stitle",1).append("seg_title", 1).append("src",1)
-			.append("c_word", 1).append("epoch", 1).append("paragraph_count",1)
-			.append("simhash", 1).append("kws", 1).append("channels_v2",1)
-			.append("ne_content_organization",1).append("ne_content_person",1).append("ne_content_location",1)
-			.append("ne_title_location",1).append("ne_title_organization",1).append("ne_title_person",1)
-			.append("text_category",1).append("geotag",1)
-			.append("text_category_v2",1).append("geotag_v2",1).append("url", 1);
+		fields.append("_id", 1).append("stitle", 1).append("seg_title", 1).append("src", 1)
+			.append("c_word", 1).append("epoch", 1).append("paragraph_count", 1)
+			.append("simhash", 1).append("kws", 1).append("channels_v2", 1)
+			.append("ne_content_organization", 1).append("ne_content_person", 1).append("ne_content_location", 1)
+			.append("ne_title_location", 1).append("ne_title_organization", 1).append("ne_title_person", 1)
+			.append("text_category", 1).append("geotag", 1)
+			.append("text_category_v2", 1).append("geotag_v2", 1).append("url", 1);
 		
 		/** append_0926_0930 */
 		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_celebrities_fields").toAbsolutePath().toString());
@@ -110,6 +108,39 @@ public class FileUtils {
 				bw.write("\t");
 				bw.write("FAILED");
 				bw.write("\n");
+			}
+		}
+		bw.close();
+	}
+	
+	public static void extractTitleAndURLByDocPair() throws Exception {
+		BufferedReader br = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/estimate/20201023/abtest_pair.txt")));
+		String line = null;
+		Set<String> ids = new HashSet<>();
+		Map<String, Document> idMap = new HashMap<>();
+		List<String[]> lines = new ArrayList<>();
+		while ((line = br.readLine()) != null) {
+			String[] datas = line.split("\t");
+			ids.add(datas[0]);
+			ids.add(datas[1]);
+			lines.add(datas);
+		}
+		MongoCursor<Document> cursor = collectionStatic.find(in("_id", ids.toArray())).projection(new BasicDBObject().append("url", 1).append("stitle", 1)).cursor();
+		while (cursor.hasNext()) {
+			Document d = cursor.next();
+			String id = d.getString("_id");
+			idMap.put(id, d);
+		}
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/estimate/20201023/abtest.txt")));
+		for (String[] strs : lines) {
+			String docM = strs[0];
+			String docC = strs[1];
+			Integer isSame = Integer.valueOf(strs[4]);
+			if (isSame.equals(0)) {
+				bw.write(docM + "\t" + docC + "\t" +
+					idMap.get(docM).getString("stitle") + "\t" + idMap.get(docC).getString("stitle") + "\t" +
+					idMap.get(docM).getString("url") + "\t" + idMap.get(docC).getString("url") + "\n"
+				);
 			}
 		}
 		bw.close();
@@ -243,7 +274,7 @@ public class FileUtils {
 		BufferedReader br = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/train/20201014/badcase")));
 		BufferedWriter bw = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/train/20201014/doc_pair_islocal")));
 		String line = null;
-		while ((line = br.readLine())!= null) {
+		while ((line = br.readLine()) != null) {
 			String[] datas = line.split("\t");
 			String docM = datas[0];
 			String docC = datas[1];
@@ -284,14 +315,90 @@ public class FileUtils {
 	}
 	
 	
+	private static void buildABResultDataFromInfoLog() throws Exception {
+		BufferedReader respReader = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/estimate/20201023/response.txt")));
+		BufferedReader modelReader = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/estimate/20201023/model_result.txt")));
+		String line = null;
+		ObjectMapper mapper = new ObjectMapper();
+		// master_candit : lr_label, rf_label
+		Map<String, String[]> modelResult = new HashMap<>();
+		while ((line = respReader.readLine()) != null) {
+			JsonNode result = mapper.readTree(line.split("  ")[1]);
+			JsonNode resp = result.get("RESPONSE");
+			String docID = resp.get("_id").textValue();
+			String nbrID = resp.get("nbr_id").textValue();
+			String[] strs = new String[2];
+			if (resp.get("dup_dist").doubleValue() > -1) {
+				strs[0] = "DUP";
+			} else if (resp.get("evt_dist").doubleValue() > -1) {
+				strs[0] = "EVENT";
+			} else {
+				strs[0] = "DIFF";
+			}
+			modelResult.put(docID + "\t" + nbrID, strs);
+		}
+		String lastID = "";
+		String lastNB = "";
+		String lastLabel = "DIFF";
+		double lastScore = -1;
+		int count = 0;
+		while ((line = modelReader.readLine()) != null) {
+			String[] datas = line.split("\t");
+			String docID = datas[1];
+			String nbrID = datas[2];
+			String label = datas[3];
+			Double score = Double.valueOf(datas[4]);
+			if (!docID.equals(lastID)) {
+				count++;
+				//dump上一步结果
+				if (!lastID.equals(lastNB) || !lastLabel.equals("DIFF")) {
+					String key = lastID + "\t" + lastNB;
+					if (modelResult.containsKey(key)) {
+						modelResult.get(key)[1] = lastLabel;
+					} else {
+						String[] strs = new String[2];
+						strs[1] = lastLabel;
+						modelResult.put(key, strs);
+					}
+				}
+				//刷新上一步缓存
+				lastID = docID;
+				lastNB = docID;
+				lastLabel = "DIFF";
+				lastScore = -1;
+			}
+			//与上一步结果比较
+			if (label.equals("EVENT") && score > lastScore) {
+				if (score > 0.9) {
+					lastNB = nbrID;
+					lastLabel = "DUP";
+					lastScore = score;
+				} else if (score > 0.58) {
+					lastNB = nbrID;
+					lastLabel = "EVENT";
+					lastScore = score;
+				}
+			}
+		}
+		
+		for (Map.Entry<String, String[]> entry : modelResult.entrySet()) {
+			System.out.println(entry.getKey() + "\t" + String.valueOf(entry.getValue()[0]) + "\t" + String.valueOf(entry.getValue()[1]));
+		}
+		System.out.println(count);
+	}
+	
 	
 	public static void main(String[] args) throws Exception {
-		calDocPairIsLocal();
+		extractTitleAndURLByDocPair();
 		
+//		buildABResultDataFromInfoLog();
 		
+//		calDocPairIsLocal();
+
+
 //		buildModelData(filePaths, "/Users/yuxi/NB/RandomForest/_local/train/20201013/");
-		
-		
+
+
 //		for (String filePath : filePaths) {
 //			extractDocFields(new File(filePath));
 //		}
