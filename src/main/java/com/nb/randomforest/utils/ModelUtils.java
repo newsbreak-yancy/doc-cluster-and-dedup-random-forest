@@ -297,7 +297,7 @@ public class ModelUtils {
         instances.setClassIndex(instances.numAttributes() - 1);
         for (JsonNode canditNode : canditNodes) {
             EventFeature feature = new EventFeature(masterNode, canditNode, null);
-            System.out.println(feature.toString());
+            System.out.println(mapper.writeValueAsString(feature));
             instances.add(feature.toInstance());
         }
         // 3.
@@ -320,15 +320,15 @@ public class ModelUtils {
 
         /** Model Inference ABTEST*/
         RandomForest forest = (RandomForest) SerializationHelper.read(Paths.get(rootDir, "forest.model").toString());
-        predictABTestBasedARFF2Class(forest, Paths.get(rootDir, "test_fields").toString());
+//        predictABTestBasedARFF2Class(forest, Paths.get(rootDir, "test_fields").toString());
         
 //        /** Model Inference ONLINE */
-//        ObjectMapper mapper = new ObjectMapper();
-//        String masterStr = "";
-//        String canditStr = "[]";
-//        List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
-//        for (double[] weight : indexList) {
-//            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]) + "\t" + String.valueOf(weight[2]));
-//        }
+        ObjectMapper mapper = new ObjectMapper();
+        String masterStr = "";
+        String canditStr = "[]";
+        List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
+        for (double[] weight : indexList) {
+            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]) + "\t" + String.valueOf(weight[2]));
+        }
     }
 }

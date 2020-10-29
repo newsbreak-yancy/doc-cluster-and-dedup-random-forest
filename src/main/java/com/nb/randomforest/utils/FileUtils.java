@@ -49,25 +49,7 @@ public class FileUtils {
 			.append("text_category", 1).append("geotag", 1)
 			.append("text_category_v2", 1).append("geotag_v2", 1).append("url", 1);
 		
-		/** append_0926_0930 */
-		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_celebrities_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_economic_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_event_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_royal_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0926~0930/dp_0926_0930_tech_fields").toAbsolutePath().toString());
-		/** append_0720~0920 */
-		filePaths.add(Paths.get(rootDir, "append_0720~0920/doc_pair_0720~0920_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0720~0920/doc_pair_0903_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0720~0920/doc_pair_0911_fields").toAbsolutePath().toString());
-		filePaths.add(Paths.get(rootDir, "append_0720~0920/doc_pair_0914_fields").toAbsolutePath().toString());
-		/** append_history */
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_1_fields").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_2_fields").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_3_fields").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_4_cluster_yes_fields").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_5_cluster_no_fields").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_6_cluster_unsure_fields").toAbsolutePath().toString());
-//		filePaths.add(Paths.get(rootDir, "append_history/bash_7_fields").toAbsolutePath().toString());
+		filePaths.add(Paths.get(rootDir, "estimate/tmp2").toAbsolutePath().toString());
 	}
 	
 	
@@ -389,7 +371,7 @@ public class FileUtils {
 	
 	
 	public static void main(String[] args) throws Exception {
-		extractTitleAndURLByDocPair();
+//		extractTitleAndURLByDocPair();
 		
 //		buildABResultDataFromInfoLog();
 		
