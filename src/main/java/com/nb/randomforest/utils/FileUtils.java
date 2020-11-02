@@ -95,8 +95,13 @@ public class FileUtils {
 		bw.close();
 	}
 	
-	public static void extractTitleAndURLByDocPair() throws Exception {
-		BufferedReader br = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/estimate/20201023/abtest_pair.txt")));
+	
+	/**
+	 * 基于 doc pair + mongo db 构建标注用例
+	 * doc + doc + title + title + url + url
+	 */
+	public static void buildLabelDataFromDBByDocPair() throws Exception {
+		BufferedReader br = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/preprocessor/same_title_shuf_500.txt")));
 		String line = null;
 		Set<String> ids = new HashSet<>();
 		Map<String, Document> idMap = new HashMap<>();
@@ -113,17 +118,14 @@ public class FileUtils {
 			String id = d.getString("_id");
 			idMap.put(id, d);
 		}
-		BufferedWriter bw = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/estimate/20201023/abtest.txt")));
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/preprocessor/same_title_shuf_500_label_data.txt")));
 		for (String[] strs : lines) {
 			String docM = strs[0];
 			String docC = strs[1];
-			Integer isSame = Integer.valueOf(strs[4]);
-			if (isSame.equals(0)) {
-				bw.write(docM + "\t" + docC + "\t" +
-					idMap.get(docM).getString("stitle") + "\t" + idMap.get(docC).getString("stitle") + "\t" +
-					idMap.get(docM).getString("url") + "\t" + idMap.get(docC).getString("url") + "\n"
-				);
-			}
+			bw.write(docM + "\t" + docC + "\t" +
+				idMap.get(docM).getString("stitle") + "\t" + idMap.get(docC).getString("stitle") + "\t" +
+				idMap.get(docM).getString("url") + "\t" + idMap.get(docC).getString("url") + "\n"
+			);
 		}
 		bw.close();
 	}
@@ -371,18 +373,6 @@ public class FileUtils {
 	
 	
 	public static void main(String[] args) throws Exception {
-//		extractTitleAndURLByDocPair();
-		
-//		buildABResultDataFromInfoLog();
-		
-//		calDocPairIsLocal();
-
-
-//		buildModelData(filePaths, "/Users/yuxi/NB/RandomForest/_local/train/20201013/");
-
-
-//		for (String filePath : filePaths) {
-//			extractDocFields(new File(filePath));
-//		}
+		extractDocFields(new File("/Users/yuxi/NB/RandomForest/_local/estimate/20201023/label_result"));
 	}
 }
