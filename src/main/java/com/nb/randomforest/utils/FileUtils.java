@@ -373,6 +373,6 @@ public class FileUtils {
 	
 	
 	public static void main(String[] args) throws Exception {
-		extractDocFields(new File("/Users/yuxi/NB/RandomForest/_local/estimate/20201023/label_result"));
+		extractDocFields(new File("/Users/yuxi/NB/RandomForest/_local/processor/same_title/same_title_label_result"));
 	}
 }
