@@ -29,15 +29,6 @@ public class WebRequestAspect {
 	
 	private ThreadLocal<Long> startTime = new ThreadLocal<Long>();
 	
-	public static String objectToJsonQuietly(ObjectMapper objectMapper, Object object) {
-		try {
-			return objectMapper.writeValueAsString(object);
-		} catch (JsonProcessingException e) {
-			log.error("Failed to read from object", object);
-			return null;
-		}
-	}
-	
 	@Pointcut("execution(* com.nb.randomforest.endpoint..*.*(..))")
 	public void webLog(){
 	}
@@ -48,14 +39,7 @@ public class WebRequestAspect {
 		ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 		HttpServletRequest request = attributes.getRequest();
 		startTime.set(System.currentTimeMillis());
-		
-		Object[] args = joinPoint.getArgs();
-		String body = "";
-		if (args.length > 1) {
-			body = objectToJsonQuietly(objectMapper, joinPoint.getArgs()[0]);
-		}
-		
-		log.info("ACCESS Log URI: {} METHOD: {} FROM: {} BODY: {}", request.getRequestURL(), request.getMethod(), request.getRemoteAddr(), body);
+		log.info("ACCESS Log URI: {} METHOD: {} FROM: {}", request.getRequestURL(), request.getMethod(), request.getRemoteAddr());
 	}
 	
 	@AfterReturning(returning = "ret", pointcut = "webLog()")
