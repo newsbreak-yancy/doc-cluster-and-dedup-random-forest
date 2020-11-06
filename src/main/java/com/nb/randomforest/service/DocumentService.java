@@ -3,7 +3,7 @@ package com.nb.randomforest.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.nb.randomforest.entity.EventFeature;
 import com.nb.randomforest.entity.resource.RFModelResult;
-import com.nb.randomforest.utils.ModelUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import weka.classifiers.trees.RandomForest;
@@ -17,6 +17,7 @@ import java.util.*;
  * @date 2020/10/9
  */
 @Service
+@Slf4j
 public class DocumentService {
 	
 	@Autowired
@@ -74,7 +75,7 @@ public class DocumentService {
 			}
 			return cls;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("EXCEPTION : CAL_CANDIDATES : " + e.getMessage(), e);
 			return Collections.emptyList();
 		}
 	}

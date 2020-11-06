@@ -7,12 +7,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @author yuxi
  * @date 2020/11/2
  */
-public class UNSUPFileUtils {
+public class SemiSupervisedFileUtils {
 	
 	/**
 	 * 无监督数据(日志)预处理 => JsonString
@@ -71,32 +72,55 @@ public class UNSUPFileUtils {
 			}
 			//build event doc pair fields
 			//判断 :
-			for (String str : srcNodes) {
-				ObjectNode node = (ObjectNode) mapper.readTree(str);
-				String id = node.get("_id").textValue();
-				
-				Set<Integer> canditIndexes = new HashSet<>();
-				if (node.has("kws") && node.get("kws").size() > 0) {
-					JsonNode kws = node.get("kws");
-					for (JsonNode keyword : kws) {
-						List<Integer> list = featureMap.get(keyword.textValue());
-						if (list.size() < 5) {
-							canditIndexes.addAll(list);
+			for (String masterStr : srcNodes) {
+				List<Entry<Integer, Integer>> candits = new ArrayList<>();
+				ObjectNode masterNode = (ObjectNode) mapper.readTree(masterStr);
+				String masterID = masterNode.get("_id").textValue();
+				Integer masterWordCount = masterNode.get("c_word").intValue();
+				if (!masterNode.has("kws") || masterNode.get("kws").size() == 0) {
+					continue;
+				}
+				//召回 : 候选集
+				JsonNode kws = masterNode.get("kws");
+				Map<Integer, Integer> reverseScore = new HashMap<>();
+				for (JsonNode keyword : kws) {
+					List<Integer> list = featureMap.get(keyword.textValue());
+					for (Integer docIndex : list) {
+						if (reverseScore.containsKey(docIndex)) {
+							reverseScore.put(docIndex, reverseScore.get(docIndex) + 1);
+						} else {
+							reverseScore.put(docIndex, 1);
 						}
 					}
 				}
-				if (canditIndexes.size() > 1) {
-					for (Integer index : canditIndexes) {
+				candits.addAll(reverseScore.entrySet());
+				candits.sort(
+					new Comparator<Entry<Integer, Integer>>() {
+						@Override
+						public int compare(Entry<Integer, Integer> o1, Entry<Integer, Integer> o2) {
+							return o2.getValue().compareTo(o1.getValue());
+						}
+					}
+				);
+				
+				
+				//筛选 : 候选集
+				if (candits.size() > 1) {
+					for (Entry<Integer, Integer> entry : candits) {
+						Integer index = entry.getKey();
+						Integer score = entry.getValue();
 						String canditStr = srcNodes.get(index);
 						ObjectNode canditNode = (ObjectNode) mapper.readTree(canditStr);
 						String canditID = canditNode.get("_id").textValue();
-						if (!canditID.equals(id)) {
-							System.out.println(str);
-							System.out.println(canditStr);
+						Integer canditWordCount = canditNode.get("c_word").intValue();
+						Float overlapRatio = Float.valueOf(score) / kws.size();
+						if (!canditID.equals(masterID) && overlapRatio > 0.5 && overlapRatio < 0.8) {
+							System.out.println(masterID + "\t" + masterStr);
+							System.out.println(canditID + "\t" + canditStr);
+							System.out.println();
 						}
 					}
 				}
-				break;
 			}
 			
 		} catch (Exception e) {
@@ -172,7 +196,7 @@ public class UNSUPFileUtils {
 //		File sourceFile = new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_unsup/1101.log");
 //		File targetFile = new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_unsup/1101_json");
 //		logPreprocess(sourceFile, targetFile);
-		
+
 ////		build diff doc pair fields
 //		File sourceFileM = new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_unsup/1030_json");
 //		File sourceFileC = new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_unsup/1101_json");

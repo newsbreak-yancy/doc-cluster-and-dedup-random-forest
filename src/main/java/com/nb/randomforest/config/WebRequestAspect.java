@@ -1,9 +1,9 @@
 package com.nb.randomforest.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -15,7 +15,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 
 /**
  * @author yuxi
@@ -23,11 +22,10 @@ import java.util.Arrays;
  */
 @Aspect
 @Component
+@Slf4j
 public class WebRequestAspect {
 	@Autowired
 	private ObjectMapper objectMapper;
-	
-	protected Log logger = LogFactory.getLog(getClass());
 	
 	private ThreadLocal<Long> startTime = new ThreadLocal<Long>();
 	
@@ -41,13 +39,7 @@ public class WebRequestAspect {
 		ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 		HttpServletRequest request = attributes.getRequest();
 		startTime.set(System.currentTimeMillis());
-		
-		ObjectNode object = objectMapper.createObjectNode();
-		object.put("URL", request.getRequestURL().toString());
-		object.put("METHOD", request.getMethod());
-		object.put("PARAMS", Arrays.toString(joinPoint.getArgs()));
-		object.put("IP", request.getRemoteAddr());
-		logger.info(object.toString());
+		log.info("ACCESS Log URI: {} METHOD: {} FROM: {}", request.getRequestURL(), request.getMethod(), request.getRemoteAddr());
 	}
 	
 	@AfterReturning(returning = "ret", pointcut = "webLog()")
@@ -56,6 +48,6 @@ public class WebRequestAspect {
 		ObjectNode object = objectMapper.createObjectNode();
 		object.putPOJO("RESPONSE", ret);
 		object.put("SPEND_TIME", System.currentTimeMillis() - startTime.get());
-		logger.info(object.toString());
+		log.info(object.toString());
 	}
 }

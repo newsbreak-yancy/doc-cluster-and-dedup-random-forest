@@ -81,26 +81,34 @@ public class EventFeature {
     		throw new Exception("Invalid Label! Required DIFF, EVENT , DUP or null.");
 	    }
         this.label = label;
-    	
-	    String mTitle = preprocess(masterNode.get("stitle").textValue());
-	    String cTitle = preprocess(canditNode.get("stitle").textValue());
+	    
+	    String mTitle = preprocess(
+	    	masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() : masterNode.hasNonNull("seg_title") ? masterNode.get("seg_title").textValue() : ""
+	    );
+	    String cTitle = preprocess(
+		    canditNode.hasNonNull("stitle") ? canditNode.get("stitle").textValue() : canditNode.hasNonNull("seg_title") ? canditNode.get("seg_title").textValue() : ""
+	    );
         this.titleDist = levenshteinDistance(mTitle, cTitle);
         
-        this.sameSRC = isEqual(masterNode.get("src").textValue(), canditNode.get("src").textValue());
+        this.sameSRC = isEqual(masterNode.hasNonNull("src") ? masterNode.get("src").textValue() : null, canditNode.hasNonNull("src") ? canditNode.get("src").textValue() : null);
         
         this.cWordSpan = numSpan(masterNode.get("c_word"), canditNode.get("c_word"));
 	
         JsonNode mEpoch;
         JsonNode cEpoch;
-	    if (masterNode.get("epoch").isNumber()) {
+	    if (masterNode.hasNonNull("epoch") && masterNode.get("epoch").isNumber()) {
 	    	mEpoch = masterNode.get("epoch");
-	    } else {
+	    } else if (masterNode.hasNonNull("epoch")) {
 		    mEpoch = masterNode.get("epoch").get("$numberLong");
-	    }
-	    if (canditNode.get("epoch").isNumber()) {
-		    cEpoch = canditNode.get("epoch");
 	    } else {
+	    	mEpoch = null;
+	    }
+	    if (canditNode.hasNonNull("epoch") && canditNode.get("epoch").isNumber()) {
+		    cEpoch = canditNode.get("epoch");
+	    } else if (canditNode.hasNonNull("epoch")) {
 		    cEpoch = canditNode.get("epoch").get("$numberLong");
+	    } else {
+	    	cEpoch = null;
 	    }
 	    this.epochSpan = numSpan(mEpoch, cEpoch);
 	    
