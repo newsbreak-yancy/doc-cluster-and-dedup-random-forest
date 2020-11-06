@@ -81,9 +81,13 @@ public class EventFeature {
     		throw new Exception("Invalid Label! Required DIFF, EVENT , DUP or null.");
 	    }
         this.label = label;
-    	
-	    String mTitle = preprocess(masterNode.get("stitle").textValue());
-	    String cTitle = preprocess(canditNode.get("stitle").textValue());
+	    
+	    String mTitle = preprocess(
+	    	masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() : masterNode.hasNonNull("seg_title") ? masterNode.get("seg_title").textValue() : ""
+	    );
+	    String cTitle = preprocess(
+		    canditNode.hasNonNull("stitle") ? canditNode.get("stitle").textValue() : canditNode.hasNonNull("seg_title") ? canditNode.get("seg_title").textValue() : ""
+	    );
         this.titleDist = levenshteinDistance(mTitle, cTitle);
         
         this.sameSRC = isEqual(masterNode.get("src").textValue(), canditNode.get("src").textValue());

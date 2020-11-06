@@ -75,7 +75,7 @@ public class DocumentService {
 			}
 			return cls;
 		} catch (Exception e) {
-			log.error("EXCEPTION : CAL_CANDIDATES : " + e.getMessage());
+			log.error("EXCEPTION : CAL_CANDIDATES : " + e.getMessage(), e);
 			return Collections.emptyList();
 		}
 	}
