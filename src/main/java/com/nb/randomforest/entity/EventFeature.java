@@ -90,21 +90,25 @@ public class EventFeature {
 	    );
         this.titleDist = levenshteinDistance(mTitle, cTitle);
         
-        this.sameSRC = isEqual(masterNode.get("src").textValue(), canditNode.get("src").textValue());
+        this.sameSRC = isEqual(masterNode.hasNonNull("src") ? masterNode.get("src").textValue() : null, canditNode.hasNonNull("src") ? canditNode.get("src").textValue() : null);
         
         this.cWordSpan = numSpan(masterNode.get("c_word"), canditNode.get("c_word"));
 	
         JsonNode mEpoch;
         JsonNode cEpoch;
-	    if (masterNode.get("epoch").isNumber()) {
+	    if (masterNode.hasNonNull("epoch") && masterNode.get("epoch").isNumber()) {
 	    	mEpoch = masterNode.get("epoch");
-	    } else {
+	    } else if (masterNode.hasNonNull("epoch")) {
 		    mEpoch = masterNode.get("epoch").get("$numberLong");
-	    }
-	    if (canditNode.get("epoch").isNumber()) {
-		    cEpoch = canditNode.get("epoch");
 	    } else {
+	    	mEpoch = null;
+	    }
+	    if (canditNode.hasNonNull("epoch") && canditNode.get("epoch").isNumber()) {
+		    cEpoch = canditNode.get("epoch");
+	    } else if (canditNode.hasNonNull("epoch")) {
 		    cEpoch = canditNode.get("epoch").get("$numberLong");
+	    } else {
+	    	cEpoch = null;
 	    }
 	    this.epochSpan = numSpan(mEpoch, cEpoch);
 	    
