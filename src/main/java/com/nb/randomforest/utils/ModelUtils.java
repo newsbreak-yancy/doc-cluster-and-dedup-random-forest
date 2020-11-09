@@ -31,6 +31,51 @@ public class ModelUtils {
         dataSet.setClassIndex(classIdx);
         return dataSet;
     }
+    
+    
+    /**
+     * 半监督学习 : 基于构建的半监督数据 + 训练数据 训练模型
+     * 训练方式一 : 先基于半监督数据训练, 再基于训练数据训练 传统 fine tuning 方式, 但是不适用 RandomForest?
+     * 训练方式二 : 混合半监督数据 + 训练数据, 通过调整混合比例及方式起到 fine tuning 的作用
+     */
+    public static void trainModelSemiSupervised(String semiSupFile, String trainFile, String testFile) throws Exception {
+        //semi supervised data set
+        Instances trainingDataSetSemiSupervised = getDataSet(semiSupFile);
+        trainingDataSetSemiSupervised.setClassIndex(trainingDataSetSemiSupervised.numAttributes() - 1);
+        
+        //
+        Instances trainingDataSet = getDataSet(trainFile);
+        trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
+        
+        //test data set
+        Instances testingDataSet = getDataSet(testFile);
+        testingDataSet.setClassIndex(trainingDataSetSemiSupervised.numAttributes() - 1);
+    
+        RandomForest forest = new RandomForest();
+        forest.setBatchSize("200");
+        forest.setNumIterations(200);
+        forest.setDebug(false);
+        forest.setNumFeatures(4); // random feature num = log_2{feature num}
+        forest.setComputeAttributeImportance(true);
+        //
+        forest.buildClassifier(trainingDataSetSemiSupervised);
+        
+        //NOTE : 无效
+        forest.setClassifier(forest.getClassifier());
+        forest.buildClassifier(trainingDataSet);
+    
+        Evaluation eval = new Evaluation(trainingDataSetSemiSupervised);
+        eval.evaluateModel(forest, testingDataSet);
+        /** Print the algorithm summary */
+        System.out.println("** Decision Tress Evaluation with Datasets **");
+        System.out.println(eval.toSummaryString());
+        System.out.print(" the expression for the input data as per alogorithm is ");
+        System.out.println(forest);
+    
+        // dump random forest model to file
+        SerializationHelper.write(Paths.get(new File(trainFile).getParent(),"forest.model").toString(), forest);
+    }
+    
 
     /**
      * Model training and estimate based on train, test file.
@@ -38,8 +83,8 @@ public class ModelUtils {
     public static void trainModel(String trainFile, String testFile) throws Exception {
         Instances trainingDataSet = getDataSet(trainFile);
         trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
-        Instances testingDataSet = getDataSet(testFile);
-        testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
+//        Instances testingDataSet = getDataSet(testFile);
+//        testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
 
         RandomForest forest = new RandomForest();
         forest.setNumIterations(200);
@@ -48,16 +93,16 @@ public class ModelUtils {
         forest.setComputeAttributeImportance(true);
         forest.buildClassifier(trainingDataSet);
     
-        Evaluation eval = new Evaluation(trainingDataSet);
-        eval.evaluateModel(forest, testingDataSet);
+//        Evaluation eval = new Evaluation(trainingDataSet);
+//        eval.evaluateModel(forest, testingDataSet);
     
         
 
-        /** Print the algorithm summary */
-        System.out.println("** Decision Tress Evaluation with Datasets **");
-        System.out.println(eval.toSummaryString());
-        System.out.print(" the expression for the input data as per alogorithm is ");
-        System.out.println(forest);
+//        /** Print the algorithm summary */
+//        System.out.println("** Decision Tress Evaluation with Datasets **");
+//        System.out.println(eval.toSummaryString());
+//        System.out.print(" the expression for the input data as per alogorithm is ");
+//        System.out.println(forest);
         
         // dump random forest model to file
         SerializationHelper.write(Paths.get(new File(trainFile).getParent(),"forest.model").toString(), forest);
@@ -217,7 +262,7 @@ public class ModelUtils {
             double[] distribute = forest.distributionsForInstances(instances)[0];
             double difScr = distribute[0];
             double evtScr = distribute[1];
-            if (evtScr > 0.9) {
+            if (evtScr > 0.97) {
                 ppDUP++;
                 pCls = "DUP";
                 if (StringUtils.equals(rCls, pCls)) {
@@ -311,24 +356,30 @@ public class ModelUtils {
 
     public static void main(String[] args) throws Exception {
         
-        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201014/";
+        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201109/";
 
         /** Model Training */
-        String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
-        String testARFFPath = Paths.get(rootDir, "test.arff").toString();
+        String trainARFFPath = Paths.get(rootDir, "mixture_fields_1_1_4_shuf.arff").toString();
+        String testARFFPath = Paths.get(rootDir, "mixture_fields_1_1_4_shuf.arff").toString();
 //        trainModel(trainARFFPath, testARFFPath);
 
-        /** Model Inference ABTEST*/
-        RandomForest forest = (RandomForest) SerializationHelper.read(Paths.get(rootDir, "forest.model").toString());
+        /** Model Inference ABTEST */
+//        RandomForest forest = (RandomForest) SerializationHelper.read(Paths.get(rootDir, "forest.model").toString());
 //        predictABTestBasedARFF2Class(forest, Paths.get(rootDir, "test_fields").toString());
         
-//        /** Model Inference ONLINE */
-        ObjectMapper mapper = new ObjectMapper();
-        String masterStr = "";
-        String canditStr = "[]";
-        List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
-        for (double[] weight : indexList) {
-            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]) + "\t" + String.valueOf(weight[2]));
-        }
+        /** Model Inference ONLINE */
+//        ObjectMapper mapper = new ObjectMapper();
+//        String masterStr = "";
+//        String canditStr = "[]";
+//        List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
+//        for (double[] weight : indexList) {
+//            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]) + "\t" + String.valueOf(weight[2]));
+//        }
+        
+        /** Model Inference STD Estimate */
+        String modelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201109/forest.model";
+        String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate";
+        RandomForest forest = (RandomForest) SerializationHelper.read(modelPath);
+        predictABTestBasedARFF2Class(forest, estimateDataPath);
     }
 }

@@ -37,20 +37,18 @@ public class SemiSupervisedFileUtils {
 	}
 	
 	
-	public static void buildEventUNSupervisedFile(File sourceFile, File targetFile) {
+	public static void buildEventSemiSupervisedFile(File sourceFile, File targetFile) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			BufferedReader br = new BufferedReader(new FileReader(sourceFile));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(targetFile, true));
+			
 			List<String> srcNodes = new ArrayList<>();
 			Map<String, List<Integer>> featureMap = new HashMap<>();
 			//read
 			String line = null;
 			while ((line = br.readLine()) != null) {
 				srcNodes.add(line);
-				if (srcNodes.size() % 10000 == 0) {
-					System.out.println("Processed : " + srcNodes.size());
-					break;
-				}
 			}
 			//cache feature
 			for (int i = 0; i < srcNodes.size(); i++) {
@@ -94,15 +92,6 @@ public class SemiSupervisedFileUtils {
 					}
 				}
 				candits.addAll(reverseScore.entrySet());
-				candits.sort(
-					new Comparator<Entry<Integer, Integer>>() {
-						@Override
-						public int compare(Entry<Integer, Integer> o1, Entry<Integer, Integer> o2) {
-							return o2.getValue().compareTo(o1.getValue());
-						}
-					}
-				);
-				
 				
 				//筛选 : 候选集
 				if (candits.size() > 1) {
@@ -115,14 +104,14 @@ public class SemiSupervisedFileUtils {
 						Integer canditWordCount = canditNode.get("c_word").intValue();
 						Float overlapRatio = Float.valueOf(score) / kws.size();
 						if (!canditID.equals(masterID) && overlapRatio > 0.5 && overlapRatio < 0.8) {
-							System.out.println(masterID + "\t" + masterStr);
-							System.out.println(canditID + "\t" + canditStr);
-							System.out.println();
+							bw.write(masterID + "\t" + canditID + "\t" + "EVENT\tSUCCESS\t" + masterStr + "\t" + canditStr);
+							bw.write("\n");
+							System.out.println(String.format("PROCESSED : %s\t%s", masterID, canditID));
 						}
 					}
 				}
 			}
-			
+			bw.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -204,8 +193,16 @@ public class SemiSupervisedFileUtils {
 //		buildDiffUNSunpervisedFile(sourceFileM, sourceFileC, targetFile);
 		
 		//build event doc pair fields
-		File sourceFile = new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_unsup/1101_json");
-		File targetFile = new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_unsup/event_fields");
-		buildEventUNSupervisedFile(sourceFile, targetFile);
+		List<File> sourceFiles = new ArrayList<>();
+		sourceFiles.add(new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_semisup/1101_json_1"));
+		sourceFiles.add(new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_semisup/1101_json_2"));
+		sourceFiles.add(new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_semisup/1101_json_3"));
+		sourceFiles.add(new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_semisup/1101_json_4"));
+		sourceFiles.add(new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_semisup/1101_json_5"));
+		File targetFile = new File("/Users/yuxi/NB/RandomForest/_local/append_1101~1102_semisup/semi_event_fields");
+		for (int i = 0; i < 5; i++) {
+			buildEventSemiSupervisedFile(sourceFiles.get(i), targetFile);
+		}
+		
 	}
 }

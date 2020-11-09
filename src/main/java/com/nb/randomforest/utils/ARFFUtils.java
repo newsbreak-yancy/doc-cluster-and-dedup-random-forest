@@ -2,6 +2,7 @@ package com.nb.randomforest.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nb.randomforest.entity.EventFeature;
+import org.apache.commons.lang3.StringUtils;
 import weka.core.*;
 import java.io.*;
 import java.nio.file.Paths;
@@ -105,7 +106,7 @@ public class ARFFUtils {
         // - nominal
         attVals.add("DIFF");
         attVals.add("EVENT");
-        attVals.add("DUP");
+//        attVals.add("DUP");
         attributes.add(new Attribute("Label", attVals));
     
         // 2. create Instances object
@@ -129,7 +130,11 @@ public class ARFFUtils {
                 String mStr = datas[4];
                 String cStr = datas[5];
                 try {
-                    EventFeature feature = new EventFeature(mapper.readTree(mStr), mapper.readTree(cStr), label);
+                    EventFeature feature = new EventFeature(
+                        mapper.readTree(mStr),
+                        mapper.readTree(cStr),
+                        StringUtils.equals(label, "DIFF") ? "DIFF" : "EVENT"
+                    );
                     bw.write(feature.toString());
                     bw.write("\n");
                 } catch (Exception e) {
@@ -143,7 +148,6 @@ public class ARFFUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        buildARFF("/Users/yuxi/NB/RandomForest/_local/train/20201014_1/test_fields", "test");
-        buildARFF("/Users/yuxi/NB/RandomForest/_local/train/20201014_1/train_fields_shuf", "train");
+        buildARFF("/Users/yuxi/NB/RandomForest/_local/train/20201109/mixture_fields_1_1_4_shuf", "mixture_fields_1_1_4_shuf");
     }
 }
