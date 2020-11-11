@@ -2,6 +2,10 @@ package com.nb.randomforest.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.providers.jdk.JDKAsyncHttpProvider;
@@ -10,6 +14,7 @@ import com.pmi.serving.metrics.MetricsFactoryUtil;
 import com.pmi.serving.metrics.OnDemandMetricsFactory;
 import com.pmi.serving.metrics.reporter.opentsdb.HttpOpenTsdbClient;
 import com.pmi.serving.metrics.reporter.opentsdb.OpenTsdbClient;
+import org.bson.Document;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -52,6 +57,12 @@ public class WebDataConfig {
 		return forest;
 	}
 	
+	@Bean
+	public MongoCollection<Document> mongoClient() {
+		MongoClient client = MongoClients.create("mongodb://rs3.mongo.nb.com:27017");
+		MongoDatabase db = client.getDatabase("staticFeature");
+		return db.getCollection("document");
+	}
 	
 	@Bean
 	public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter(ObjectMapper objectMapper) {

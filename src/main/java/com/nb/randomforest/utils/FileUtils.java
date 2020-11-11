@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
@@ -26,10 +27,6 @@ public class FileUtils {
 	
 	public static BasicDBObject fields = new BasicDBObject();
 	
-	private static String rootDir = "/Users/yuxi/NB/RandomForest/_local";
-	
-	private static List<String> filePaths = new ArrayList<>();
-	
 	static {
 		String uriStatic = "mongodb://172.24.25.74/staticFeature";
 		MongoClient clientStatic = MongoClients.create(uriStatic);
@@ -48,8 +45,6 @@ public class FileUtils {
 			.append("ne_title_location", 1).append("ne_title_organization", 1).append("ne_title_person", 1)
 			.append("text_category", 1).append("geotag", 1)
 			.append("text_category_v2", 1).append("geotag_v2", 1).append("url", 1);
-		
-		filePaths.add(Paths.get(rootDir, "estimate/tmp2").toAbsolutePath().toString());
 	}
 	
 	
@@ -372,7 +367,52 @@ public class FileUtils {
 	}
 	
 	
+	private static void buildLabelDataFromDBByResponseLog() throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+		String logPath = "/Users/yuxi/NB/RandomForest/_local/append_1105~1107/response_shuf.txt";
+		String labelPath = "/Users/yuxi/NB/RandomForest/_local/append_1105~1107/label_doc_pair.txt";
+		
+		BufferedReader br = new BufferedReader(new FileReader(new File(logPath)));
+		String line = null;
+		Set<String> ids = new HashSet<>();
+		Map<String, Document> idMap = new HashMap<>();
+		List<String[]> lines = new ArrayList<>();
+		while ((line = br.readLine()) != null) {
+			String logString = line.split("  ")[1];
+			JsonNode logNode = mapper.readTree(logString);
+			JsonNode respNode = logNode.get("RESPONSE");
+			String[] datas = new String[2];
+			datas[0] = respNode.get("_id").textValue();
+			datas[1] = respNode.get("nbr_id").textValue();
+			ids.add(datas[0]);
+			ids.add(datas[1]);
+			lines.add(datas);
+		}
+		MongoCursor<Document> cursor = collectionStatic.find(in("_id", ids.toArray())).projection(new BasicDBObject().append("url", 1).append("stitle", 1)).cursor();
+		while (cursor.hasNext()) {
+			Document d = cursor.next();
+			String id = d.getString("_id");
+			idMap.put(id, d);
+		}
+		
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(labelPath)));
+		for (String[] strs : lines) {
+			String docM = strs[0];
+			String docC = strs[1];
+			String titleM = idMap.get(docM).getString("stitle");
+			String titleC = idMap.get(docC).getString("stitle");
+			if (!StringUtils.equals(docM, docC) && !StringUtils.equals(titleM, titleC)) {
+				bw.write(docM + "\t" + docC + "\t" + titleM + "\t" + titleC + "\t" +
+					idMap.get(docM).getString("url") + "\t" + idMap.get(docC).getString("url") + "\n"
+				);
+			}
+		}
+		bw.close();
+	}
+	
+	
 	public static void main(String[] args) throws Exception {
-		extractDocFields(new File("/Users/yuxi/NB/RandomForest/_local/processor/same_title/same_title_label_result"));
+//		extractDocFields(new File("/Users/yuxi/NB/RandomForest/_local/processor/same_title/same_title_label_result"));
+		buildLabelDataFromDBByResponseLog();
 	}
 }

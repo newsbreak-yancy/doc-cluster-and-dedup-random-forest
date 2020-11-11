@@ -8,13 +8,16 @@ import com.nb.randomforest.service.DocumentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
@@ -33,6 +36,7 @@ public class DocumentEndpoint {
 	
 	
 	/**
+	 * 基于给定候选集的特征计算聚类去重结果
 	 *
 	 */
 	@RequestMapping(method = POST)
@@ -46,5 +50,18 @@ public class DocumentEndpoint {
 		} else {
 			return Collections.emptyList();
 		}
+	}
+	
+	
+	/**
+	 * 基于给定的候选集 ID, 从 DB 中获取特征, 并返回聚类去重分类结果详情
+	 */
+	@RequestMapping(method = POST, path = "/details")
+	List<RFModelResult> calCandidatesClusterDetails(
+		@RequestBody Map<String, Object> postBody
+	) {
+		String mID = (String) postBody.get("mID");
+		List<String> cIDs = (ArrayList<String>) postBody.get("cIDs");
+		return documentService.calCandidatesClusterDetails(mID, cIDs);
 	}
 }

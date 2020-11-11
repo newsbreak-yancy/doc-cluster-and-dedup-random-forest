@@ -15,7 +15,7 @@
             <pattern> %d{HH:mm:ss.SSS} %-5level - %msg%n </pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/home/services/server/online-1/doc-cluster-and-dedup-random-forest/debug.%d.log</fileNamePattern>
+            <fileNamePattern>../logs/debug.%d.log</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
     </appender>
@@ -31,7 +31,7 @@
         <!--滚动策略-->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--路径-->
-            <fileNamePattern>/home/services/server/online-1/doc-cluster-and-dedup-random-forest/info.%d.log</fileNamePattern>
+            <fileNamePattern>../logs/info.%d.log</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
     </appender>
@@ -45,7 +45,7 @@
         <!--滚动策略-->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--路径-->
-            <fileNamePattern>/home/services/server/online-1/doc-cluster-and-dedup-random-forest/error.%d.log</fileNamePattern>
+            <fileNamePattern>../logs/error.%d.log</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
     </appender>

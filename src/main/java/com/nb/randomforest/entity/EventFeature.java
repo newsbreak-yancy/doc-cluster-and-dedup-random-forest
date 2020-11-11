@@ -2,7 +2,6 @@ package com.nb.randomforest.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import weka.core.*;
 
@@ -118,8 +117,8 @@ public class EventFeature {
 	    
 	    this.kwsRatio = overlapRatio(masterNode.get("kws"), canditNode.get("kws"));
 
-	    JsonNode mChannel = masterNode.has("channels_v2") ? masterNode.get("channels_v2") : masterNode.get("channels");
-	    JsonNode cChannel = canditNode.has("channels_v2") ? canditNode.get("channels_v2") : canditNode.get("channels");
+	    JsonNode mChannel = masterNode.has("channels") ? masterNode.get("channels") : masterNode.get("channels_v2");
+	    JsonNode cChannel = canditNode.has("channels") ? canditNode.get("channels") : canditNode.get("channels_v2");
 	    this.channelRatio = overlapRatio(mChannel, cChannel);
 	    
 	    this.cOrgOverlapRatio = weightedOverlapRatio(masterNode.get("ne_content_organization"), canditNode.get("ne_content_organization"));
@@ -133,8 +132,8 @@ public class EventFeature {
 	    JsonNode cCategory = canditNode.has("text_category_v2") ? canditNode.get("text_category_v2") : canditNode.get("text_category");
 	    this.catOverlapRatio = categoryOverlapRatio(mCategory, cCategory);
 	    
-	    JsonNode mGeo = masterNode.has("geotag_v2") ? masterNode.get("geotag_v2") : masterNode.get("geotag");
-	    JsonNode cGeo = canditNode.has("geotag_v2") ? canditNode.get("geotag_v2") : canditNode.get("geotag");
+	    JsonNode mGeo = masterNode.has("geotag") ? masterNode.get("geotag") : masterNode.get("geotag_v2");
+	    JsonNode cGeo = canditNode.has("geotag") ? canditNode.get("geotag") : canditNode.get("geotag_v2");
 	    this.geoOverlapRatio = geotagOverlapRatio(mGeo, cGeo);
     }
 	

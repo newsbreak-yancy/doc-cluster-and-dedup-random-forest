@@ -150,11 +150,27 @@ public class FeatureUtils {
 			double ratio = 0d;
 			HashSet<String> _ms = new HashSet<>();
 			for (JsonNode _m : master) {
-				_ms.add(_m.asText());
+				String m = _m.asText().toLowerCase();
+				if (m.contains("^^")) {
+					String[] ms = m.split("\\^\\^");
+					for (String s : ms) {
+						_ms.add(s);
+					}
+				} else {
+					_ms.add(m);
+				}
 			}
 			HashSet<String> _cs = new HashSet<>();
 			for (JsonNode _c : candit) {
-				_cs.add(_c.asText());
+				String c = _c.asText().toLowerCase();
+				if (c.contains("^^")) {
+					String[] cs = c.split("\\^\\^");
+					for (String s : cs) {
+						_cs.add(s);
+					}
+				} else {
+					_cs.add(c);
+				}
 			}
 			for (String _m : _ms) {
 				if (_cs.contains(_m)) {

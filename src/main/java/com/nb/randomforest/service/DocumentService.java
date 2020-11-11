@@ -1,6 +1,7 @@
 package com.nb.randomforest.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.nb.randomforest.entity.DocumentInfo;
 import com.nb.randomforest.entity.EventFeature;
 import com.nb.randomforest.entity.resource.RFModelResult;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,9 @@ public class DocumentService {
 	@Autowired
 	RandomForest randomForest;
 	
+	
+	@Autowired
+	StorageService storageService;
 	
 	/**
 	 */
@@ -71,11 +75,27 @@ public class DocumentService {
 					}
 				}
 				String cID = canditNodes.get(j).hasNonNull("_id") ? canditNodes.get(j).get("_id").textValue() : "";
-				cls.add(new RFModelResult(cID, attVals.get(max), canditResult[max]));
+				cls.add(new RFModelResult(cID, attVals.get(max), canditResult[max], null));
 			}
 			return cls;
 		} catch (Exception e) {
-			log.error("EXCEPTION : CAL_CANDIDATES : " + e.getMessage(), e);
+			log.info("EXCEPTION : CAL_CANDIDATES : " + e.getMessage(), e);
+			return Collections.emptyList();
+		}
+	}
+	
+	
+	public List<RFModelResult> calCandidatesClusterDetails(String mID, List<String> cIDs) {
+		try {
+			List<RFModelResult> results = new ArrayList<>();
+			List<String> documentInfoList = storageService.findDocInfos(cIDs);
+			for (String info : documentInfoList) {
+				results.add(new RFModelResult(info, "TEST", 0.5d, null));
+			}
+			return results;
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.info("EXCEPTION : CAL_CANDIDATES : " + e.getMessage(), e);
 			return Collections.emptyList();
 		}
 	}
