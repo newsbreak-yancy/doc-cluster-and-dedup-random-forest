@@ -1,14 +1,18 @@
 package com.nb.randomforest.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.nb.randomforest.entity.DocumentInfo;
 import com.nb.randomforest.entity.EventFeature;
 import com.nb.randomforest.entity.resource.RFModelResult;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Attribute;
+import weka.core.Instance;
 import weka.core.Instances;
 
 import java.util.*;
@@ -22,6 +26,9 @@ import java.util.*;
 public class DocumentService {
 	
 	@Autowired
+	ObjectMapper mapper;
+	
+	@Autowired
 	RandomForest randomForest;
 	
 	
@@ -30,9 +37,10 @@ public class DocumentService {
 	
 	/**
 	 */
-	public List<RFModelResult> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes) {
+	public List<RFModelResult> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes, Boolean isDebug) {
 		try {
 			Instances instances;
+			List<EventFeature> features = new ArrayList<>();
 			ArrayList<String> attVals = new ArrayList<>();
 			ArrayList<Attribute> attributes = new ArrayList<>();
 			// - numeric
@@ -61,7 +69,9 @@ public class DocumentService {
 			instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
 			instances.setClassIndex(instances.numAttributes() - 1);
 			for (JsonNode canditNode : canditNodes) {
-				instances.add(new EventFeature(masterNode, canditNode, null).toInstance());
+				EventFeature feature = new EventFeature(masterNode, canditNode, null);
+				features.add(feature);
+				instances.add(feature.toInstance());
 			}
 			// 3.
 			List<RFModelResult> cls = new ArrayList<>();
@@ -75,7 +85,10 @@ public class DocumentService {
 					}
 				}
 				String cID = canditNodes.get(j).hasNonNull("_id") ? canditNodes.get(j).get("_id").textValue() : "";
-				cls.add(new RFModelResult(cID, attVals.get(max), canditResult[max], null));
+				cls.add(new RFModelResult(
+					cID, attVals.get(max), canditResult[max],
+					BooleanUtils.isTrue(isDebug) ? features.get(j) : null
+				));
 			}
 			return cls;
 		} catch (Exception e) {
@@ -87,12 +100,13 @@ public class DocumentService {
 	
 	public List<RFModelResult> calCandidatesClusterDetails(String mID, List<String> cIDs) {
 		try {
-			List<RFModelResult> results = new ArrayList<>();
-			List<String> documentInfoList = storageService.findDocInfos(cIDs);
-			for (String info : documentInfoList) {
-				results.add(new RFModelResult(info, "TEST", 0.5d, null));
+			Map<String, JsonNode> docNodes = storageService.findDocInfos(mID, cIDs);
+			JsonNode mNode = docNodes.get(mID);
+			ArrayNode cNodes = mapper.createArrayNode();
+			for (String cID : cIDs) {
+				cNodes.add(docNodes.get(cID));
 			}
-			return results;
+			return this.calCandidatesClusterInfo(mNode, cNodes, true);
 		} catch (Exception e) {
 			e.printStackTrace();
 			log.info("EXCEPTION : CAL_CANDIDATES : " + e.getMessage(), e);

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
@@ -413,6 +414,18 @@ public class FileUtils {
 	
 	public static void main(String[] args) throws Exception {
 //		extractDocFields(new File("/Users/yuxi/NB/RandomForest/_local/processor/same_title/same_title_label_result"));
-		buildLabelDataFromDBByResponseLog();
+//		buildLabelDataFromDBByResponseLog();
+		
+		String a = "a";
+		List<String> b = new ArrayList<>();
+		b.add("b");
+		b.add("c");
+		b.add("a");
+		Set<String> c = new HashSet<>();
+		c.add(a);
+		c.addAll(b);
+		System.out.println(c);
+		
+		
 	}
 }

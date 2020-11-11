@@ -1,5 +1,7 @@
 package com.nb.randomforest.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -8,8 +10,8 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
 import static com.mongodb.client.model.Filters.in;
 
@@ -22,11 +24,17 @@ import static com.mongodb.client.model.Filters.in;
 public class StorageService {
 	
 	@Autowired
+	ObjectMapper mapper;
+	
+	@Autowired
 	MongoCollection<Document> collection;
 	
-	public List<String> findDocInfos(List<String> idList) {
-		List<String> ids = new ArrayList<>();
-		MongoCursor<Document> cursor = collection.find(in("_id", idList.toArray())).projection(new BasicDBObject()
+	public Map<String, JsonNode> findDocInfos(String mID, List<String> cIDs) {
+		Map<String, JsonNode> docNodes = new HashMap<>();
+		Set<String> ids = new HashSet<>();
+		ids.add(mID);
+		ids.addAll(cIDs);
+		MongoCursor<Document> cursor = collection.find(in("_id", ids)).projection(new BasicDBObject()
 			.append("_id", 1).append("stitle", 1).append("src", 1)
 			.append("c_word", 1).append("epoch", 1).append("paragraph_count", 1)
 			.append("simhash", 1).append("kws", 1)
@@ -37,9 +45,13 @@ public class StorageService {
 			.append("text_category", 1).append("text_category_v2", 1)
 			.append("geotag", 1).append("geotag_v2", 1)).cursor();
 		while (cursor.hasNext()) {
-			Document d = cursor.next();
-			ids.add(d.getString("_id"));
+			Document doc = cursor.next();
+			try {
+				docNodes.put(doc.getString("_id"), mapper.readTree(doc.toJson()));
+			} catch (IOException e) {
+				log.info("EXCEPTION : findDocInfos : " + doc.getString("_id"));
+			}
 		}
-		return ids;
+		return docNodes;
 	}
 }

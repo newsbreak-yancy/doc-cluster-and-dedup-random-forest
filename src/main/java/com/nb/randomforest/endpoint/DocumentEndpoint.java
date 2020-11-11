@@ -46,7 +46,7 @@ public class DocumentEndpoint {
 		JsonNode masterNode = objectMapper.valueToTree(postBody.get("master"));
 		JsonNode candidates = objectMapper.valueToTree(postBody.get("candidates"));
 		if (candidates.size() > 0) {
-			return documentService.calCandidatesClusterInfo(masterNode, candidates);
+			return documentService.calCandidatesClusterInfo(masterNode, candidates, false);
 		} else {
 			return Collections.emptyList();
 		}
