@@ -48,6 +48,6 @@ public class WebRequestAspect {
 		ObjectNode object = objectMapper.createObjectNode();
 		object.putPOJO("RESPONSE", ret);
 		object.put("SPEND_TIME", System.currentTimeMillis() - startTime.get());
-		log.info(object.toString());
+		log.info(objectMapper.writeValueAsString(object));
 	}
 }

@@ -3,7 +3,6 @@ package com.nb.randomforest.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.nb.randomforest.entity.DocumentInfo;
 import com.nb.randomforest.entity.EventFeature;
 import com.nb.randomforest.entity.resource.RFModelResult;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Attribute;
-import weka.core.Instance;
 import weka.core.Instances;
 
 import java.util.*;
