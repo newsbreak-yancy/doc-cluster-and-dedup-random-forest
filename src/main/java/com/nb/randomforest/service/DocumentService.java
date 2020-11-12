@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.nb.randomforest.entity.EventFeature;
 import com.nb.randomforest.entity.resource.RFModelResult;
+import com.nb.randomforest.utils.MyAttributeBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,40 +38,21 @@ public class DocumentService {
 	 */
 	public List<RFModelResult> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes, Boolean isDebug) {
 		try {
+			// 1.
 			Instances instances;
 			List<EventFeature> features = new ArrayList<>();
-			ArrayList<String> attVals = new ArrayList<>();
-			ArrayList<Attribute> attributes = new ArrayList<>();
-			// - numeric
-			attributes.add(new Attribute("TitleDist"));
-			attributes.add(new Attribute("SameSRC"));
-			attributes.add(new Attribute("CWordSpan"));
-			attributes.add(new Attribute("EpochSpan"));
-			attributes.add(new Attribute("ParghSpan"));
-			attributes.add(new Attribute("SimhashDist"));
-			attributes.add(new Attribute("KWSRatio"));
-			attributes.add(new Attribute("ChannelRatio"));
-			attributes.add(new Attribute("COrgOverlapRatio"));
-			attributes.add(new Attribute("CLocOverlapRatio"));
-			attributes.add(new Attribute("CPrsOverlapRatio"));
-			attributes.add(new Attribute("TOrgOverlapRatio"));
-			attributes.add(new Attribute("TLocOverlapRatio"));
-			attributes.add(new Attribute("TPrsOverlapRatio"));
-			attributes.add(new Attribute("CatOverlapRatio"));
-			attributes.add(new Attribute("GEOOverlapRatio"));
-			// - nominal
-			attVals.add("DIFF");
-			attVals.add("EVENT");
-			attVals.add("DUP");
-			attributes.add(new Attribute("Label", attVals));
+			ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributes();
+			
 			// 2. create Instances object
 			instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
-			instances.setClassIndex(instances.numAttributes() - 1);
+			int classIndex = instances.numAttributes() - 1;
+			instances.setClassIndex(classIndex);
 			for (JsonNode canditNode : canditNodes) {
 				EventFeature feature = new EventFeature(masterNode, canditNode, null);
 				features.add(feature);
 				instances.add(feature.toInstance());
 			}
+			
 			// 3.
 			List<RFModelResult> cls = new ArrayList<>();
 			double[][] canditResults = randomForest.distributionsForInstances(instances);
@@ -84,7 +66,7 @@ public class DocumentService {
 				}
 				String cID = canditNodes.get(j).hasNonNull("_id") ? canditNodes.get(j).get("_id").textValue() : "";
 				cls.add(new RFModelResult(
-					cID, attVals.get(max), canditResult[max],
+					cID, attributes.get(classIndex).value(max), canditResult[max],
 					BooleanUtils.isTrue(isDebug) ? features.get(j) : null
 				));
 			}

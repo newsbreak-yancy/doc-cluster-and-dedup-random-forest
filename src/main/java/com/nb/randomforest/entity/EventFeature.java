@@ -19,12 +19,20 @@ public class EventFeature {
     private String label;
 	
 	/**
+	 * Title
+	 *
 	 * Levenshtein Distance
+	 * Overlap Ratio
+	 * Everage Length
 	 */
 	private Double titleDist;
 	
+	private Double titleRatio;
+	
+	private Double titleLengthEvg;
+	
 	/**
-	 * Is Same
+	 * Is Same Source
 	 */
 	private Double sameSRC;
     
@@ -43,36 +51,71 @@ public class EventFeature {
 	private Double simhashDist;
     
     /**
-     * OverlapRatio
+     * Keywords
+     *
+     * Overlap Ratio
+     * Everage Length
      */
     private Double kwsRatio;
-    
+	
+	private Double kwsLengthEvg;
+	
+	/**
+	 * Channels
+	 *
+	 * Overlap Ratio
+	 * Everage Length
+	 */
 	private Double channelRatio;
+	
+	private Double channelLengthEvg;
 	
 	/**
 	 * Weighted Overlap Ratio
 	 */
 	private Double cOrgOverlapRatio;
 	
+	private Double cOrgLengthEvg;
+	
 	private Double cLocOverlapRatio;
+	
+	private Double cLocLengthEvg;
 	
 	private Double cPrsOverlapRatio;
 	
+	private Double cPrsLengthEvg;
+	
 	private Double tOrgOverlapRatio;
+	
+	private Double tOrgLengthEvg;
 	
 	private Double tLocOverlapRatio;
 	
+	private Double tLocLengthEvg;
+	
 	private Double tPrsOverlapRatio;
 	
+	private Double tPrsLengthEvg;
+	
 	/**
-	 * Category Overlap Ratio
+	 * Category
+	 *
+	 * Overlap Ratio
+	 * Everage Length
 	 */
 	private Double catOverlapRatio;
 	
+	private Double catLengthEvg;
+	
 	/**
-	 * Geotag_v2 Overlap Ratio
+	 * Geotag
+	 *
+	 * Overlap Ratio
+	 * Everage Length
 	 */
 	private Double geoOverlapRatio;
+	
+	private Double geoLengthEvg;
 	
 
     public EventFeature(JsonNode masterNode, JsonNode canditNode, String label) throws Exception {
@@ -137,12 +180,21 @@ public class EventFeature {
 	    this.geoOverlapRatio = geotagOverlapRatio(mGeo, cGeo);
     }
 	
+    
 	public String getLabel() {
 		return label;
 	}
 	
 	public Double getTitleDist() {
 		return titleDist;
+	}
+	
+	public Double getTitleRatio() {
+		return titleRatio;
+	}
+	
+	public Double getTitleLengthEvg() {
+		return titleLengthEvg;
 	}
 	
 	public Double getSameSRC() {
@@ -169,40 +221,80 @@ public class EventFeature {
 		return kwsRatio;
 	}
 	
+	public Double getKwsLengthEvg() {
+		return kwsLengthEvg;
+	}
+	
 	public Double getChannelRatio() {
 		return channelRatio;
+	}
+	
+	public Double getChannelLengthEvg() {
+		return channelLengthEvg;
 	}
 	
 	public Double getcOrgOverlapRatio() {
 		return cOrgOverlapRatio;
 	}
 	
+	public Double getcOrgLengthEvg() {
+		return cOrgLengthEvg;
+	}
+	
 	public Double getcLocOverlapRatio() {
 		return cLocOverlapRatio;
+	}
+	
+	public Double getcLocLengthEvg() {
+		return cLocLengthEvg;
 	}
 	
 	public Double getcPrsOverlapRatio() {
 		return cPrsOverlapRatio;
 	}
 	
+	public Double getcPrsLengthEvg() {
+		return cPrsLengthEvg;
+	}
+	
 	public Double gettOrgOverlapRatio() {
 		return tOrgOverlapRatio;
+	}
+	
+	public Double gettOrgLengthEvg() {
+		return tOrgLengthEvg;
 	}
 	
 	public Double gettLocOverlapRatio() {
 		return tLocOverlapRatio;
 	}
 	
+	public Double gettLocLengthEvg() {
+		return tLocLengthEvg;
+	}
+	
 	public Double gettPrsOverlapRatio() {
 		return tPrsOverlapRatio;
+	}
+	
+	public Double gettPrsLengthEvg() {
+		return tPrsLengthEvg;
 	}
 	
 	public Double getCatOverlapRatio() {
 		return catOverlapRatio;
 	}
 	
+	public Double getCatLengthEvg() {
+		return catLengthEvg;
+	}
+	
 	public Double getGeoOverlapRatio() {
 		return geoOverlapRatio;
+	}
+	
+	public Double getGeoLengthEvg() {
+		return geoLengthEvg;
 	}
 	
 	public Instance toInstance() {
