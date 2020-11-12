@@ -23,13 +23,13 @@ public class EventFeature {
 	 *
 	 * Levenshtein Distance
 	 * Overlap Ratio
-	 * Everage Length
+	 * Average Length
 	 */
 	private Double titleDist;
 	
 	private Double titleRatio;
 	
-	private Double titleLengthEvg;
+	private Double titleLength;
 	
 	/**
 	 * Is Same Source
@@ -37,13 +37,21 @@ public class EventFeature {
 	private Double sameSRC;
     
 	/**
-	 * Number Span
+	 * Word Count Span
 	 */
 	private Double cWordSpan;
-    
-    private Double epochSpan;
-    
-    private Double parghSpan;
+	
+	/**
+	 * Paragraph Span
+	 */
+	private Double paragraphSpan;
+	
+	/**
+	 * Time Span
+	 */
+	private Double epochSpan;
+	
+	private Double insertSpan;
 	
 	/**
 	 * Simhash Distance
@@ -51,71 +59,200 @@ public class EventFeature {
 	private Double simhashDist;
     
     /**
-     * Keywords
+     * Content Keywords
      *
      * Overlap Ratio
-     * Everage Length
+     * Average Length
      */
-    private Double kwsRatio;
+    private Double cKWSRatio;
 	
-	private Double kwsLengthEvg;
+	private Double cKWSLength;
+	
+	/**
+	 * Title Keywords
+	 *
+	 * Overlap Ratio
+	 * Average Length
+	 */
+	private Double tKWSRatio;
+	
+	private Double tKWSLength;
+	
+	/**
+	 * HighLight Keywords
+	 *
+	 * Overlap Ratio
+	 * Average Length
+	 */
+	private Double hKWSRatio;
+	
+	private Double hKWSLength;
 	
 	/**
 	 * Channels
 	 *
 	 * Overlap Ratio
-	 * Everage Length
+	 * Average Length
 	 */
 	private Double channelRatio;
 	
-	private Double channelLengthEvg;
+	private Double channelLength;
 	
 	/**
-	 * Weighted Overlap Ratio
+	 * Content Organization
+	 *
+	 * NE : Weighted Overlap Ratio
+	 * SP : Weighted Overlap Ratio
+	 * NE : Average Length
+	 * SP : Average Length
 	 */
-	private Double cOrgOverlapRatio;
+	private Double cOrgRatioNE;
 	
-	private Double cOrgLengthEvg;
+	private Double cOrgRatioSP;
 	
-	private Double cLocOverlapRatio;
+	private Double cOrgLengthNE;
 	
-	private Double cLocLengthEvg;
+	private Double cOrgLengthSP;
 	
-	private Double cPrsOverlapRatio;
+	/**
+	 * Content Location
+	 *
+	 * NE : Weighted Overlap Ratio
+	 * SP : Weighted Overlap Ratio
+	 * NE : Average Length
+	 * SP : Average Length
+	 */
+	private Double cLocRatioNE;
 	
-	private Double cPrsLengthEvg;
+	private Double cLocRatioSP;
 	
-	private Double tOrgOverlapRatio;
+	private Double cLocLengthNE;
 	
-	private Double tOrgLengthEvg;
+	private Double cLocLengthSP;
 	
-	private Double tLocOverlapRatio;
+	/**
+	 * Content Person
+	 *
+	 * NE : Weighted Overlap Ratio
+	 * SP : Weighted Overlap Ratio
+	 * NE : Average Length
+	 * SP : Average Length
+	 */
+	private Double cPrsRatioNE;
 	
-	private Double tLocLengthEvg;
+	private Double cPrsRatioSP;
 	
-	private Double tPrsOverlapRatio;
+	private Double cPrsLengthNE;
 	
-	private Double tPrsLengthEvg;
+	private Double cPrsLengthSP;
+	
+	/**
+	 * Content NUM
+	 *
+	 * SP : Weighted Overlap Ratio
+	 * SP : Average Length
+	 */
+	private Double cNUMRatioSP;
+	
+	private Double cNUMLengthSP;
+	
+	/**
+	 * Content Time
+	 *
+	 * SP : Weighted Overlap Ratio
+	 * SP : Average Length
+	 */
+	private Double cTimRatioSP;
+	
+	private Double cTimLengthSP;
+	
+	/**
+	 * Title Organization
+	 *
+	 * NE : Weighted Overlap Ratio
+	 * SP : Weighted Overlap Ratio
+	 * NE : Average Length
+	 * SP : Average Length
+	 */
+	private Double tOrgRatioNE;
+	
+	private Double tOrgRatioSP;
+	
+	private Double tOrgLengthNE;
+	
+	private Double tOrgLengthSP;
+	
+	/**
+	 * Title Location
+	 *
+	 * NE : Weighted Overlap Ratio
+	 * SP : Weighted Overlap Ratio
+	 * NE : Average Length
+	 * SP : Average Length
+	 */
+	private Double tLocRatioNE;
+	
+	private Double tLocRatioSP;
+	
+	private Double tLocLengthNE;
+	
+	private Double tLocLengthSP;
+	
+	/**
+	 * Title Person
+	 *
+	 * NE : Weighted Overlap Ratio
+	 * SP : Weighted Overlap Ratio
+	 * NE : Average Length
+	 * SP : Average Length
+	 */
+	private Double tPerRatioNE;
+	
+	private Double tPerRatioSP;
+	
+	private Double tPerLengthNE;
+	
+	private Double tPerLengthSP;
+	
+	/**
+	 * Title NUM
+	 *
+	 * SP : Weighted Overlap Ratio
+	 * SP : Average Length
+	 */
+	private Double tNUMRatioSP;
+	
+	private Double tNUMLengthSP;
+	
+	/**
+	 * Title Time
+	 *
+	 * SP : Weighted Overlap Ratio
+	 * SP : Average Length
+	 */
+	private Double tTimRatioSP;
+	
+	private Double tTimLengthSP;
 	
 	/**
 	 * Category
 	 *
 	 * Overlap Ratio
-	 * Everage Length
+	 * Average Length
 	 */
-	private Double catOverlapRatio;
+	private Double catRatio;
 	
-	private Double catLengthEvg;
+	private Double catLength;
 	
 	/**
 	 * Geotag
 	 *
 	 * Overlap Ratio
-	 * Everage Length
+	 * Average Length
 	 */
-	private Double geoOverlapRatio;
+	private Double geoRatio;
 	
-	private Double geoLengthEvg;
+	private Double geoLength;
 	
 
     public EventFeature(JsonNode masterNode, JsonNode canditNode, String label) throws Exception {
@@ -154,30 +291,30 @@ public class EventFeature {
 	    }
 	    this.epochSpan = numSpan(mEpoch, cEpoch);
 	    
-	    this.parghSpan = numSpan(masterNode.get("paragraph_count"), canditNode.get("paragraph_count"));
+	    this.paragraphSpan = numSpan(masterNode.get("paragraph_count"), canditNode.get("paragraph_count"));
 	    
 	    this.simhashDist = simhashDist(masterNode.get("simhash"), canditNode.get("simhash"));
 	    
-	    this.kwsRatio = overlapRatio(masterNode.get("kws"), canditNode.get("kws"));
+	    this.cKWSRatio = overlapRatio(masterNode.get("kws"), canditNode.get("kws"));
 
 	    JsonNode mChannel = masterNode.has("channels") ? masterNode.get("channels") : masterNode.get("channels_v2");
 	    JsonNode cChannel = canditNode.has("channels") ? canditNode.get("channels") : canditNode.get("channels_v2");
 	    this.channelRatio = overlapRatio(mChannel, cChannel);
 	    
-	    this.cOrgOverlapRatio = weightedOverlapRatio(masterNode.get("ne_content_organization"), canditNode.get("ne_content_organization"));
-	    this.cLocOverlapRatio = weightedOverlapRatio(masterNode.get("ne_content_location"), canditNode.get("ne_content_location"));
-	    this.cPrsOverlapRatio = weightedOverlapRatio(masterNode.get("ne_content_person"), canditNode.get("ne_content_person"));
-	    this.tOrgOverlapRatio = weightedOverlapRatio(masterNode.get("ne_title_organization"), canditNode.get("ne_title_organization"));
-	    this.tLocOverlapRatio = weightedOverlapRatio(masterNode.get("ne_title_location"), canditNode.get("ne_title_location"));
-	    this.tPrsOverlapRatio = weightedOverlapRatio(masterNode.get("ne_title_person"), canditNode.get("ne_title_person"));
+	    this.cOrgRatioNE = weightedOverlapRatio(masterNode.get("ne_content_organization"), canditNode.get("ne_content_organization"));
+	    this.cLocRatioNE = weightedOverlapRatio(masterNode.get("ne_content_location"), canditNode.get("ne_content_location"));
+	    this.cPrsRatioNE = weightedOverlapRatio(masterNode.get("ne_content_person"), canditNode.get("ne_content_person"));
+	    this.tOrgRatioNE = weightedOverlapRatio(masterNode.get("ne_title_organization"), canditNode.get("ne_title_organization"));
+	    this.tLocRatioNE = weightedOverlapRatio(masterNode.get("ne_title_location"), canditNode.get("ne_title_location"));
+	    this.tPerRatioNE = weightedOverlapRatio(masterNode.get("ne_title_person"), canditNode.get("ne_title_person"));
 	    
 	    JsonNode mCategory = masterNode.has("text_category_v2") ? masterNode.get("text_category_v2") : masterNode.get("text_category");
 	    JsonNode cCategory = canditNode.has("text_category_v2") ? canditNode.get("text_category_v2") : canditNode.get("text_category");
-	    this.catOverlapRatio = categoryOverlapRatio(mCategory, cCategory);
+	    this.catRatio = categoryOverlapRatio(mCategory, cCategory);
 	    
 	    JsonNode mGeo = masterNode.has("geotag") ? masterNode.get("geotag") : masterNode.get("geotag_v2");
 	    JsonNode cGeo = canditNode.has("geotag") ? canditNode.get("geotag") : canditNode.get("geotag_v2");
-	    this.geoOverlapRatio = geotagOverlapRatio(mGeo, cGeo);
+	    this.geoRatio = geotagOverlapRatio(mGeo, cGeo);
     }
 	
     
@@ -193,8 +330,8 @@ public class EventFeature {
 		return titleRatio;
 	}
 	
-	public Double getTitleLengthEvg() {
-		return titleLengthEvg;
+	public Double getTitleLength() {
+		return titleLength;
 	}
 	
 	public Double getSameSRC() {
@@ -205,117 +342,254 @@ public class EventFeature {
 		return cWordSpan;
 	}
 	
+	public Double getParagraphSpan() {
+		return paragraphSpan;
+	}
+	
 	public Double getEpochSpan() {
 		return epochSpan;
 	}
 	
-	public Double getParghSpan() {
-		return parghSpan;
+	public Double getInsertSpan() {
+		return insertSpan;
 	}
 	
 	public Double getSimhashDist() {
 		return simhashDist;
 	}
 	
-	public Double getKwsRatio() {
-		return kwsRatio;
+	public Double getcKWSRatio() {
+		return cKWSRatio;
 	}
 	
-	public Double getKwsLengthEvg() {
-		return kwsLengthEvg;
+	public Double getcKWSLength() {
+		return cKWSLength;
+	}
+	
+	public Double gettKWSRatio() {
+		return tKWSRatio;
+	}
+	
+	public Double gettKWSLength() {
+		return tKWSLength;
+	}
+	
+	public Double gethKWSRatio() {
+		return hKWSRatio;
+	}
+	
+	public Double gethKWSLength() {
+		return hKWSLength;
 	}
 	
 	public Double getChannelRatio() {
 		return channelRatio;
 	}
 	
-	public Double getChannelLengthEvg() {
-		return channelLengthEvg;
+	public Double getChannelLength() {
+		return channelLength;
 	}
 	
-	public Double getcOrgOverlapRatio() {
-		return cOrgOverlapRatio;
+	public Double getcOrgRatioNE() {
+		return cOrgRatioNE;
 	}
 	
-	public Double getcOrgLengthEvg() {
-		return cOrgLengthEvg;
+	public Double getcOrgRatioSP() {
+		return cOrgRatioSP;
 	}
 	
-	public Double getcLocOverlapRatio() {
-		return cLocOverlapRatio;
+	public Double getcOrgLengthNE() {
+		return cOrgLengthNE;
 	}
 	
-	public Double getcLocLengthEvg() {
-		return cLocLengthEvg;
+	public Double getcOrgLengthSP() {
+		return cOrgLengthSP;
 	}
 	
-	public Double getcPrsOverlapRatio() {
-		return cPrsOverlapRatio;
+	public Double getcLocRatioNE() {
+		return cLocRatioNE;
 	}
 	
-	public Double getcPrsLengthEvg() {
-		return cPrsLengthEvg;
+	public Double getcLocRatioSP() {
+		return cLocRatioSP;
 	}
 	
-	public Double gettOrgOverlapRatio() {
-		return tOrgOverlapRatio;
+	public Double getcLocLengthNE() {
+		return cLocLengthNE;
 	}
 	
-	public Double gettOrgLengthEvg() {
-		return tOrgLengthEvg;
+	public Double getcLocLengthSP() {
+		return cLocLengthSP;
 	}
 	
-	public Double gettLocOverlapRatio() {
-		return tLocOverlapRatio;
+	public Double getcPrsRatioNE() {
+		return cPrsRatioNE;
 	}
 	
-	public Double gettLocLengthEvg() {
-		return tLocLengthEvg;
+	public Double getcPrsRatioSP() {
+		return cPrsRatioSP;
 	}
 	
-	public Double gettPrsOverlapRatio() {
-		return tPrsOverlapRatio;
+	public Double getcPrsLengthNE() {
+		return cPrsLengthNE;
 	}
 	
-	public Double gettPrsLengthEvg() {
-		return tPrsLengthEvg;
+	public Double getcPrsLengthSP() {
+		return cPrsLengthSP;
 	}
 	
-	public Double getCatOverlapRatio() {
-		return catOverlapRatio;
+	public Double getcNUMRatioSP() {
+		return cNUMRatioSP;
 	}
 	
-	public Double getCatLengthEvg() {
-		return catLengthEvg;
+	public Double getcNUMLengthSP() {
+		return cNUMLengthSP;
 	}
 	
-	public Double getGeoOverlapRatio() {
-		return geoOverlapRatio;
+	public Double getcTimRatioSP() {
+		return cTimRatioSP;
 	}
 	
-	public Double getGeoLengthEvg() {
-		return geoLengthEvg;
+	public Double getcTimLengthSP() {
+		return cTimLengthSP;
+	}
+	
+	public Double gettOrgRatioNE() {
+		return tOrgRatioNE;
+	}
+	
+	public Double gettOrgRatioSP() {
+		return tOrgRatioSP;
+	}
+	
+	public Double gettOrgLengthNE() {
+		return tOrgLengthNE;
+	}
+	
+	public Double gettOrgLengthSP() {
+		return tOrgLengthSP;
+	}
+	
+	public Double gettLocRatioNE() {
+		return tLocRatioNE;
+	}
+	
+	public Double gettLocRatioSP() {
+		return tLocRatioSP;
+	}
+	
+	public Double gettLocLengthNE() {
+		return tLocLengthNE;
+	}
+	
+	public Double gettLocLengthSP() {
+		return tLocLengthSP;
+	}
+	
+	public Double gettPerRatioNE() {
+		return tPerRatioNE;
+	}
+	
+	public Double gettPerRatioSP() {
+		return tPerRatioSP;
+	}
+	
+	public Double gettPerLengthNE() {
+		return tPerLengthNE;
+	}
+	
+	public Double gettPerLengthSP() {
+		return tPerLengthSP;
+	}
+	
+	public Double gettNUMRatioSP() {
+		return tNUMRatioSP;
+	}
+	
+	public Double gettNUMLengthSP() {
+		return tNUMLengthSP;
+	}
+	
+	public Double gettTimRatioSP() {
+		return tTimRatioSP;
+	}
+	
+	public Double gettTimLengthSP() {
+		return tTimLengthSP;
+	}
+	
+	public Double getCatRatio() {
+		return catRatio;
+	}
+	
+	public Double getCatLength() {
+		return catLength;
+	}
+	
+	public Double getGeoRatio() {
+		return geoRatio;
+	}
+	
+	public Double getGeoLength() {
+		return geoLength;
 	}
 	
 	public Instance toInstance() {
 		List<Double> doubleList = new ArrayList<>();
 		doubleList.add(titleDist);
+		doubleList.add(titleRatio);
+		doubleList.add(titleLength);
 		doubleList.add(sameSRC);
 		doubleList.add(cWordSpan);
+		doubleList.add(paragraphSpan);
 		doubleList.add(epochSpan);
-		doubleList.add(parghSpan);
+		doubleList.add(insertSpan);
 		doubleList.add(simhashDist);
-		doubleList.add(kwsRatio);
+		doubleList.add(cKWSRatio);
+		doubleList.add(cKWSLength);
+		doubleList.add(tKWSRatio);
+		doubleList.add(tKWSLength);
+		doubleList.add(hKWSRatio);
+		doubleList.add(hKWSLength);
 		doubleList.add(channelRatio);
-		doubleList.add(cOrgOverlapRatio);
-		doubleList.add(cLocOverlapRatio);
-		doubleList.add(cPrsOverlapRatio);
-		doubleList.add(tOrgOverlapRatio);
-		doubleList.add(tLocOverlapRatio);
-		doubleList.add(tPrsOverlapRatio);
-		doubleList.add(catOverlapRatio);
-		doubleList.add(geoOverlapRatio);
-		doubleList.add((StringUtils.isEmpty(label) || StringUtils.equals(label, "DIFF")) ? 0d : StringUtils.equals(label, "DIFF") ? 1d : 2d);
+		doubleList.add(channelLength);
+		doubleList.add(cOrgRatioNE);
+		doubleList.add(cOrgRatioSP);
+		doubleList.add(cOrgLengthNE);
+		doubleList.add(cOrgLengthSP);
+		doubleList.add(cLocRatioNE);
+		doubleList.add(cLocRatioSP);
+		doubleList.add(cLocLengthNE);
+		doubleList.add(cLocLengthSP);
+		doubleList.add(cPrsRatioNE);
+		doubleList.add(cPrsRatioSP);
+		doubleList.add(cPrsLengthNE);
+		doubleList.add(cPrsLengthSP);
+		doubleList.add(cNUMRatioSP);
+		doubleList.add(cNUMLengthSP);
+		doubleList.add(cTimRatioSP);
+		doubleList.add(cTimLengthSP);
+		doubleList.add(tOrgRatioNE);
+		doubleList.add(tOrgRatioSP);
+		doubleList.add(tOrgLengthNE);
+		doubleList.add(tOrgLengthSP);
+		doubleList.add(tLocRatioNE);
+		doubleList.add(tLocRatioSP);
+		doubleList.add(tLocLengthNE);
+		doubleList.add(tLocLengthSP);
+		doubleList.add(tPerRatioNE);
+		doubleList.add(tPerRatioSP);
+		doubleList.add(tPerLengthNE);
+		doubleList.add(tPerLengthSP);
+		doubleList.add(tNUMRatioSP);
+		doubleList.add(tNUMLengthSP);
+		doubleList.add(tTimRatioSP);
+		doubleList.add(tTimLengthSP);
+		doubleList.add(catRatio);
+		doubleList.add(catLength);
+		doubleList.add(geoRatio);
+		doubleList.add(geoLength);
+		doubleList.add((StringUtils.isEmpty(label) || StringUtils.equals(label, "DIFF")) ? 0d : StringUtils.equals(label, "EVENT") ? 1d : 2d);
 		double[] doubleArray = doubleList.stream().mapToDouble(d -> d == null ? Utils.missingValue() : d.doubleValue()).toArray();
 		return new DenseInstance(1, doubleArray);
 	}
@@ -323,37 +597,111 @@ public class EventFeature {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(titleDist == null ? "?" : this.titleDist.toString());
+		sb.append(titleDist == null ? "?" : titleDist.toString());
+		sb.append(",");
+		sb.append(titleRatio == null ? "?" : titleRatio.toString());
+		sb.append(",");
+		sb.append(titleLength == null ? "?" : titleLength.toString());
 		sb.append(",");
 		sb.append(sameSRC == null ? "?" : sameSRC.toString());
 		sb.append(",");
 		sb.append(cWordSpan == null ? "?" : cWordSpan.toString());
 		sb.append(",");
+		sb.append(paragraphSpan == null ? "?" : paragraphSpan.toString());
+		sb.append(",");
 		sb.append(epochSpan == null ? "?" : epochSpan.toString());
 		sb.append(",");
-		sb.append(parghSpan == null ? "?" : parghSpan.toString());
+		sb.append(insertSpan == null ? "?" : insertSpan.toString());
 		sb.append(",");
 		sb.append(simhashDist == null ? "?" : simhashDist.toString());
 		sb.append(",");
-		sb.append(kwsRatio == null ? "?" : kwsRatio.toString());
+		sb.append(cKWSRatio == null ? "?" : cKWSRatio.toString());
+		sb.append(",");
+		sb.append(cKWSLength == null ? "?" : cKWSLength.toString());
+		sb.append(",");
+		sb.append(tKWSRatio == null ? "?" : tKWSRatio.toString());
+		sb.append(",");
+		sb.append(tKWSLength == null ? "?" : tKWSLength.toString());
+		sb.append(",");
+		sb.append(hKWSRatio == null ? "?" : hKWSRatio.toString());
+		sb.append(",");
+		sb.append(hKWSLength == null ? "?" : hKWSLength.toString());
 		sb.append(",");
 		sb.append(channelRatio == null ? "?" : channelRatio.toString());
 		sb.append(",");
-		sb.append(cOrgOverlapRatio == null ? "?" : cOrgOverlapRatio.toString());
+		sb.append(channelLength == null ? "?" : channelLength.toString());
 		sb.append(",");
-		sb.append(cLocOverlapRatio == null ? "?" : cLocOverlapRatio.toString());
+		sb.append(cOrgRatioNE == null ? "?" : cOrgRatioNE.toString());
 		sb.append(",");
-		sb.append(cPrsOverlapRatio == null ? "?" : cPrsOverlapRatio.toString());
+		sb.append(cOrgRatioSP == null ? "?" : cOrgRatioSP.toString());
 		sb.append(",");
-		sb.append(tOrgOverlapRatio == null ? "?" : tOrgOverlapRatio.toString());
+		sb.append(cOrgLengthNE == null ? "?" : cOrgLengthNE.toString());
 		sb.append(",");
-		sb.append(tLocOverlapRatio == null ? "?" : tLocOverlapRatio.toString());
+		sb.append(cOrgLengthSP == null ? "?" : cOrgLengthSP.toString());
 		sb.append(",");
-		sb.append(tPrsOverlapRatio == null ? "?" : tPrsOverlapRatio.toString());
+		sb.append(cLocRatioNE == null ? "?" : cLocRatioNE.toString());
 		sb.append(",");
-		sb.append(catOverlapRatio == null ? "?" : catOverlapRatio.toString());
+		sb.append(cLocRatioSP == null ? "?" : cLocRatioSP.toString());
 		sb.append(",");
-		sb.append(geoOverlapRatio == null ? "?" : geoOverlapRatio.toString());
+		sb.append(cLocLengthNE == null ? "?" : cLocLengthNE.toString());
+		sb.append(",");
+		sb.append(cLocLengthSP == null ? "?" : cLocLengthSP.toString());
+		sb.append(",");
+		sb.append(cPrsRatioNE == null ? "?" : cPrsRatioNE.toString());
+		sb.append(",");
+		sb.append(cPrsRatioSP == null ? "?" : cPrsRatioSP.toString());
+		sb.append(",");
+		sb.append(cPrsLengthNE == null ? "?" : cPrsLengthNE.toString());
+		sb.append(",");
+		sb.append(cPrsLengthSP == null ? "?" : cPrsLengthSP.toString());
+		sb.append(",");
+		sb.append(cNUMRatioSP == null ? "?" : cNUMRatioSP.toString());
+		sb.append(",");
+		sb.append(cNUMLengthSP == null ? "?" : cNUMLengthSP.toString());
+		sb.append(",");
+		sb.append(cTimRatioSP == null ? "?" : cTimRatioSP.toString());
+		sb.append(",");
+		sb.append(cTimLengthSP == null ? "?" : cTimLengthSP.toString());
+		sb.append(",");
+		sb.append(tOrgRatioNE == null ? "?" : tOrgRatioNE.toString());
+		sb.append(",");
+		sb.append(tOrgRatioSP == null ? "?" : tOrgRatioSP.toString());
+		sb.append(",");
+		sb.append(tOrgLengthNE == null ? "?" : tOrgLengthNE.toString());
+		sb.append(",");
+		sb.append(tOrgLengthSP == null ? "?" : tOrgLengthSP.toString());
+		sb.append(",");
+		sb.append(tLocRatioNE == null ? "?" : tLocRatioNE.toString());
+		sb.append(",");
+		sb.append(tLocRatioSP == null ? "?" : tLocRatioSP.toString());
+		sb.append(",");
+		sb.append(tLocLengthNE == null ? "?" : tLocLengthNE.toString());
+		sb.append(",");
+		sb.append(tLocLengthSP == null ? "?" : tLocLengthSP.toString());
+		sb.append(",");
+		sb.append(tPerRatioNE == null ? "?" : tPerRatioNE.toString());
+		sb.append(",");
+		sb.append(tPerRatioSP == null ? "?" : tPerRatioSP.toString());
+		sb.append(",");
+		sb.append(tPerLengthNE == null ? "?" : tPerLengthNE.toString());
+		sb.append(",");
+		sb.append(tPerLengthSP == null ? "?" : tPerLengthSP.toString());
+		sb.append(",");
+		sb.append(tNUMRatioSP == null ? "?" : tNUMRatioSP.toString());
+		sb.append(",");
+		sb.append(tNUMLengthSP == null ? "?" : tNUMLengthSP.toString());
+		sb.append(",");
+		sb.append(tTimRatioSP == null ? "?" : tTimRatioSP.toString());
+		sb.append(",");
+		sb.append(tTimLengthSP == null ? "?" : tTimLengthSP.toString());
+		sb.append(",");
+		sb.append(catRatio == null ? "?" : catRatio.toString());
+		sb.append(",");
+		sb.append(catLength == null ? "?" : catLength.toString());
+		sb.append(",");
+		sb.append(geoRatio == null ? "?" : geoRatio.toString());
+		sb.append(",");
+		sb.append(geoLength == null ? "?" : geoLength.toString());
 		sb.append(",");
 		sb.append(StringUtils.isEmpty(label) ? "?" : label);
     	return sb.toString();
