@@ -45,11 +45,12 @@ public class FeatureUtils {
 	
 	
 	/**
-	 * 编辑距离前的预处理 or overlap 前的预处理
+	 * 字符串预处理
+	 * 1.lower case 2.remove punctuation 3.remove stop word
 	 * stitle,
 	 */
-	public static String preprocess(String pre) {
-		String post = pre.toLowerCase().replaceAll("[!-`]", ""); // ASC ii Table  :8)
+	public static String stringPreprocess(String pre) {
+		String post = pre.toLowerCase().replaceAll("[!-`]", "").replaceAll(" (after|before|on|in|as|at|of|is|am|are|be|being|the|s) ", " ");
 		return post;
 	}
 	
@@ -70,11 +71,11 @@ public class FeatureUtils {
 	/**
 	 * epoch, cword, paragraph_num
 	 */
-	public static Double numSpan(JsonNode master, JsonNode candit) {
+	public static Double numSpan(Long master, Long candit) {
 		if (master == null || candit == null) {
 			return null;
 		}
-		return new Double(Math.abs(master.asLong() - candit.asLong()));
+		return new Double(Math.abs(master - candit));
 	}
 	
 	
@@ -101,8 +102,9 @@ public class FeatureUtils {
 	
 	
 	/**
-	 * ne_content_organization, ne_content_location, ne_content_person,
-	 * input : {key:val_int, key:val_int}
+	 * ne, spacy + title, content + org, loc, per, num, tim ...
+	 *
+	 * input : {key:val_int, key:val_int} or ['', '', ...]
 	 *
 	 * @return \sum{match_key * weight}
 	 */
@@ -112,24 +114,53 @@ public class FeatureUtils {
 		} else if (master.size() == 0 || candit.size() == 0) {
 			return 0d;
 		}
-		double masterTotalNum = 0d;
-		double canditTotalNum = 0d;
+		double masterTotalNum = 0;
+		double canditTotalNum = 0;
 		double weightedOverlapRatio = 0d;
-		Iterator<String> itrM = master.fieldNames();
-		while (itrM.hasNext()) {
-			String key = itrM.next();
-			masterTotalNum += master.get(key).asDouble();
+		Map<String, Double> mCache = new HashMap<>();
+		Map<String, Double> cCache = new HashMap<>();
+		if (master.isArray()) {
+			masterTotalNum = master.size();
+			canditTotalNum = candit.size();
+			master.forEach(node -> {
+				String word = node.asText();
+				if (mCache.containsKey(word)) {
+					mCache.put(word, mCache.get(word) + 1);
+				} else {
+					mCache.put(word, 1d);
+				}
+			});
+			candit.forEach(node -> {
+				String word = node.asText();
+				if (cCache.containsKey(word)) {
+					cCache.put(word, cCache.get(word) + 1);
+				} else {
+					cCache.put(word, 1d);
+				}
+			});
+		} else {
+			Iterator<String> itrM = master.fieldNames();
+			while (itrM.hasNext()) {
+				String key = itrM.next();
+				Double val = master.get(key).asDouble();
+				mCache.put(key, val);
+				masterTotalNum += val;
+			}
+			Iterator<String> itrC = candit.fieldNames();
+			while (itrC.hasNext()) {
+				String key = itrC.next();
+				Double val = candit.get(key).asDouble();
+				cCache.put(key, val);
+				canditTotalNum += val;
+			}
 		}
-		Iterator<String> itrC = candit.fieldNames();
-		while (itrC.hasNext()) {
-			String key = itrC.next();
-			canditTotalNum += candit.get(key).asDouble();
-		}
-		Iterator<String> itr = master.fieldNames();
+		Iterator<String> itr = mCache.keySet().iterator();
 		while (itr.hasNext()) {
 			String key = itr.next();
-			if (candit.has(key)) {
-				weightedOverlapRatio = weightedOverlapRatio + 0.5d * (master.get(key).asDouble() / masterTotalNum) + 0.5d * (candit.get(key).asDouble() / canditTotalNum);
+			Double mNum = mCache.get(key);
+			Double cNum = cCache.get(key);
+			if (cCache.containsKey(key)) {
+				weightedOverlapRatio = weightedOverlapRatio + 0.5d * ((mNum / masterTotalNum) + (cNum / canditTotalNum));
 			}
 		}
 		return weightedOverlapRatio;
@@ -137,22 +168,53 @@ public class FeatureUtils {
 	
 	
 	/**
-	 * master.findValuesAsText()
-	 * <p>
-	 * ﻿channels_v2,
+	 *
 	 */
-	public static Double overlapRatio(JsonNode master, JsonNode candit) {
+	public static Double weightedAverageLength(JsonNode master, JsonNode candit) {
+		if (master == null || candit == null || (master.size() == 0 && candit.size() == 0)) {
+			return null;
+		}
+		double masterTotalNum = 0;
+		double canditTotalNum = 0;
+		if (master.isArray()) {
+			masterTotalNum = master.size();
+			canditTotalNum = candit.size();
+		} else {
+			Iterator<String> itrM = master.fieldNames();
+			while (itrM.hasNext()) {
+				String key = itrM.next();
+				Double val = master.get(key).asDouble();
+				masterTotalNum += val;
+			}
+			Iterator<String> itrC = candit.fieldNames();
+			while (itrC.hasNext()) {
+				String key = itrC.next();
+				Double val = candit.get(key).asDouble();
+				canditTotalNum += val;
+			}
+		}
+		return (masterTotalNum + canditTotalNum) / 2;
+	}
+	
+	
+	/**
+	 * input : ['', '', ...] 字符串切割 or JsonNode.forEach() => List<String>
+	 *
+	 * proc : 针对 'A^^B'~'A' or 'A B'~'A'情况的特殊处理
+	 *
+	 * data : title words, key words, ﻿channels...
+	 */
+	public static Double overlapRatio(List<String> master, List<String> candit) {
 		if (master == null || candit == null || (master.size() == 0 && candit.size() == 0)) {
 			return null;
 		} else if (master.size() == 0 || candit.size() == 0) {
 			return 0d;
 		} else {
-			double ratio = 0d;
+			int sum = 0;
 			HashSet<String> _ms = new HashSet<>();
-			for (JsonNode _m : master) {
-				String m = _m.asText().toLowerCase();
-				if (m.contains("^^")) {
-					String[] ms = m.split("\\^\\^");
+			for (String m : master) {
+				if (m.contains("^^") || m.contains(" ")) {
+					String[] ms = m.split("(\\^\\^| )");
 					for (String s : ms) {
 						_ms.add(s);
 					}
@@ -161,10 +223,9 @@ public class FeatureUtils {
 				}
 			}
 			HashSet<String> _cs = new HashSet<>();
-			for (JsonNode _c : candit) {
-				String c = _c.asText().toLowerCase();
-				if (c.contains("^^")) {
-					String[] cs = c.split("\\^\\^");
+			for (String c : candit) {
+				if (c.contains("^^") || c.contains(" ")) {
+					String[] cs = c.split("(\\^\\^| )");
 					for (String s : cs) {
 						_cs.add(s);
 					}
@@ -174,17 +235,28 @@ public class FeatureUtils {
 			}
 			for (String _m : _ms) {
 				if (_cs.contains(_m)) {
-					ratio += (1d / _ms.size() + 1d / _cs.size()) * 0.5d;
+					sum++;
 				}
 			}
-			return ratio;
+			return sum / ((_ms.size() + _cs.size()) * 0.5d);
 		}
 	}
 	
 	
 	/**
 	 *
-	 * ﻿text_category_v2
+	 */
+	public static Double averageLength(List<String> mList, List<String> cList) {
+		if (mList == null || cList == null || (mList.size() == 0 && cList.size() == 0)) {
+			return null;
+		}
+		return (mList.size() + cList.size()) / 2d;
+	}
+	
+	
+	/**
+	 *
+	 * ﻿text_category
 	 */
 	public static Double categoryOverlapRatio(JsonNode master, JsonNode candit) {
 		if (master == null || candit == null || (master.size() == 0 && candit.size() == 0)) {
@@ -210,7 +282,31 @@ public class FeatureUtils {
 	
 	/**
 	 *
-	 * geotag_v2
+	 */
+	public static Double categoryAverageLength(JsonNode master, JsonNode candit) {
+		if (master == null || candit == null || (master.size() == 0 && candit.size() == 0)) {
+			return null;
+		}
+		JsonNode mCatL1 = master.get("first_cat");
+		JsonNode mCatL2 = master.get("second_cat");
+		JsonNode cCatL1 = candit.get("first_cat");
+		JsonNode cCatL2 = candit.get("second_cat");
+		Double L1Length = weightedAverageLength(mCatL1, cCatL1);
+		Double L2Length = weightedAverageLength(mCatL2, cCatL2);
+		if (L1Length == null && L2Length == null) {
+			return null;
+		} else if (L2Length == null) {
+			return L1Length;
+		} else {
+			return (L1Length + L2Length) / 2;
+		}
+	}
+	
+	
+	/**
+	 * geotag
+	 *
+	 * ﻿[{"name" : "mclean", "score" : 0.783655166625977, "coord" : "38,-77", "pid" : "mclean,virginia", "type" : "city"}]
 	 */
 	public static Double geotagOverlapRatio(JsonNode master, JsonNode candit) {
 		if (master == null || candit == null || (master.size() == 0 && candit.size() == 0)) {
@@ -218,15 +314,34 @@ public class FeatureUtils {
 		} else if (master.size() == 0 || candit.size() == 0) {
 			return 0d;
 		}
-		ArrayNode mList = mapper.createArrayNode();
+		List<String> mList = new ArrayList<>();
 		for(JsonNode _m : master) {
-			mList.add(_m.get("name"));
+			mList.add(_m.get("name").asText());
 		}
-		ArrayNode cList = mapper.createArrayNode();
+		List<String> cList = new ArrayList<>();
 		for(JsonNode _c : candit) {
-			cList.add(_c.get("name"));
+			cList.add(_c.get("name").asText());
 		}
 		return overlapRatio(mList, cList);
+	}
+	
+	
+	/**
+	 *
+	 */
+	public static Double geotagAverageLength(JsonNode master, JsonNode candit) {
+		if (master == null || candit == null || (master.size() == 0 && candit.size() == 0)) {
+			return null;
+		}
+		List<String> mList = new ArrayList<>();
+		for(JsonNode _m : master) {
+			mList.add(_m.get("name").asText());
+		}
+		List<String> cList = new ArrayList<>();
+		for(JsonNode _c : candit) {
+			cList.add(_c.get("name").asText());
+		}
+		return averageLength(mList, cList);
 	}
 	
 	
@@ -235,21 +350,15 @@ public class FeatureUtils {
 		//5
 		System.out.println(levenshteinDistance("master_sequence", "candit_sequence"));
 
-
-
 		/** SimHash Distance */
 		//25
 		System.out.println(simhashDist(mapper.createObjectNode().put("1", "dc3e2107ca5962110cb8f66ad15550c3").get("1"), mapper.createObjectNode().put("1", "dc3c2127c25923110c90f26ef5d550e7").get("1")));
 
-
-
 		/** pre process */
 		//be
-		System.out.println(preprocess("B!@#$%^&*()_-+=E?/><.,;:\"'"));
+		System.out.println(stringPreprocess("B!@#$%^&*()_-+=E?/><.,;:\"'"));
 		//fantasy football  is bengals  joe burrow worthy of being a qb
-		System.out.println(preprocess("Fantasy Football : Is Bengals ' Joe Burrow worthy of being a QB1 ?"));
-
-
+		System.out.println(stringPreprocess("Fantasy Football : Is Bengals ' Joe Burrow worthy of being a QB1 ?"));
 
 		/** MediaID, SRC isEqual */
 		//false 0.0
@@ -263,38 +372,36 @@ public class FeatureUtils {
 		//false 0.0
 		System.out.println(isEqual("CNN", "MSN"));
 
-
-
 		/** OverlapRatio */
-		System.out.println(String.valueOf(overlapRatio(mapper.createArrayNode(), mapper.createArrayNode())));
-		System.out.println(String.valueOf(overlapRatio(mapper.createArrayNode().add("TEST"), mapper.createArrayNode())));
-		//0.15
-		String mStr = "[\"Bengals\", \"Fantasy^^Football\", \"Fantasy^^Football^^players\", \"QB1^^potential\", \"Chargers\", \"NFL\", \"Ravens\", \"Colts\", \"Browns\", \"Steelers\", \"Fantasy^^Football^^owners\", \"quarterback\", \"the^^game\", \"Titans\", \"football^^team\", \"Jaguars\", \"Cleveland^^Browns\", \"Eagles\", \"Aaron^^Rodgers\", \"lineups\"]";
-		String cStr = "[\"completions\", \"Joe^^Burrow\", \"quarterback\", \"games\", \"the^^Eagles\", \"Bengals\", \"rookies\", \"Kyler^^Murray\", \"Joe\", \"Arizona\"]";
-		System.out.println(overlapRatio(mapper.readTree(mStr), mapper.readTree(cStr)));
-		//0.32
-		mStr = "[\"Amber^^Alert\", \"Giselle^^Torres\", \"Amber^^Alert^^UPDATE\", \"state^^police\", \"police\", \"Montgomery^^County\", \"eastern^^Pennsylvania\", \"KDKA\", \"ELKINS^^PARK\"]";
-		cStr = "[\"Amber^^Alert^^UPDATE\", \"Amber^^Alert\", \"Police\", \"Pennsylvania^^State^^Police\", \"Montgomery^^County\", \"man\", \"brown^^hair\", \"Giselle^^Torres\", \"supporting^^lehighvalleylive.com\", \"Juan^^Pablo^^Torres\", \"Kurt^^Bresswein\", \"brown^^eyes\", \"Hispanic^^male\", \"Elkins^^Park\", \"kbresswein@lehighvalleylive.com\", \"STATEWIDE\", \"purple^^tights\", \"body^^armor\", \"glasses\", \"face\"]";
-		System.out.println(overlapRatio(mapper.readTree(mStr), mapper.readTree(cStr)));
-		//0.608
-		mStr = "[\"UPDATE\", \"said\", \"STATEWIDE\", \"UPDATE\", \"located\", \"canceled\", \"Thank\", \"Police\", \"@PAStatePolice\", \"-RRB-\", \"September\", \"ARTICLE\", \"issued\", \"seen\", \"issued\", \"Department\", \"-RRB-\", \"searching\", \"seen\", \"Park\", \"reported\", \"is\", \"contact\", \"go\", \"ElkinsPark\", \"go\", \"Alert\", \"-RRB-\", \"Thank\", \"consider\", \"reached\", \"Note\", \"earn\"]";
-		cStr = "[\"PARK\", \"say\", \"STATEWIDE\", \"UPDATE\", \"located\", \"canceled\", \"Thank\", \"Police\", \"@PAStatePolice\", \"-RRB-\", \"September\", \"say\", \"say\", \"say\", \"said\", \"say\"]";
-		System.out.println(overlapRatio(mapper.readTree(mStr), mapper.readTree(cStr)));
-		
+		System.out.println(String.valueOf(overlapRatio(Collections.EMPTY_LIST, Collections.EMPTY_LIST)));
+		System.out.println(String.valueOf(overlapRatio(Arrays.asList("TEST"), Collections.EMPTY_LIST)));
+		List<String> mList = Arrays.asList(new String[] {"Bengals", "Fantasy^^Football", "Fantasy^^Football^^players", "QB1^^potential", "Chargers", "NFL", "Ravens", "Colts", "Browns", "Steelers", "Fantasy^^Football^^owners", "quarterback", "the^^game", "Titans", "football^^team", "Jaguars", "Cleveland^^Browns", "Eagles", "Aaron^^Rodgers", "lineups"});
+		List<String> cList = Arrays.asList(new String[] {"completions", "Joe^^Burrow", "quarterback", "games", "the^^Eagles", "Bengals", "rookies", "Kyler^^Murray", "Joe", "Arizona"});
+		System.out.println(overlapRatio(mList, cList));
+		//
+		mList = Arrays.asList(new String[] {"Amber^^Alert", "Giselle^^Torres", "Amber^^Alert^^UPDATE", "state^^police", "police", "Montgomery^^County", "eastern^^Pennsylvania", "KDKA", "ELKINS^^PARK"});
+		cList = Arrays.asList(new String[] {"Amber^^Alert^^UPDATE", "Amber^^Alert", "Police", "Pennsylvania^^State^^Police", "Montgomery^^County", "man", "brown^^hair", "Giselle^^Torres", "supporting^^lehighvalleylive.com", "Juan^^Pablo^^Torres", "Kurt^^Bresswein", "brown^^eyes", "Hispanic^^male", "Elkins^^Park", "kbresswein@lehighvalleylive.com", "STATEWIDE", "purple^^tights", "body^^armor", "glasses", "face"});
+		System.out.println(overlapRatio(mList, cList));
 
 
-		/** Weighted OverlapRatio */
+		/** Normal Weighted OverlapRatio */
 		//field:num
 		ObjectMapper mapper = new ObjectMapper();
-		mStr = "{ \"Greece\" : 10, \"Greeces\" : 5}";
-		cStr = "{ \"Greece\" : 4, \"Greecess\" : 2}";
+		String mStr = "{ \"Greece\" : 10, \"Greeces\" : 5}";
+		String cStr = "{ \"Greece\" : 4, \"Greecess\" : 2}";
 		JsonNode mNode = mapper.readTree(mStr);
 		JsonNode cNode = mapper.readTree(cStr);
-		System.out.println(String.valueOf(weightedOverlapRatio(mNode, null)));
+		System.out.println("null : " + String.valueOf(weightedOverlapRatio(mNode, null)));
 		//0.0
-		System.out.println(weightedOverlapRatio(mNode, mapper.createObjectNode()));
+		System.out.println("0.0 : " + weightedOverlapRatio(mNode, mapper.createObjectNode()));
 		//0.66
-		System.out.println(weightedOverlapRatio(mNode, cNode));
+		System.out.println("0.66 : " + weightedOverlapRatio(mNode, cNode));
+		//0.75
+		mNode = mapper.readTree("[\"a\", \"a\", \"b\", \"b\"]");
+		cNode = mapper.readTree("[\"a\", \"b\", \"c\", \"c\"]");
+		System.out.println("0.75 : " + String.valueOf(weightedOverlapRatio(mNode, cNode)));
+		
+		/** Category Weighted Overlap Ratio */
 		//field:ratio 0.79
 		mStr = "{\"first_cat\": {\"CrimePublicsafety\": 0.7167493775333941, \"PoliticsGovernment\": 0.5099245963202348}, \"second_cat\": {\"CrimePublicsafety_Other\": 0.7167493775333941, \"PoliticsGovernment_Other\": 0.5099245963202348}, \"third_cat\": {}}";
 		cStr = "{\"first_cat\": {\"CrimePublicsafety\": 0.7874334454536438}, \"second_cat\": {\"CrimePublicsafety_Other\": 0.7874334454536438}, \"third_cat\": {}}";

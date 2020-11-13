@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import weka.core.*;
 
+import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.nb.randomforest.utils.FeatureUtils.*;
@@ -138,13 +140,13 @@ public class EventFeature {
 	 * NE : Average Length
 	 * SP : Average Length
 	 */
-	private Double cPrsRatioNE;
+	private Double cPerRatioNE;
 	
-	private Double cPrsRatioSP;
+	private Double cPerRatioSP;
 	
-	private Double cPrsLengthNE;
+	private Double cPerLengthNE;
 	
-	private Double cPrsLengthSP;
+	private Double cPerLengthSP;
 	
 	/**
 	 * Content NUM
@@ -260,63 +262,199 @@ public class EventFeature {
     		throw new Exception("Invalid Label! Required DIFF, EVENT , DUP or null.");
 	    }
         this.label = label;
-	    
-	    String mTitle = preprocess(
-	    	masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() : masterNode.hasNonNull("seg_title") ? masterNode.get("seg_title").textValue() : ""
+    	
+	    //Title
+	    String mTitle = stringPreprocess(
+	    	masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() :
+			    masterNode.hasNonNull("seg_title") ? masterNode.get("seg_title").textValue() : ""
 	    );
-	    String cTitle = preprocess(
-		    canditNode.hasNonNull("stitle") ? canditNode.get("stitle").textValue() : canditNode.hasNonNull("seg_title") ? canditNode.get("seg_title").textValue() : ""
+	    List<String> mTitleList = Arrays.asList(mTitle.split(" "));
+	    String cTitle = stringPreprocess(
+		    canditNode.hasNonNull("stitle") ? canditNode.get("stitle").textValue() :
+			    canditNode.hasNonNull("seg_title") ? canditNode.get("seg_title").textValue() : ""
 	    );
+	    List<String> cTitleList = Arrays.asList(cTitle.split(" "));
         this.titleDist = levenshteinDistance(mTitle, cTitle);
+        this.titleRatio = overlapRatio(mTitleList, cTitleList);
+        this.titleLength = averageLength(mTitleList, cTitleList);
         
-        this.sameSRC = isEqual(masterNode.hasNonNull("src") ? masterNode.get("src").textValue() : null, canditNode.hasNonNull("src") ? canditNode.get("src").textValue() : null);
+        //Source
+        this.sameSRC = isEqual(
+        	masterNode.hasNonNull("src") ? masterNode.get("src").textValue() : null,
+	        canditNode.hasNonNull("src") ? canditNode.get("src").textValue() : null
+        );
         
-        this.cWordSpan = numSpan(masterNode.get("c_word"), canditNode.get("c_word"));
+        //Word Count Span
+        this.cWordSpan = numSpan(
+        	masterNode.hasNonNull("c_word") ? masterNode.get("c_word").asLong() : null,
+	        canditNode.hasNonNull("c_word") ? canditNode.get("c_word").asLong() : null
+        );
 	
-        JsonNode mEpoch;
-        JsonNode cEpoch;
+        //Paragraph Count Span
+	    this.paragraphSpan = numSpan(
+	    	masterNode.hasNonNull("paragraph_count") ? masterNode.get("paragraph_count").asLong() : null,
+		    canditNode.hasNonNull("paragraph_count") ? canditNode.get("paragraph_count").asLong() : null
+	    );
+	    
+	    //Time Span
+        Long mEpoch;
+        Long cEpoch;
 	    if (masterNode.hasNonNull("epoch") && masterNode.get("epoch").isNumber()) {
-	    	mEpoch = masterNode.get("epoch");
+	    	mEpoch = masterNode.get("epoch").asLong();
 	    } else if (masterNode.hasNonNull("epoch")) {
-		    mEpoch = masterNode.get("epoch").get("$numberLong");
+		    mEpoch = masterNode.get("epoch").get("$numberLong").asLong();
 	    } else {
 	    	mEpoch = null;
 	    }
 	    if (canditNode.hasNonNull("epoch") && canditNode.get("epoch").isNumber()) {
-		    cEpoch = canditNode.get("epoch");
+		    cEpoch = canditNode.get("epoch").asLong();
 	    } else if (canditNode.hasNonNull("epoch")) {
-		    cEpoch = canditNode.get("epoch").get("$numberLong");
+		    cEpoch = canditNode.get("epoch").get("$numberLong").asLong();
 	    } else {
 	    	cEpoch = null;
 	    }
 	    this.epochSpan = numSpan(mEpoch, cEpoch);
+	    Long mInsert;
+	    Long cInsert;
+	    if (masterNode.hasNonNull("insert_time")) {
+		    mInsert = Date.valueOf(masterNode.get("insert_time").asText()).getTime();
+	    } else {
+		    mInsert = null;
+	    }
+	    if (canditNode.hasNonNull("insert_time")) {
+		    cInsert = Date.valueOf(canditNode.get("insert_time").asText()).getTime();
+	    } else {
+		    cInsert = null;
+	    }
+	    this.insertSpan = numSpan(mInsert, cInsert);
 	    
-	    this.paragraphSpan = numSpan(masterNode.get("paragraph_count"), canditNode.get("paragraph_count"));
-	    
+	    //Simhash Distance
 	    this.simhashDist = simhashDist(masterNode.get("simhash"), canditNode.get("simhash"));
 	    
-	    this.cKWSRatio = overlapRatio(masterNode.get("kws"), canditNode.get("kws"));
-
+	    //Content Keywords
+	    List<String> mContentKWSList = new ArrayList<>();
+	    List<String> cContentKWSList = new ArrayList<>();
+	    if (masterNode.hasNonNull("kws") && masterNode.get("kws").isArray()) {
+		    masterNode.get("kws").forEach(kw -> mContentKWSList.add(kw.asText()));
+	    }
+	    if (canditNode.has("kws") && canditNode.get("kws").isArray()) {
+	    	canditNode.get("kws").forEach(kw -> cContentKWSList.add(kw.asText()));
+	    }
+	    this.cKWSRatio = overlapRatio(mContentKWSList, cContentKWSList);
+	    this.cKWSLength = averageLength(mContentKWSList, cContentKWSList);
+	    
+	    //Title Keywords
+	    List<String> mTitleKWSList = new ArrayList<>();
+	    List<String> cTitleKWSList = new ArrayList<>();
+	    if (masterNode.hasNonNull("kw_title") && masterNode.get("kw_title").isArray()) {
+	    	masterNode.get("kw_title").forEach(kw -> mTitleKWSList.add(kw.asText()));
+	    }
+	    if (canditNode.hasNonNull("kw_title") && canditNode.get("kw_title").isArray()) {
+		    canditNode.get("kw_title").forEach(kw -> cTitleKWSList.add(kw.asText()));
+	    }
+	    this.tKWSRatio = overlapRatio(mTitleKWSList, cTitleList);
+	    this.tKWSLength = averageLength(mTitleList, cTitleList);
+	    
+	    //HigLight Keywords
+	    List<String> mHighKWSList = new ArrayList<>();
+	    List<String> cHighKWSList = new ArrayList<>();
+	    if (masterNode.hasNonNull("highlightkeyword_list") && masterNode.get("highlightkeyword_list").isArray()) {
+		    masterNode.get("highlightkeyword_list").forEach(kw_pair -> {
+			    if (kw_pair.get(1).asDouble() > 0.9d) {
+				    mHighKWSList.add(kw_pair.get(0).asText());
+			    }
+		    });
+	    }
+	    if (canditNode.hasNonNull("highlightkeyword_list") && canditNode.get("highlightkeyword_list").isArray()) {
+		    canditNode.get("highlightkeyword_list").forEach(kw_pair -> {
+		    	if (kw_pair.get(1).asDouble() > 0.9d) {
+				    cHighKWSList.add(kw_pair.get(0).asText());
+			    }
+		    });
+	    }
+	    this.hKWSRatio = overlapRatio(mHighKWSList, cHighKWSList);
+	    this.hKWSLength = averageLength(mHighKWSList, cHighKWSList);
+	    
+	    
+	    //Channel
+	    List<String> mChnList = new ArrayList<>();
+	    List<String> cChnList = new ArrayList<>();
 	    JsonNode mChannel = masterNode.has("channels") ? masterNode.get("channels") : masterNode.get("channels_v2");
 	    JsonNode cChannel = canditNode.has("channels") ? canditNode.get("channels") : canditNode.get("channels_v2");
-	    this.channelRatio = overlapRatio(mChannel, cChannel);
+	    if (mChannel != null && mChannel.isArray()) {
+	    	mChannel.forEach(chn -> mChnList.add(chn.asText()));
+	    }
+	    if (cChannel != null && cChannel.isArray()) {
+	    	cChannel.forEach(chn -> cChnList.add(chn.asText()));
+	    }
+	    this.channelRatio = overlapRatio(mChnList, cChnList);
+	    this.channelLength = averageLength(mChnList, cChnList);
 	    
+	    //Content Organization
 	    this.cOrgRatioNE = weightedOverlapRatio(masterNode.get("ne_content_organization"), canditNode.get("ne_content_organization"));
+	    this.cOrgRatioSP = weightedOverlapRatio(masterNode.get("spacy_content_org"), canditNode.get("spacy_content_org"));
+	    this.cOrgLengthNE = weightedAverageLength(masterNode.get("ne_content_organization"), canditNode.get("ne_content_organization"));
+	    this.cOrgLengthSP = weightedAverageLength(masterNode.get("spacy_content_org"), canditNode.get("spacy_content_org"));
+	    
+	    //Content Location
 	    this.cLocRatioNE = weightedOverlapRatio(masterNode.get("ne_content_location"), canditNode.get("ne_content_location"));
-	    this.cPrsRatioNE = weightedOverlapRatio(masterNode.get("ne_content_person"), canditNode.get("ne_content_person"));
+	    this.cLocRatioSP = weightedOverlapRatio(masterNode.get("spacy_content_loc"), canditNode.get("spacy_content_loc"));
+	    this.cLocLengthNE = weightedAverageLength(masterNode.get("ne_content_location"), canditNode.get("ne_content_location"));
+	    this.cLocLengthSP = weightedAverageLength(masterNode.get("spacy_content_loc"), canditNode.get("spacy_content_loc"));
+	    
+	    //Content Person
+	    this.cPerRatioNE = weightedOverlapRatio(masterNode.get("ne_content_person"), canditNode.get("ne_content_person"));
+	    this.cPerRatioSP = weightedOverlapRatio(masterNode.get("spacy_content_per"), canditNode.get("spacy_content_per"));
+	    this.cPerLengthNE = weightedAverageLength(masterNode.get("ne_content_person"), canditNode.get("ne_content_person"));
+	    this.cPerLengthSP = weightedAverageLength(masterNode.get("spacy_content_per"), canditNode.get("spacy_content_per"));
+	    
+	    //Content NUM
+	    this.cNUMRatioSP = weightedOverlapRatio(masterNode.get("spacy_content_num"), canditNode.get("spacy_content_num"));
+	    this.cNUMLengthSP = weightedAverageLength(masterNode.get("spacy_content_num"), canditNode.get("spacy_content_num"));
+	    
+	    //Content Time
+	    this.cTimRatioSP = weightedOverlapRatio(masterNode.get("spacy_content_tim"), canditNode.get("spacy_content_tim"));
+	    this.cTimLengthSP = weightedAverageLength(masterNode.get("spacy_content_tim"), canditNode.get("spacy_content_tim"));
+	    
+	    //Title Organization
 	    this.tOrgRatioNE = weightedOverlapRatio(masterNode.get("ne_title_organization"), canditNode.get("ne_title_organization"));
+	    this.tOrgRatioSP = weightedOverlapRatio(masterNode.get("spacy_title_org"), canditNode.get("spacy_title_org"));
+	    this.tOrgLengthNE = weightedAverageLength(masterNode.get("ne_title_organization"), canditNode.get("ne_title_organization"));
+	    this.tOrgLengthSP = weightedAverageLength(masterNode.get("spacy_title_org"), canditNode.get("spacy_title_org"));
+	    
+	    //Title Location
 	    this.tLocRatioNE = weightedOverlapRatio(masterNode.get("ne_title_location"), canditNode.get("ne_title_location"));
+	    this.tLocRatioSP = weightedOverlapRatio(masterNode.get("spacy_title_loc"), canditNode.get("spacy_title_loc"));
+	    this.tLocLengthNE = weightedAverageLength(masterNode.get("ne_title_location"), canditNode.get("ne_title_location"));
+	    this.tLocLengthSP = weightedAverageLength(masterNode.get("spacy_title_loc"), canditNode.get("spacy_title_loc"));
+	    
+	    //Title Person
 	    this.tPerRatioNE = weightedOverlapRatio(masterNode.get("ne_title_person"), canditNode.get("ne_title_person"));
+	    this.tPerRatioSP = weightedOverlapRatio(masterNode.get("spacy_title_per"), canditNode.get("spacy_title_per"));
+	    this.tPerLengthNE = weightedAverageLength(masterNode.get("ne_title_person"), canditNode.get("ne_title_person"));
+	    this.tPerLengthSP = weightedAverageLength(masterNode.get("spacy_title_per"), canditNode.get("spacy_title_per"));
 	    
-	    JsonNode mCategory = masterNode.has("text_category_v2") ? masterNode.get("text_category_v2") : masterNode.get("text_category");
-	    JsonNode cCategory = canditNode.has("text_category_v2") ? canditNode.get("text_category_v2") : canditNode.get("text_category");
+	    //Title NUM
+	    this.tNUMRatioSP = weightedOverlapRatio(masterNode.get("spacy_title_num"), canditNode.get("spacy_title_num"));
+	    this.tNUMLengthSP = weightedAverageLength(masterNode.get("spacy_title_num"), canditNode.get("spacy_title_num"));
+	    
+	    //Title Time
+	    this.tTimRatioSP = weightedOverlapRatio(masterNode.get("spacy_title_tim"), canditNode.get("spacy_title_tim"));
+	    this.tTimLengthSP = weightedAverageLength(masterNode.get("spacy_title_tim"), canditNode.get("spacy_title_tim"));
+	    
+	    //Category
+	    JsonNode mCategory = masterNode.has("text_category") ? masterNode.get("text_category") : masterNode.get("text_category_v2");
+	    JsonNode cCategory = canditNode.has("text_category") ? canditNode.get("text_category") : canditNode.get("text_category_v2");
 	    this.catRatio = categoryOverlapRatio(mCategory, cCategory);
+	    this.catLength = categoryAverageLength(mCategory, cCategory);
 	    
+	    //GEO Tag
 	    JsonNode mGeo = masterNode.has("geotag") ? masterNode.get("geotag") : masterNode.get("geotag_v2");
 	    JsonNode cGeo = canditNode.has("geotag") ? canditNode.get("geotag") : canditNode.get("geotag_v2");
 	    this.geoRatio = geotagOverlapRatio(mGeo, cGeo);
+	    this.geoLength = geotagAverageLength(mGeo, cGeo);
     }
-	
+    
     
 	public String getLabel() {
 		return label;
@@ -422,20 +560,20 @@ public class EventFeature {
 		return cLocLengthSP;
 	}
 	
-	public Double getcPrsRatioNE() {
-		return cPrsRatioNE;
+	public Double getcPerRatioNE() {
+		return cPerRatioNE;
 	}
 	
-	public Double getcPrsRatioSP() {
-		return cPrsRatioSP;
+	public Double getcPerRatioSP() {
+		return cPerRatioSP;
 	}
 	
-	public Double getcPrsLengthNE() {
-		return cPrsLengthNE;
+	public Double getcPerLengthNE() {
+		return cPerLengthNE;
 	}
 	
-	public Double getcPrsLengthSP() {
-		return cPrsLengthSP;
+	public Double getcPerLengthSP() {
+		return cPerLengthSP;
 	}
 	
 	public Double getcNUMRatioSP() {
@@ -561,10 +699,10 @@ public class EventFeature {
 		doubleList.add(cLocRatioSP);
 		doubleList.add(cLocLengthNE);
 		doubleList.add(cLocLengthSP);
-		doubleList.add(cPrsRatioNE);
-		doubleList.add(cPrsRatioSP);
-		doubleList.add(cPrsLengthNE);
-		doubleList.add(cPrsLengthSP);
+		doubleList.add(cPerRatioNE);
+		doubleList.add(cPerRatioSP);
+		doubleList.add(cPerLengthNE);
+		doubleList.add(cPerLengthSP);
 		doubleList.add(cNUMRatioSP);
 		doubleList.add(cNUMLengthSP);
 		doubleList.add(cTimRatioSP);
@@ -647,13 +785,13 @@ public class EventFeature {
 		sb.append(",");
 		sb.append(cLocLengthSP == null ? "?" : cLocLengthSP.toString());
 		sb.append(",");
-		sb.append(cPrsRatioNE == null ? "?" : cPrsRatioNE.toString());
+		sb.append(cPerRatioNE == null ? "?" : cPerRatioNE.toString());
 		sb.append(",");
-		sb.append(cPrsRatioSP == null ? "?" : cPrsRatioSP.toString());
+		sb.append(cPerRatioSP == null ? "?" : cPerRatioSP.toString());
 		sb.append(",");
-		sb.append(cPrsLengthNE == null ? "?" : cPrsLengthNE.toString());
+		sb.append(cPerLengthNE == null ? "?" : cPerLengthNE.toString());
 		sb.append(",");
-		sb.append(cPrsLengthSP == null ? "?" : cPrsLengthSP.toString());
+		sb.append(cPerLengthSP == null ? "?" : cPerLengthSP.toString());
 		sb.append(",");
 		sb.append(cNUMRatioSP == null ? "?" : cNUMRatioSP.toString());
 		sb.append(",");
