@@ -360,14 +360,14 @@ public class EventFeature {
 	    List<String> cHighKWSList = new ArrayList<>();
 	    if (masterNode.hasNonNull("highlightkeyword_list") && masterNode.get("highlightkeyword_list").isArray()) {
 		    masterNode.get("highlightkeyword_list").forEach(kw_pair -> {
-			    if (kw_pair.get(1).asDouble() > 0.9d) {
+			    if (kw_pair.get(1).asDouble() > 0.6d) {
 				    mHighKWSList.add(kw_pair.get(0).asText());
 			    }
 		    });
 	    }
 	    if (canditNode.hasNonNull("highlightkeyword_list") && canditNode.get("highlightkeyword_list").isArray()) {
 		    canditNode.get("highlightkeyword_list").forEach(kw_pair -> {
-		    	if (kw_pair.get(1).asDouble() > 0.9d) {
+		    	if (kw_pair.get(1).asDouble() > 0.6d) {
 				    cHighKWSList.add(kw_pair.get(0).asText());
 			    }
 		    });

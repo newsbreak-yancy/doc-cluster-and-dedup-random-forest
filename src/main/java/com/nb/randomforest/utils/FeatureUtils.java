@@ -50,7 +50,10 @@ public class FeatureUtils {
 	 * stitle,
 	 */
 	public static String stringPreprocess(String pre) {
-		String post = pre.toLowerCase().replaceAll("[!-`]", "").replaceAll(" (after|before|on|in|as|at|of|is|am|are|be|being|the|s) ", " ");
+		String post = pre.toLowerCase()
+			.replaceAll("[!-`]", "")
+			.replaceAll(" (after|before|on|in|as|at|of|is|am|are|be|being|the|s|a) ", " ")
+			.replaceAll(" {2,5}", " ");
 		return post;
 	}
 	
@@ -102,11 +105,15 @@ public class FeatureUtils {
 	
 	
 	/**
-	 * ne, spacy + title, content + org, loc, per, num, tim ...
+	 * data :
+	 *     ne + content / title + org / loc / per
+	 *     sp + content / title + org / loc / per / num / time
+	 *     category L1 / L2
 	 *
-	 * input : {key:val_int, key:val_int} or ['', '', ...]
-	 *
-	 * @return \sum{match_key * weight}
+	 * input :
+	 *     {key: double, key: double}
+	 *     or
+	 *     ['key', 'key', ...]
 	 */
 	public static Double weightedOverlapRatio(JsonNode master, JsonNode candit) {
 		if (master == null || candit == null || (master.size() == 0 && candit.size() == 0)) {
@@ -346,60 +353,81 @@ public class FeatureUtils {
 	
 	
 	public static void main(String[] args) throws Exception {
+		System.out.println("================================================================================");
 		/** 编辑距离 */
-		//5
-		System.out.println(levenshteinDistance("master_sequence", "candit_sequence"));
+		System.out.println("LevenDist: 5 ~ " + String.valueOf(levenshteinDistance("master_sequence", "candit_sequence")));
+		System.out.println("================================================================================");
 
+		
 		/** SimHash Distance */
-		//25
-		System.out.println(simhashDist(mapper.createObjectNode().put("1", "dc3e2107ca5962110cb8f66ad15550c3").get("1"), mapper.createObjectNode().put("1", "dc3c2127c25923110c90f26ef5d550e7").get("1")));
+		System.out.println(
+			"SimHashDist: 25 ~ " +
+			String.valueOf(simhashDist(
+				mapper.createObjectNode().put("1", "dc3e2107ca5962110cb8f66ad15550c3").get("1"),
+				mapper.createObjectNode().put("1", "dc3c2127c25923110c90f26ef5d550e7").get("1")
+			))
+		);
+		System.out.println("================================================================================");
+		
 
 		/** pre process */
 		//be
-		System.out.println(stringPreprocess("B!@#$%^&*()_-+=E?/><.,;:\"'"));
-		//fantasy football  is bengals  joe burrow worthy of being a qb
-		System.out.println(stringPreprocess("Fantasy Football : Is Bengals ' Joe Burrow worthy of being a QB1 ?"));
-
+		System.out.println("Preprocess : be result ~ " + stringPreprocess("B!@#$%^&*()_-+=E?/><.,;:\"`' is result"));
+		System.out.println("Preprocess : " + stringPreprocess("Fantasy Football : Is Bengals ' Joe Burrow worthy of being a QB1 ?"));
+		System.out.println("================================================================================");
+		
+		
 		/** MediaID, SRC isEqual */
 		//false 0.0
-		System.out.println(isEqual(58272, 72863));
+		System.out.println("IsEqual: 0.0 ~ " + isEqual(58272, 72863));
 		//true  1.0
-		System.out.println(isEqual(58272, 58272));
+		System.out.println("IsEqual: 1.0 ~ " + isEqual(58272, 58272));
 		//null  null
-		System.out.println(isEqual(58272, null));
+		System.out.println("IsEqual: null ~ " + isEqual(58272, null));
 		//true  1.0
-		System.out.println(isEqual("CNN", "CNN"));
+		System.out.println("IsEqual: 1.0 ~ " + isEqual("CNN", "CNN"));
 		//false 0.0
-		System.out.println(isEqual("CNN", "MSN"));
+		System.out.println("IsEqual: 0.0 ~ " + isEqual("CNN", "MSN"));
+		System.out.println("================================================================================");
 
-		/** OverlapRatio */
-		System.out.println(String.valueOf(overlapRatio(Collections.EMPTY_LIST, Collections.EMPTY_LIST)));
-		System.out.println(String.valueOf(overlapRatio(Arrays.asList("TEST"), Collections.EMPTY_LIST)));
-		List<String> mList = Arrays.asList(new String[] {"Bengals", "Fantasy^^Football", "Fantasy^^Football^^players", "QB1^^potential", "Chargers", "NFL", "Ravens", "Colts", "Browns", "Steelers", "Fantasy^^Football^^owners", "quarterback", "the^^game", "Titans", "football^^team", "Jaguars", "Cleveland^^Browns", "Eagles", "Aaron^^Rodgers", "lineups"});
-		List<String> cList = Arrays.asList(new String[] {"completions", "Joe^^Burrow", "quarterback", "games", "the^^Eagles", "Bengals", "rookies", "Kyler^^Murray", "Joe", "Arizona"});
-		System.out.println(overlapRatio(mList, cList));
-		//
-		mList = Arrays.asList(new String[] {"Amber^^Alert", "Giselle^^Torres", "Amber^^Alert^^UPDATE", "state^^police", "police", "Montgomery^^County", "eastern^^Pennsylvania", "KDKA", "ELKINS^^PARK"});
-		cList = Arrays.asList(new String[] {"Amber^^Alert^^UPDATE", "Amber^^Alert", "Police", "Pennsylvania^^State^^Police", "Montgomery^^County", "man", "brown^^hair", "Giselle^^Torres", "supporting^^lehighvalleylive.com", "Juan^^Pablo^^Torres", "Kurt^^Bresswein", "brown^^eyes", "Hispanic^^male", "Elkins^^Park", "kbresswein@lehighvalleylive.com", "STATEWIDE", "purple^^tights", "body^^armor", "glasses", "face"});
-		System.out.println(overlapRatio(mList, cList));
-
-
+		
+		/** Overlap Ratio && Average Length */
+		System.out.println("Overlap Ratio: null ~ " + overlapRatio(Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+		System.out.println("Average Length: null ~ " + averageLength(Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+		System.out.println("Overlap Ratio: 0.0 ~ " + overlapRatio(Arrays.asList("TEST"), Collections.EMPTY_LIST));
+		System.out.println("Average Length: 0.5 ~ " + averageLength(Arrays.asList("TEST"), Collections.EMPTY_LIST));
+		List<String> mList = Arrays.asList(new String[] {"A", "B"});
+		List<String> cList = Arrays.asList(new String[] {"A", "C"});
+		System.out.println("Overlap Ratio: 0.5 ~ " + overlapRatio(mList, cList));
+		System.out.println("Average Length: 2.0 ~ " + averageLength(mList, cList));
+		mList = Arrays.asList(new String[] {"A^^B", "C"});
+		cList = Arrays.asList(new String[] {"A", "C"});
+		System.out.println("Overlap Ratio: 0.8 ~ " + overlapRatio(mList, cList));
+		System.out.println("Average Length: 2.0 ~ " + averageLength(mList, cList));
+		System.out.println("================================================================================");
+		
+		
 		/** Normal Weighted OverlapRatio */
 		//field:num
-		ObjectMapper mapper = new ObjectMapper();
-		String mStr = "{ \"Greece\" : 10, \"Greeces\" : 5}";
-		String cStr = "{ \"Greece\" : 4, \"Greecess\" : 2}";
+		System.out.println("Weighted Ratio: null ~ " + String.valueOf(weightedOverlapRatio(mapper.createObjectNode(), mapper.createObjectNode())));
+		System.out.println("Weighted Length: null ~ " + String.valueOf(weightedAverageLength(mapper.createObjectNode(), mapper.createObjectNode())));
+		
+		String mStr = "{ \"Greece\" : 10}";
+		String cStr = "{ \"Greece\" : 8, \"FFID\" : 2}";
 		JsonNode mNode = mapper.readTree(mStr);
 		JsonNode cNode = mapper.readTree(cStr);
-		System.out.println("null : " + String.valueOf(weightedOverlapRatio(mNode, null)));
-		//0.0
-		System.out.println("0.0 : " + weightedOverlapRatio(mNode, mapper.createObjectNode()));
-		//0.66
-		System.out.println("0.66 : " + weightedOverlapRatio(mNode, cNode));
-		//0.75
+		System.out.println("Weighted Ratio: null ~ " + String.valueOf(weightedOverlapRatio(mNode, null)));
+		System.out.println("Weighted Length: null ~ " + String.valueOf(weightedAverageLength(mNode, null)));
+		
+		System.out.println("Weighted Length: 0.0 ~ " + weightedOverlapRatio(mNode, mapper.createObjectNode()));
+		
+		System.out.println("Weighted Length: 0.9 ~ " + weightedOverlapRatio(mNode, cNode));
+		
 		mNode = mapper.readTree("[\"a\", \"a\", \"b\", \"b\"]");
 		cNode = mapper.readTree("[\"a\", \"b\", \"c\", \"c\"]");
-		System.out.println("0.75 : " + String.valueOf(weightedOverlapRatio(mNode, cNode)));
+		System.out.println("Weighted Length: 0.75 ~ " + String.valueOf(weightedOverlapRatio(mNode, cNode)));
+		System.out.println("================================================================================");
+		
 		
 		/** Category Weighted Overlap Ratio */
 		//field:ratio 0.79
@@ -407,15 +435,18 @@ public class FeatureUtils {
 		cStr = "{\"first_cat\": {\"CrimePublicsafety\": 0.7874334454536438}, \"second_cat\": {\"CrimePublicsafety_Other\": 0.7874334454536438}, \"third_cat\": {}}";
 		mNode = mapper.readTree(mStr);
 		cNode = mapper.readTree(cStr);
-		System.out.println("CategoryRatio : " + categoryOverlapRatio(mNode, cNode));
+		System.out.println("Category Ratio : " + categoryOverlapRatio(mNode, cNode));
+		System.out.println("Category Length : " + categoryAverageLength(mNode, cNode));
+		System.out.println("================================================================================");
 		
 		
 		/** Geotag Overlap Ratio */
-		//1.0
 		mStr = "[{\"name\": \"california\", \"score\": 1.0, \"pid\": \"california\", \"type\": \"state\"}, {\"name\": \"norfolk\", \"score\": 0.9934280514717102, \"coord\": \"42.032723,-97.413755\", \"pid\": \"norfolk,nebraska\", \"type\": \"city\"}]";
-		cStr = "[{\"name\": \"sheldon\", \"score\": 0.9930974841117859, \"coord\": \"43.181211,-95.856954\", \"pid\": \"sheldon,iowa\", \"type\": \"city\"}, {\"name\": \"o'brien county\", \"score\": 0.9583118557929993, \"coord\": \"43.113124,-95.645795\", \"pid\": \"o'brien_county,iowa\", \"type\": \"county\"}]";
+		cStr = "[{\"name\": \"california\", \"score\": 0.9930974841117859, \"coord\": \"43.181211,-95.856954\", \"pid\": \"sheldon,iowa\", \"type\": \"city\"}, {\"name\": \"o'brien county\", \"score\": 0.9583118557929993, \"coord\": \"43.113124,-95.645795\", \"pid\": \"o'brien_county,iowa\", \"type\": \"county\"}]";
 		mNode = mapper.readTree(mStr);
 		cNode = mapper.readTree(cStr);
 		System.out.println("GEOTag Ratio : " + geotagOverlapRatio(mNode, cNode));
+		System.out.println("GEOTag Length : " + geotagAverageLength(mNode, cNode));
+		System.out.println("================================================================================");
 	}
 }
