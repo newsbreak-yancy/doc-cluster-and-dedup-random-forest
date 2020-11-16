@@ -121,30 +121,43 @@ public class FeatureUtils {
 		} else if (master.size() == 0 || candit.size() == 0) {
 			return 0d;
 		}
+		//这里的 NUM 与 weightedAverageLength 特征不一样.
 		double masterTotalNum = 0;
 		double canditTotalNum = 0;
 		double weightedOverlapRatio = 0d;
 		Map<String, Double> mCache = new HashMap<>();
 		Map<String, Double> cCache = new HashMap<>();
 		if (master.isArray()) {
-			masterTotalNum = master.size();
-			canditTotalNum = candit.size();
 			master.forEach(node -> {
-				String word = node.asText();
-				if (mCache.containsKey(word)) {
-					mCache.put(word, mCache.get(word) + 1);
+				String entity = node.asText().toLowerCase();
+				if (entity.contains("^^")) {
+					String[] words = entity.split("\\^\\^");
+					for (String word : words) {
+						mCache.put(word, mCache.getOrDefault(word, 0d) + 1);
+					}
 				} else {
-					mCache.put(word, 1d);
+					mCache.put(entity, mCache.getOrDefault(entity, 0d) + 1);
 				}
 			});
+			Collection<Double> mValues = mCache.values();
+			for (Double mValue : mValues) {
+				masterTotalNum += mValue;
+			}
 			candit.forEach(node -> {
-				String word = node.asText();
-				if (cCache.containsKey(word)) {
-					cCache.put(word, cCache.get(word) + 1);
+				String entity = node.asText().toLowerCase();
+				if (entity.contains("^^")) {
+					String[] words = entity.split("\\^\\^");
+					for (String word : words) {
+						cCache.put(word, cCache.getOrDefault(word, 0d) + 1);
+					}
 				} else {
-					cCache.put(word, 1d);
+					cCache.put(entity, cCache.getOrDefault(entity, 0d) + 1);
 				}
 			});
+			Collection<Double> cValues = cCache.values();
+			for (Double cValue : cValues) {
+				canditTotalNum += cValue;
+			}
 		} else {
 			Iterator<String> itrM = master.fieldNames();
 			while (itrM.hasNext()) {
@@ -209,7 +222,7 @@ public class FeatureUtils {
 	 *
 	 * proc : 针对 'A^^B'~'A' or 'A B'~'A'情况的特殊处理
 	 *
-	 * data : title words, key words, ﻿channels...
+	 * data : title words, ﻿channels...
 	 */
 	public static Double overlapRatio(List<String> master, List<String> candit) {
 		if (master == null || candit == null || (master.size() == 0 && candit.size() == 0)) {
@@ -220,10 +233,11 @@ public class FeatureUtils {
 			int sum = 0;
 			HashSet<String> _ms = new HashSet<>();
 			for (String m : master) {
+				m = m.toLowerCase();
 				if (m.contains("^^") || m.contains(" ")) {
 					String[] ms = m.split("(\\^\\^| )");
-					for (String s : ms) {
-						_ms.add(s);
+					for (String _m : ms) {
+						_ms.add(_m);
 					}
 				} else {
 					_ms.add(m);
@@ -231,10 +245,11 @@ public class FeatureUtils {
 			}
 			HashSet<String> _cs = new HashSet<>();
 			for (String c : candit) {
+				c = c.toLowerCase();
 				if (c.contains("^^") || c.contains(" ")) {
 					String[] cs = c.split("(\\^\\^| )");
-					for (String s : cs) {
-						_cs.add(s);
+					for (String _c : cs) {
+						_cs.add(_c);
 					}
 				} else {
 					_cs.add(c);
@@ -262,7 +277,6 @@ public class FeatureUtils {
 	
 	
 	/**
-	 *
 	 * ﻿text_category
 	 */
 	public static Double categoryOverlapRatio(JsonNode master, JsonNode candit) {
@@ -323,11 +337,11 @@ public class FeatureUtils {
 		}
 		List<String> mList = new ArrayList<>();
 		for(JsonNode _m : master) {
-			mList.add(_m.get("name").asText());
+			mList.add(_m.get("name").asText().toLowerCase());
 		}
 		List<String> cList = new ArrayList<>();
 		for(JsonNode _c : candit) {
-			cList.add(_c.get("name").asText());
+			cList.add(_c.get("name").asText().toLowerCase());
 		}
 		return overlapRatio(mList, cList);
 	}
@@ -342,11 +356,11 @@ public class FeatureUtils {
 		}
 		List<String> mList = new ArrayList<>();
 		for(JsonNode _m : master) {
-			mList.add(_m.get("name").asText());
+			mList.add(_m.get("name").asText().toLowerCase());
 		}
 		List<String> cList = new ArrayList<>();
 		for(JsonNode _c : candit) {
-			cList.add(_c.get("name").asText());
+			cList.add(_c.get("name").asText().toLowerCase());
 		}
 		return averageLength(mList, cList);
 	}

@@ -83,26 +83,26 @@ public class ModelUtils {
     public static void trainModel(String trainFile, String testFile) throws Exception {
         Instances trainingDataSet = getDataSet(trainFile);
         trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
-//        Instances testingDataSet = getDataSet(testFile);
-//        testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
+        Instances testingDataSet = getDataSet(testFile);
+        testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
 
         RandomForest forest = new RandomForest();
         forest.setNumIterations(200);
         forest.setDebug(false);
-        forest.setNumFeatures(4); // random feature num = log_2{feature num}
+        forest.setNumFeatures(7); // random feature num = log_2{feature num}
         forest.setComputeAttributeImportance(true);
         forest.buildClassifier(trainingDataSet);
     
-//        Evaluation eval = new Evaluation(trainingDataSet);
-//        eval.evaluateModel(forest, testingDataSet);
+        Evaluation eval = new Evaluation(trainingDataSet);
+        eval.evaluateModel(forest, testingDataSet);
     
         
 
-//        /** Print the algorithm summary */
-//        System.out.println("** Decision Tress Evaluation with Datasets **");
-//        System.out.println(eval.toSummaryString());
-//        System.out.print(" the expression for the input data as per alogorithm is ");
-//        System.out.println(forest);
+        /** Print the algorithm summary */
+        System.out.println("** Decision Tress Evaluation with Datasets **");
+        System.out.println(eval.toSummaryString());
+        System.out.print(" the expression for the input data as per alogorithm is ");
+        System.out.println(forest);
         
         // dump random forest model to file
         SerializationHelper.write(Paths.get(new File(trainFile).getParent(),"forest.model").toString(), forest);
@@ -201,9 +201,10 @@ public class ModelUtils {
     
     
     /**
+     * 基于 Feature V1(16) + Estimate Data => Model Estimate
      *
      */
-    public static void predictABTestBasedARFF2Class(RandomForest forest, String docPairFile) throws Exception {
+    public static void predictEstimateDataFeatureV1(RandomForest forest, String docPairFile) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         
         ArrayList<Attribute> attributes = new ArrayList<>();
@@ -262,13 +263,13 @@ public class ModelUtils {
             double[] distribute = forest.distributionsForInstances(instances)[0];
             double difScr = distribute[0];
             double evtScr = distribute[1];
-            if (evtScr > 0.97) {
+            if (evtScr > 0.92) {
                 ppDUP++;
                 pCls = "DUP";
                 if (StringUtils.equals(rCls, pCls)) {
                     tpDUP++;
                 }
-            } else if (evtScr > 0.58d) {//EVENT
+            } else if (evtScr > 0.58) {//EVENT
                 if (!StringUtils.equals(rCls, "DUP")) {
                     ppEVT++;
                 }
@@ -308,6 +309,151 @@ public class ModelUtils {
     
     
     /**
+     * 基于 Feature V2(53) + Estimate Data => Model Estimate
+     *
+     */
+    public static void predictEstimateDataFeatureV2(RandomForest forest, String docPairFile) throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        ArrayList<Attribute> attributes = new ArrayList<>();
+        ArrayList<String> attVals = new ArrayList<>();
+        // - numeric
+        attributes.add(new Attribute("TitleDist"));
+        attributes.add(new Attribute("TitleRatio"));
+        attributes.add(new Attribute("TitleLength"));
+        attributes.add(new Attribute("SameSRC"));
+        attributes.add(new Attribute("CWordSpan"));
+        attributes.add(new Attribute("ParagraphSpan"));
+        attributes.add(new Attribute("EpochSpan"));
+        attributes.add(new Attribute("InsertSpan"));
+        attributes.add(new Attribute("SimhashDist"));
+        attributes.add(new Attribute("CKWSRatio"));
+        attributes.add(new Attribute("CKWSLength"));
+        attributes.add(new Attribute("TKWSRatio"));
+        attributes.add(new Attribute("TKWSLength"));
+        attributes.add(new Attribute("HKWSRatio"));
+        attributes.add(new Attribute("HKWSLength"));
+        attributes.add(new Attribute("ChannelRatio"));
+        attributes.add(new Attribute("ChannelLength"));
+        attributes.add(new Attribute("COrgRatioNE"));
+        attributes.add(new Attribute("COrgRatioSP"));
+        attributes.add(new Attribute("COrgLengthNE"));
+        attributes.add(new Attribute("COrgLengthSP"));
+        attributes.add(new Attribute("CLocRatioNE"));
+        attributes.add(new Attribute("CLocRatioSP"));
+        attributes.add(new Attribute("CLocLengthNE"));
+        attributes.add(new Attribute("CLocLengthSP"));
+        attributes.add(new Attribute("CPerRatioNE"));
+        attributes.add(new Attribute("CPerRatioSP"));
+        attributes.add(new Attribute("CPerLengthNE"));
+        attributes.add(new Attribute("CPerLengthSP"));
+        attributes.add(new Attribute("CNUMRatioSP"));
+        attributes.add(new Attribute("CNUMLengthSP"));
+        attributes.add(new Attribute("CTimRatioSP"));
+        attributes.add(new Attribute("CTimLengthSP"));
+        attributes.add(new Attribute("TOrgRatioNE"));
+        attributes.add(new Attribute("TOrgRatioSP"));
+        attributes.add(new Attribute("TOrgLengthNE"));
+        attributes.add(new Attribute("TOrgLengthSP"));
+        attributes.add(new Attribute("TLocRatioNE"));
+        attributes.add(new Attribute("TLocRatioSP"));
+        attributes.add(new Attribute("TLocLengthNE"));
+        attributes.add(new Attribute("TLocLengthSP"));
+        attributes.add(new Attribute("TPerRatioNE"));
+        attributes.add(new Attribute("TPerRatioSP"));
+        attributes.add(new Attribute("TPerLengthNE"));
+        attributes.add(new Attribute("TPerLengthSP"));
+        attributes.add(new Attribute("TNUMRatioSP"));
+        attributes.add(new Attribute("TNUMLengthSP"));
+        attributes.add(new Attribute("TTimRatioSP"));
+        attributes.add(new Attribute("TTimLengthSP"));
+        attributes.add(new Attribute("CatRatio"));
+        attributes.add(new Attribute("CatLength"));
+        attributes.add(new Attribute("GEORatio"));
+        attributes.add(new Attribute("GEOLength"));
+        // - nominal
+        attVals.add("DIFF");
+        attVals.add("EVENT");
+        attributes.add(new Attribute("Label", attVals));
+        //
+        //Real Positive
+        int rpDUP = 0;
+        int rpEVT = 0;
+        //True Positive
+        int tpDIF = 0;
+        int tpEVT = 0;
+        int tpDUP = 0;
+        //Predict Positive
+        int ppEVT = 0;
+        int ppDUP = 0;
+        //
+        BufferedReader br = new BufferedReader(new FileReader(new File(docPairFile)));
+        String badpath = Paths.get(Paths.get(docPairFile).getParent().toString(), "badcase").toString();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(new File(badpath)));
+        bw.write("Master\t\tCandidate\tDIF_WEIGHT\tEVT_WEIGHT\tPredict\tReal");
+        bw.write("\n");
+        String line = null;
+        while ((line = br.readLine()) != null) {
+            String[] docPairFields = line.split("\t");
+            String mDoc = docPairFields[0];
+            String cDoc = docPairFields[1];
+            String pCls = "";
+            String rCls = docPairFields[2];
+            JsonNode mNode = objectMapper.readTree(docPairFields[4]);
+            JsonNode cNode = objectMapper.readTree(docPairFields[5]);
+            EventFeature feature = new EventFeature(mNode, cNode, rCls);
+            Instances instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
+            instances.setClassIndex(instances.numAttributes() - 1);
+            instances.add(feature.toInstance());
+            double[] distribute = forest.distributionsForInstances(instances)[0];
+            double difScr = distribute[0];
+            double evtScr = distribute[1];
+            if (evtScr > 0.8) {
+                ppDUP++;
+                pCls = "DUP";
+                if (StringUtils.equals(rCls, pCls)) {
+                    tpDUP++;
+                }
+            } else if (evtScr > 0.5) {//EVENT
+                if (!StringUtils.equals(rCls, "DUP")) {
+                    ppEVT++;
+                }
+                pCls = "EVENT";
+                if (StringUtils.equals(rCls, "EVENT")) {
+                    tpEVT++;
+                }
+            } else {
+                pCls = "DIFF";
+            }
+            
+            if (StringUtils.equals(rCls, "EVENT")) {
+                rpEVT++;
+            }
+            if (StringUtils.equals(rCls, "DUP")) {
+                rpDUP++;
+            }
+            
+            if (!StringUtils.equals(rCls, pCls)) {
+                bw.write(mDoc + "\t" + cDoc + "\t" + String.valueOf(difScr) + "\t" + String.valueOf(evtScr) + "\t" + pCls + "\t" + rCls);
+                bw.write("\n");
+            }
+        }
+        
+        bw.close();
+        
+        double tprDUP = tpDUP / Double.valueOf(ppDUP);
+        double rcrDUP = tpDUP / Double.valueOf(rpDUP);
+        System.out.println("## TPR DUP    : " + String.valueOf(tpDUP) + "/" + String.valueOf(ppDUP) + "=" + String.valueOf(tprDUP));
+        System.out.println("## RCR DUP    : " + String.valueOf(tpDUP) + "/" + String.valueOf(rpDUP) + "=" + String.valueOf(rcrDUP));
+        
+        double tprEVT = tpEVT / Double.valueOf(ppEVT);
+        double rcrEVT = tpEVT / Double.valueOf(rpEVT);
+        System.out.println("## TPR EVT    : " + String.valueOf(tpEVT) + "/" + String.valueOf(ppEVT) + "=" + String.valueOf(tprEVT));
+        System.out.println("## RCR EVT    : " + String.valueOf(tpEVT) + "/" + String.valueOf(rpEVT) + "=" + String.valueOf(rcrEVT));
+    }
+    
+    
+    /**
      *
      */
     public static List<double[]> predictOnline(RandomForest forest, JsonNode masterNode, JsonNode canditNodes) throws Exception {
@@ -330,20 +476,17 @@ public class ModelUtils {
         for (int j = 0; j < canditResults.length; j++) {
             result.add(canditResults[j]);
         }
-        Attribute label = attributes.get(attributes.size() - 1);
-        
-        System.out.println(label.value(label.numValues() - 1));
         return result;
     }
 
     public static void main(String[] args) throws Exception {
         
-        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201109/";
+        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201116/";
 
         /** Model Training */
-//        String trainARFFPath = Paths.get(rootDir, "mixture_fields_1_1_4_shuf.arff").toString();
-//        String testARFFPath = Paths.get(rootDir, "mixture_fields_1_1_4_shuf.arff").toString();
-//        trainModel(trainARFFPath, testARFFPath);
+//        String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
+//        String testARFFPath = Paths.get(rootDir, "train.arff").toString();
+//        trainModel(trainARFFPath, null);
 
         /** Model Inference ABTEST */
 //        RandomForest forest = (RandomForest) SerializationHelper.read(Paths.get(rootDir, "forest.model").toString());
@@ -351,21 +494,26 @@ public class ModelUtils {
         
         /** Model Inference ONLINE */
         ObjectMapper mapper = new ObjectMapper();
-        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/src/main/resources/model/forest.model");
-        String masterStr = "{ \"_id\" : \"0XUvlBUD\", \"c_word\" : 350, \"channels\" : [ \"Suicide\", \"Star\", \"TMZ\" ], \"channels_v2\" : [ \"Suicide\", \"Burrell\", \"Michigan\", \"Death\" ], \"dup_id\" : \"0XUvlBUD\", \"epoch\" : 1604251404 , \"evt_id\" : \"0XUvlBUD\", \"geotag\" : [], \"geotag_v2\" : [], \"insert_time\" : \"2020-11-01 17:33:25\", \"kws\" : [ \"Nate^^Burrell\", \"Nick\", \"Star\", \"Nathan\", \"committed^^suicide\", \"Chelsey^^Walker\", \"stars\", \"TMZ\", \"guilt\", \"jail\", \"A&E\", \"Michigan\", \"downtown^^Allegan\", \"Facebook\", \"Iraq\" ], \"nbr_id\" : \"0XUvlBUD\", \"ne_content_location\" : { \"Iraq\" : 1, \"Michigan\" : 2 }, \"ne_content_organization\" : { \"A&E\" : 1, \"Facebook\" : 1, \"Marine\" : 1 }, \"ne_content_person\" : { \"Nate\" : 7, \"Chelsey Walker\" : 1, \"Nathan\" : 1, \"Nate Burrell\" : 1, \"Burrell\" : 1, \"Nick\" : 1 }, \"ne_title_location\" : {}, \"ne_title_organization\" : { \"Star Nate Burrell Dead\" : 1 }, \"ne_title_person\" : {}, \"paragraph_count\" : 9.0, \"simhash\" : \"a850f385d85520fe8a3c49895fb50ada\", \"src\" : \"foxbangor.com\", \"stitle\" : \"’60 Days In ' Star Nate Burrell Dead At 33 from Suicide By Gunshot\", \"text_category\" : { \"first_cat\" : { \"ArtsEntertainment\" : 0.914416134357452 }, \"second_cat\" : { \"ArtsEntertainment_TV\" : 0.914416134357452 }, \"third_cat\" : { \"ArtsEntertainment_TV_ShowsPrograms\" : 0.612052619457245 } }, \"text_category_v2\" : { \"first_cat\" : { \"ArtsEntertainment\" : 0.812882513157543, \"CrimePublicsafety\" : 0.518158864941996 }, \"second_cat\" : { \"ArtsEntertainment_Celebrities\" : 0.67341052247912, \"ArtsEntertainment_TV\" : 0.509846234747723, \"CrimePublicsafety_Other\" : 0.518158864941996 }, \"third_cat\" : { \"ArtsEntertainment_TV_Other\" : 0.509846234747723, \"ArtsEntertainment_Celebrities_Other\" : 0.67341052247912 } }, \"url\" : \"https://foxbangor.com/tmz/60-days-in-star-nate-burrell-dead-at-33-from-suicide-by-gunshot/\" }";
+        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/_local/train/20201116/forest.model");
+        String masterStr = "{\"_id\": \"0XP2Wa3W\", \"c_word\": 102, \"channels\": [\"Donald^^Trump\", \"Presidential^^Debate\", \"President^^Biden\", \"White^^Hair\"], \"channels_v2\": [\"Federal\", \"Donald^^Trump\", \"Joe^^Biden\", \"Mike^^Pence\", \"Presidential^^Debate\", \"Nikhila^^Natarajan^^Washington\"], \"epoch\": {\"$numberLong\": \"1603422024\"}, \"geotag\": [], \"geotag_v2\": [], \"highlightkeyword_list\": [[\"Mike^^Pence\", 0.9879817985691198], [\"Kamala^^Harris\", 0.986445297630299], [\"Natarajan\", 1.843513281266286E-5], [\"debate\", 7.064296135209436E-6], [\"Nashville\", 6.173556601522477E-6], [\"Tennessee\", 4.932300812661011E-6], [\"Biden\", 1.1122505337677468E-6]], \"insert_time\": \"2020-10-23 03:01:21\", \"kw_title\": [\"Trump\", \"presidential^^debate\", \"presidential^^debate^^history\", \"Biden\"], \"kws\": [\"Trump\", \"presidential^^debate\", \"presidential^^debate^^history\", \"Biden\", \"white^^hair\", \"Mike^^Pence^^debate\", \"Mike^^Pence\", \"Nashville\", \"Washington\", \"Nikhila^^Natarajan^^Washington\"], \"ne_content_location\": {\"Tennessee\": 1, \"Nashville\": 1, \"US\": 3}, \"ne_content_organization\": {}, \"ne_content_person\": {\"Nikhila Natarajan Washington\": 1, \"Donald Trum\": 1, \"Mike Pence\": 2, \"Kamala Harris\": 1}, \"ne_title_location\": {}, \"ne_title_organization\": {}, \"ne_title_person\": {\"Biden\": 1, \"Trump\": 1}, \"paragraph_count\": 4.0, \"simhash\": \"8e51fde2aae7ced97cb0ff9802a1df44\", \"spacy_content_loc\": [\"Washington\", \"US\", \"US\", \"Nashville\", \"Tennessee\", \"US\"], \"spacy_content_num\": [], \"spacy_content_org\": [\"XYZ\"], \"spacy_content_per\": [\"Nikhila Natarajan\", \"Mike Pence\", \"Kamala Harris - Mike Pence\", \"Donald Trum\"], \"spacy_content_tim\": [\"Oct 23\", \"2020\", \"the year\", \"90 minute\", \"Thursday\", \"night\"], \"spacy_title_loc\": [], \"spacy_title_num\": [], \"spacy_title_org\": [\"Trump\", \"Biden\"], \"spacy_title_per\": [], \"spacy_title_tim\": [], \"src\": \"Social News XYZ\", \"stitle\": \"Mute button , masks headline final Trump , Biden debate\", \"text_category\": {\"first_cat\": {\"PoliticsGovernment\": 0.9220821129312872}, \"second_cat\": {\"PoliticsGovernment_Federal\": 0.8, \"PoliticsGovernment_Elections\": 0.7086743505215961}, \"third_cat\": {\"PoliticsGovernment_Federal_POTUS\": 0.8, \"PoliticsGovernment_Elections_PresidentialCandidates\": 0.6179724311215244}}, \"text_category_v2\": {\"first_cat\": {\"PoliticsGovernment\": 0.9220821129312872}, \"second_cat\": {\"PoliticsGovernment_Federal\": 0.8, \"PoliticsGovernment_Elections\": 0.7086743505215961}, \"third_cat\": {\"PoliticsGovernment_Federal_POTUS\": 0.8, \"PoliticsGovernment_Elections_PresidentialCandidates\": 0.6179724311215244}}, \"url\": \"https://mp.newsbreakapp.com/post/12548458?sig=A80A8B68E61EBF9F4B2B65E2A1F926C2\"}";
         String canditStr =
             "[" +
-            "{ \"_id\" : \"0XUygKpC\", \"c_word\" : 2257, \"channels\" : [ \"Jordan\", \"Suicide^^Prevention\", \"Suicidal^^Thoughts\", \"Star\", \"Childhood^^Memories\" ], \"channels_v2\" : [ \"Suicide\", \"Suicide^^Prevention\", \"Burrell\", \"Facebook^^Live\" ], \"dup_id\" : \"0XUygKpC\", \"epoch\" : 1604260035 , \"evt_id\" : \"0XUygKpC\", \"geotag\" : [], \"geotag_v2\" : [], \"insert_time\" : \"2020-11-01 19:52:16\", \"kws\" : [ \"Nate^^Burrell\", \"Nathan^^Burrell\", \"suicide^^Saturday^^night\", \"Jordan\", \"Tamara^^MOM\", \"Suicide^^Prevention\", \"suicidal^^thoughts\", \"shot\", \"star\", \"childhood^^memories\", \"TMZ\", \"guilt\", \"God\", \"jail\", \"depression\", \"eternal^^life\", \"Facebook\", \"love^^hunting\", \"wake\", \"prisoner\" ], \"nbr_id\" : \"0XUygKpC\", \"ne_content_location\" : { \"Allegan\" : 1, \"Iraq\" : 1, \"America\" : 1, \"Michigan\" : 2 }, \"ne_content_organization\" : { \"A&E\" : 1, \"Lanphear Tool Works Inc.\" : 1, \"Allegan High School\" : 1, \"United States Marine Corps\" : 1, \"Foreman for Building Restorations Inc.\" : 1, \"Solidworks CAD\" : 1 }, \"ne_content_person\" : { \"Tamara\" : 1, \"Nathan Burrell\" : 1, \"Nate Burrell\" : 2, \"Rasmussen\" : 1, \"Jordan\" : 4, \"Burrell\" : 4 }, \"ne_title_location\" : {}, \"ne_title_organization\" : {}, \"ne_title_person\" : { \"Nate Burrell\" : 1, \"Jordan\" : 1 }, \"paragraph_count\" : 36.0, \"simhash\" : \"eaf0f24dc832a5b8c8eb57bf1b3c5e7d\", \"src\" : \"Heavy.com\", \"stitle\" : \"Nate Burrell 's Wife Jordan Mentioned in Tragic Suicide Note\", \"text_category\" : {}, \"text_category_v2\" : { \"first_cat\" : { \"ArtsEntertainment\" : 0.881583620725601 }, \"second_cat\" : { \"ArtsEntertainment_Celebrities\" : 0.868086179490401 }, \"third_cat\" : { \"ArtsEntertainment_Celebrities_Other\" : 0.868086179490401 } }, \"url\" : \"https://heavy.com/entertainment/nate-burrell-wife-jordan-suicide-note/\" }" +
+            "{\"_id\": \"0XP2Cd8D\", \"c_word\": 428, \"channels\": [\"Donald^^Trump\", \"Presidential^^Debate\", \"Democratic^^Debate\", \"Debates\", \"Democratic^^Candidates\"], \"channels_v2\": [\"Federal\", \"Donald^^Trump\", \"Joe^^Biden\", \"Presidential^^Debate\", \"Sharp\", \"Russia\"], \"epoch\": {\"$numberLong\": \"1603419840\"}, \"geotag\": [], \"geotag_v2\": [], \"highlightkeyword_list\": [[\"Joe^^Biden\", 0.9716584759556113], [\"Donald^^Trump\", 0.9561559403861298], [\"NBC^^News\", 0.039192748843770275], [\"Kristen^^Welker\", 0.033825558442444226], [\"Chris^^Wallace\", 0.01418875964657476], [\"Lisa^^Hagen\", 2.0237006167271595E-4], [\"Nashville\", 9.557322860427714E-7], [\"China\", 8.796744741476075E-7], [\"Cleveland\", 8.666353109947745E-7], [\"Russia\", 8.575794267469866E-7]], \"insert_time\": \"2020-10-23 02:49:37\", \"kw_title\": [\"sharp^^exchanges\", \"Trump\", \"President^^Donald^^Trump\", \"Joe^^Biden\", \"Sharp\"], \"kws\": [\"sharp^^exchanges\", \"Trump\", \"presidential^^debate\", \"Presidential^^Debates\", \"President^^Donald^^Trump\", \"Debates\", \"debate^^moderator\", \"Joe^^Biden\", \"Sharp\", \"mute^^candidates\", \"Election\", \"Congress\", \"Russia\", \"China\", \"optimism\", \"Cartoons\", \"NBC^^News\", \"NBC\", \"taxes\", \"Chris^^Wallace\"], \"ne_content_location\": {\"Nashville\": 1, \"Cleveland\": 1, \"China\": 1, \"Russia\": 1}, \"ne_content_organization\": {\"Commission on Presidential Debates\": 1, \"Congress\": 1, \"U.S. News & World\": 1, \"NBC News\": 1, \"Fox News\": 1}, \"ne_content_person\": {\"Lisa Hagen\": 2, \"Donald Trump\": 1, \"Biden\": 4, \"Joe Biden\": 1, \"Chris Wallace\": 1, \"Kristen Welker\": 1, \"Welker\": 1, \"Trump\": 6}, \"ne_title_location\": {}, \"ne_title_organization\": {}, \"ne_title_person\": {\"Biden\": 1, \"Trump\": 1}, \"paragraph_count\": 13.0, \"simhash\": \"afdaeeeb6ad669977c38b1c69b043b60\", \"spacy_content_loc\": [\"Nashville\", \"Russia\", \"China\", \"Cleveland\"], \"spacy_content_num\": [\"second\", \"first\", \"first\", \"one\"], \"spacy_content_org\": [\"Democratic\", \"Trump\", \"Biden\", \"Presidential Debates\", \"Trump\", \"NBC News\", \"Trump\", \"Fox News\", \"Trump\", \"Biden\", \"Trump\", \"Trump\", \"Biden\", \"U.S. News & World Report\", \"Congress\"], \"spacy_content_per\": [\"Donald Trump\", \"Joe Biden\", \"Kristen Welker\", \"Welker\", \"Chris Wallace\", \"Biden\", \"Lisa Hagen\", \"Lisa Hagen\"], \"spacy_content_tim\": [\"last month 's\", \"Thursday\", \"the first two minutes\", \"September\", \"September\", \"Nov. 3\", \"a matter of weeks\", \"the end of the year\", \"2020\"], \"spacy_title_loc\": [], \"spacy_title_num\": [], \"spacy_title_org\": [\"Trump\", \"Biden\", \"Sharp Exchanges\"], \"spacy_title_per\": [], \"spacy_title_tim\": [], \"src\": \"US News and World Report\", \"stitle\": \"Trump , Biden Clash in Sharp Exchanges , But More Civil Tones\", \"text_category\": {\"first_cat\": {\"PoliticsGovernment\": 0.9259256846332614}, \"second_cat\": {\"PoliticsGovernment_Federal\": 0.8, \"PoliticsGovernment_Elections\": 0.6698985474804305}, \"third_cat\": {\"PoliticsGovernment_Federal_POTUS\": 0.8, \"PoliticsGovernment_Elections_PresidentialCandidates\": 0.6820541437867856}}, \"text_category_v2\": {\"first_cat\": {\"PoliticsGovernment\": 0.9259256846332614}, \"second_cat\": {\"PoliticsGovernment_Federal\": 0.8, \"PoliticsGovernment_Elections\": 0.6698985474804305}, \"third_cat\": {\"PoliticsGovernment_Federal_POTUS\": 0.8, \"PoliticsGovernment_Elections_PresidentialCandidates\": 0.6820541437867856}}, \"url\": \"https://www.usnews.com/news/elections/articles/2020-10-22/trump-biden-clash-in-sharp-exchanges-but-in-more-civil-tones\"}" +
             "]";
         List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
         for (double[] weight : indexList) {
             System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]) + "\t" + String.valueOf(weight[2]));
         }
         
-        /** Model Inference STD Estimate */
-//        String modelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201109/forest.model";
-//        String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate";
-//        RandomForest forest = (RandomForest) SerializationHelper.read(modelPath);
-//        predictABTestBasedARFF2Class(forest, estimateDataPath);
+//        /** Model Inference STD Estimate */
+//        String onlineModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201014/forest.model";
+//        String testModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201116/forest.model";
+//        String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields";
+//        RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
+//        RandomForest testForest = (RandomForest) SerializationHelper.read(testModelPath);
+//        predictEstimateDataFeatureV1(onlineForest, estimateDataPath);
+//        predictEstimateDataFeatureV2(testForest, estimateDataPath);
+//
+        
     }
 }

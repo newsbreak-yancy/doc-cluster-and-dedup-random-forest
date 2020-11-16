@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import weka.core.*;
 import java.io.*;
 import java.nio.file.Paths;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -47,9 +48,11 @@ public class ARFFUtils {
                     bw.write(feature.toString());
                     bw.write("\n");
                 } catch (Exception e) {
+                    e.printStackTrace();
                     System.out.println(mStr);
                     System.out.println(cStr);
                     System.out.println(label);
+                    break;
                 }
             }
         }
@@ -57,6 +60,6 @@ public class ARFFUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        buildARFF("/Users/yuxi/NB/RandomForest/_local/train/20201109/mixture_fields_1_1_4_shuf", "mixture_fields_1_1_4_shuf");
+        buildARFF("/Users/yuxi/NB/RandomForest/_local/train/20201116/train_fields", "train");
     }
 }

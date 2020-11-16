@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.*;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
@@ -63,6 +61,8 @@ public class FileUtils {
 			.append("text_category", 1).append("text_category_v2", 1)
 			.append("geotag", 1).append("geotag_v2", 1)
 			.append("url", 1);
+		
+		
 	}
 	
 	
@@ -75,22 +75,30 @@ public class FileUtils {
 		BufferedReader br = new BufferedReader(new FileReader(docPair));
 		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(docPair.getAbsolutePath() + "_fields")));
 		String line = null;
+		List<String[]> labelPair = new ArrayList<>();
+		Set<String> idCache = new HashSet<>();
+		Map<String, Document> idMap = new HashMap<>();
 		while ((line = br.readLine()) != null) {
 			String[] datas = line.split("\t");
 			String docIDm = datas[0];
 			String docIDc = datas[1];
-			Document docMaster;
-			Document docCandit;
-			docMaster = collectionStatic.find(eq("_id", docIDm)).projection(fields).first();
-			docCandit = collectionStatic.find(eq("_id", docIDc)).projection(fields).first();
-			
-			if (docMaster == null || docCandit == null) {
-				docMaster = collectionCenter.find(eq("_id", docIDm)).projection(fields).first();
-				docCandit = collectionCenter.find(eq("_id", docIDc)).projection(fields).first();
-			}
-			
-			bw.write(line);
-			System.out.println(line);
+			labelPair.add(datas);
+			idCache.add(docIDm);
+			idCache.add(docIDc);
+		}
+		MongoCursor<Document> cursor = collectionStatic.find(in("_id", idCache.toArray())).projection(fields).cursor();
+		while (cursor.hasNext()) {
+			Document d = cursor.next();
+			String id = d.getString("_id");
+			idMap.put(id, d);
+		}
+		for (String[] strings : labelPair) {
+			String docIDm = strings[0];
+			String docIDc = strings[1];
+			String label = strings.length > 2 ? strings[2] : "NONE";
+			Document docMaster = idMap.get(docIDm);
+			Document docCandit = idMap.get(docIDc);
+			bw.write(docIDm + "\t" + docIDc + "\t" + label);
 			if (docMaster != null && docCandit != null) {
 				bw.write("\t");
 				bw.write("SUCCESS");
@@ -429,20 +437,28 @@ public class FileUtils {
 	}
 	
 	
+	/**
+	 *
+	 * @throws Exception
+	 */
+	public static void dumpDocFieldsFromLabelPair() throws Exception {
+		List<File> files = new ArrayList<>();
+//		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0720~0920/doc_pair_0720~0920"));
+//		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0720~0920/doc_pair_0903"));
+//		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0720~0920/doc_pair_0911"));
+//		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0720~0920/doc_pair_0914"));
+//		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0926~0930/dp_0926_0930_celebrities"));
+//		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0926~0930/dp_0926_0930_economic"));
+//		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0926~0930/dp_0926_0930_event"));
+//		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0926~0930/dp_0926_0930_royal"));
+//		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0926~0930/dp_0926_0930_tech"));
+		files.add(new File("/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair"));
+		for (File file : files) {
+			extractDocFields(file);
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
-//		extractDocFields(new File("/Users/yuxi/NB/RandomForest/_local/processor/same_title/same_title_label_result"));
-//		buildLabelDataFromDBByResponseLog();
-		
-		String a = "a";
-		List<String> b = new ArrayList<>();
-		b.add("b");
-		b.add("c");
-		b.add("a");
-		Set<String> c = new HashSet<>();
-		c.add(a);
-		c.addAll(b);
-		System.out.println(c);
-		
-		
+		dumpDocFieldsFromLabelPair();
 	}
 }

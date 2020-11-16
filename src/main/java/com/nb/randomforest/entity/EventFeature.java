@@ -2,13 +2,13 @@ package com.nb.randomforest.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.commons.lang3.StringUtils;
 import weka.core.*;
 
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static com.nb.randomforest.utils.FeatureUtils.*;
 
@@ -314,15 +314,16 @@ public class EventFeature {
 	    	cEpoch = null;
 	    }
 	    this.epochSpan = numSpan(mEpoch, cEpoch);
+	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	    Long mInsert;
 	    Long cInsert;
 	    if (masterNode.hasNonNull("insert_time")) {
-		    mInsert = Date.valueOf(masterNode.get("insert_time").asText()).getTime();
+		    mInsert = df.parse(masterNode.get("insert_time").asText()).getTime() / 1000;
 	    } else {
 		    mInsert = null;
 	    }
 	    if (canditNode.hasNonNull("insert_time")) {
-		    cInsert = Date.valueOf(canditNode.get("insert_time").asText()).getTime();
+		    cInsert = df.parse(canditNode.get("insert_time").asText()).getTime() / 1000;
 	    } else {
 		    cInsert = null;
 	    }
@@ -331,49 +332,56 @@ public class EventFeature {
 	    //Simhash Distance
 	    this.simhashDist = simhashDist(masterNode.get("simhash"), canditNode.get("simhash"));
 	    
-	    //Content Keywords
-	    List<String> mContentKWSList = new ArrayList<>();
-	    List<String> cContentKWSList = new ArrayList<>();
-	    if (masterNode.hasNonNull("kws") && masterNode.get("kws").isArray()) {
-		    masterNode.get("kws").forEach(kw -> mContentKWSList.add(kw.asText()));
-	    }
-	    if (canditNode.has("kws") && canditNode.get("kws").isArray()) {
-	    	canditNode.get("kws").forEach(kw -> cContentKWSList.add(kw.asText()));
-	    }
-	    this.cKWSRatio = overlapRatio(mContentKWSList, cContentKWSList);
-	    this.cKWSLength = averageLength(mContentKWSList, cContentKWSList);
+	    //Content Keywords :
+//	    List<String> mContentKWSList = new ArrayList<>();
+//	    List<String> cContentKWSList = new ArrayList<>();
+//	    if (masterNode.hasNonNull("kws") && masterNode.get("kws").isArray()) {
+//		    masterNode.get("kws").forEach(kw -> mContentKWSList.add(kw.asText()));
+//	    }
+//	    if (canditNode.has("kws") && canditNode.get("kws").isArray()) {
+//	    	canditNode.get("kws").forEach(kw -> cContentKWSList.add(kw.asText()));
+//	    }
+//	    this.cKWSRatio = overlapRatio(mContentKWSList, cContentKWSList);
+//	    this.cKWSLength = averageLength(mContentKWSList, cContentKWSList);
+	    //Content Keywords :
+	    this.cKWSRatio = weightedOverlapRatio(masterNode.get("kws"), canditNode.get("kws"));
+	    this.cKWSLength = weightedAverageLength(masterNode.get("kws"), canditNode.get("kws"));
 	    
 	    //Title Keywords
-	    List<String> mTitleKWSList = new ArrayList<>();
-	    List<String> cTitleKWSList = new ArrayList<>();
-	    if (masterNode.hasNonNull("kw_title") && masterNode.get("kw_title").isArray()) {
-	    	masterNode.get("kw_title").forEach(kw -> mTitleKWSList.add(kw.asText()));
-	    }
-	    if (canditNode.hasNonNull("kw_title") && canditNode.get("kw_title").isArray()) {
-		    canditNode.get("kw_title").forEach(kw -> cTitleKWSList.add(kw.asText()));
-	    }
-	    this.tKWSRatio = overlapRatio(mTitleKWSList, cTitleList);
-	    this.tKWSLength = averageLength(mTitleList, cTitleList);
+//	    List<String> mTitleKWSList = new ArrayList<>();
+//	    List<String> cTitleKWSList = new ArrayList<>();
+//	    if (masterNode.hasNonNull("kw_title") && masterNode.get("kw_title").isArray()) {
+//	    	masterNode.get("kw_title").forEach(kw -> mTitleKWSList.add(kw.asText()));
+//	    }
+//	    if (canditNode.hasNonNull("kw_title") && canditNode.get("kw_title").isArray()) {
+//		    canditNode.get("kw_title").forEach(kw -> cTitleKWSList.add(kw.asText()));
+//	    }
+//	    this.tKWSRatio = overlapRatio(mTitleKWSList, cTitleList);
+//	    this.tKWSLength = averageLength(mTitleList, cTitleList);
+	    this.tKWSRatio = weightedOverlapRatio(masterNode.get("kw_title"), canditNode.get("kw_title"));
+	    this.tKWSLength = weightedAverageLength(masterNode.get("kw_title"), canditNode.get("kw_title"));
 	    
 	    //HigLight Keywords
-	    List<String> mHighKWSList = new ArrayList<>();
-	    List<String> cHighKWSList = new ArrayList<>();
-	    if (masterNode.hasNonNull("highlightkeyword_list") && masterNode.get("highlightkeyword_list").isArray()) {
-		    masterNode.get("highlightkeyword_list").forEach(kw_pair -> {
-			    if (kw_pair.get(1).asDouble() > 0.6d) {
-				    mHighKWSList.add(kw_pair.get(0).asText());
-			    }
-		    });
-	    }
-	    if (canditNode.hasNonNull("highlightkeyword_list") && canditNode.get("highlightkeyword_list").isArray()) {
-		    canditNode.get("highlightkeyword_list").forEach(kw_pair -> {
-		    	if (kw_pair.get(1).asDouble() > 0.6d) {
-				    cHighKWSList.add(kw_pair.get(0).asText());
-			    }
-		    });
-	    }
-	    this.hKWSRatio = overlapRatio(mHighKWSList, cHighKWSList);
-	    this.hKWSLength = averageLength(mHighKWSList, cHighKWSList);
+//	    List<String> mHighKWSList = new ArrayList<>();
+//	    List<String> cHighKWSList = new ArrayList<>();
+//	    if (masterNode.hasNonNull("highlightkeyword_list") && masterNode.get("highlightkeyword_list").isArray()) {
+//		    masterNode.get("highlightkeyword_list").forEach(kw_pair -> {
+//			    if (kw_pair.get(1).asDouble() > 0.6d) {
+//				    mHighKWSList.add(kw_pair.get(0).asText());
+//			    }
+//		    });
+//	    }
+//	    if (canditNode.hasNonNull("highlightkeyword_list") && canditNode.get("highlightkeyword_list").isArray()) {
+//		    canditNode.get("highlightkeyword_list").forEach(kw_pair -> {
+//		    	if (kw_pair.get(1).asDouble() > 0.6d) {
+//				    cHighKWSList.add(kw_pair.get(0).asText());
+//			    }
+//		    });
+//	    }
+//	    this.hKWSRatio = overlapRatio(mHighKWSList, cHighKWSList);
+//	    this.hKWSLength = averageLength(mHighKWSList, cHighKWSList);
+	    this.hKWSRatio = weightedOverlapRatio(masterNode.get("highlightkeyword_list"), canditNode.get("highlightkeyword_list"));
+	    this.hKWSLength = weightedAverageLength(masterNode.get("highlightkeyword_list"), canditNode.get("highlightkeyword_list"));
 	    
 	    
 	    //Channel
