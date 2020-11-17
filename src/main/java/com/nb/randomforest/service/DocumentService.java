@@ -87,7 +87,7 @@ public class DocumentService {
 			double[][] canditResults = randomForest.distributionsForInstances(instances);
 			for (int j = 0; j < canditResults.length; j++) {
 				double[] canditResult = canditResults[j];
-				EventFeature feature = BooleanUtils.isTrue(isDebug) ? features.get(j) : null;
+				EventFeature feature = features.get(j);
 				String cID = canditNodes.get(j).hasNonNull("_id") ? canditNodes.get(j).get("_id").textValue() : "";
 				String label;
 				double diffScore = canditResult[0];
@@ -98,7 +98,7 @@ public class DocumentService {
 					(isEconomyMarkets && evtScore > 0.98) ||
 					(isCelebrities && evtScore > 0.95) ||
 					(!isEconomyMarkets && !isCelebrities && evtScore > 0.9) ||
-					(feature.getTitleRatio() > 0.4 && feature.getTitleLength() > 4 && evtScore > 0.7)
+					(feature.getTitleRatio() > 0.5 && feature.getTitleLength() > 4 && evtScore > 0.7)
 				) {
 					label = "DUP";
 					score = evtScore;
@@ -112,7 +112,7 @@ public class DocumentService {
 					score = diffScore;
 				}
 				cls.add(new RFModelResult(
-					cID, label, score, feature
+					cID, label, score, BooleanUtils.isTrue(isDebug) ? feature : null
 				));
 			}
 			return cls;
