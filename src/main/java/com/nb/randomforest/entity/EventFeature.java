@@ -263,13 +263,13 @@ public class EventFeature {
     	
 	    //Title
 	    String mTitle = stringPreprocess(
-	    	masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() :
-			    masterNode.hasNonNull("seg_title") ? masterNode.get("seg_title").textValue() : ""
+	    	masterNode.hasNonNull("seg_title") ? masterNode.get("seg_title").textValue() :
+			    masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() : ""
 	    );
 	    List<String> mTitleList = Arrays.asList(mTitle.split(" "));
 	    String cTitle = stringPreprocess(
-		    canditNode.hasNonNull("stitle") ? canditNode.get("stitle").textValue() :
-			    canditNode.hasNonNull("seg_title") ? canditNode.get("seg_title").textValue() : ""
+		    canditNode.hasNonNull("seg_title") ? canditNode.get("seg_title").textValue() :
+			    canditNode.hasNonNull("stitle") ? canditNode.get("stitle").textValue() : ""
 	    );
 	    List<String> cTitleList = Arrays.asList(cTitle.split(" "));
         this.titleDist = levenshteinDistance(mTitle, cTitle);
@@ -278,8 +278,10 @@ public class EventFeature {
         
         //Source
         this.sameSRC = isEqual(
-        	masterNode.hasNonNull("src") ? masterNode.get("src").textValue() : null,
-	        canditNode.hasNonNull("src") ? canditNode.get("src").textValue() : null
+        	masterNode.hasNonNull("source") ? masterNode.get("source").textValue() :
+		        masterNode.hasNonNull("src") ? masterNode.get("src").textValue() : null,
+	        canditNode.hasNonNull("source") ? canditNode.get("source").textValue() :
+		        canditNode.hasNonNull("src") ? canditNode.get("src").textValue() : null
         );
         
         //Word Count Span

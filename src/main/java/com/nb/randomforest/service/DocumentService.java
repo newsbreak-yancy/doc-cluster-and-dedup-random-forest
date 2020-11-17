@@ -46,11 +46,6 @@ public class DocumentService {
 			Instances instances;
 			List<EventFeature> features = new ArrayList<>();
 			ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributesV1();
-			String mTitle = stringPreprocess(
-				masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() :
-					masterNode.hasNonNull("seg_title") ? masterNode.get("seg_title").textValue() : ""
-			);
-			boolean isRoyal = false;
 			boolean isCelebrities = false;
 			boolean isEconomyMarkets = false;
 			if (masterNode.hasNonNull("text_category") && masterNode.get("text_category").hasNonNull("second_cat")) {
@@ -62,12 +57,6 @@ public class DocumentService {
 						isEconomyMarkets = true;
 					} else if (StringUtils.equals("ArtsEntertainment_Celebrities", key)) {
 						isCelebrities = true;
-//						if (
-//							mTitle.contains("prince") || mTitle.contains("royal") || mTitle.contains("buckingham") ||
-//							(mTitle.contains("harry") && mTitle.contains("meghan")) || mTitle.contains("duke") || mTitle.contains("duchess")
-//						) {
-//							isRoyal = true;
-//						}
 					}
 				}
 			}
