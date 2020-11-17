@@ -41,7 +41,7 @@ public class DocumentService {
 			// 1.
 			Instances instances;
 			List<EventFeature> features = new ArrayList<>();
-			ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributes();
+			ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributesV1();
 			
 			// 2. create Instances object
 			instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
@@ -50,7 +50,7 @@ public class DocumentService {
 			for (JsonNode canditNode : canditNodes) {
 				EventFeature feature = new EventFeature(masterNode, canditNode, null);
 				features.add(feature);
-				instances.add(feature.toInstance());
+				instances.add(feature.toInstanceV0());
 			}
 			
 			// 3.

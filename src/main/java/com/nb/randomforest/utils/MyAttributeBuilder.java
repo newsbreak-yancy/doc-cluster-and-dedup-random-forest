@@ -11,7 +11,33 @@ import java.util.List;
  */
 public class MyAttributeBuilder {
 	
-	public static ArrayList<Attribute> buildMyAttributes() {
+	public static ArrayList<Attribute> buildMyAttributesV0() {
+		ArrayList<Attribute> attributes = new ArrayList<>();
+		attributes.add(new Attribute("TitleDist"));
+		attributes.add(new Attribute("SameSRC"));
+		attributes.add(new Attribute("CWordSpan"));
+		attributes.add(new Attribute("EpochSpan"));
+		attributes.add(new Attribute("ParagraphSpan"));
+		attributes.add(new Attribute("SimhashDist"));
+		attributes.add(new Attribute("CKWSRatio"));
+		attributes.add(new Attribute("ChannelRatio"));
+		attributes.add(new Attribute("COrgRatioNE"));
+		attributes.add(new Attribute("CLocRatioNE"));
+		attributes.add(new Attribute("CPrsRatioNE"));
+		attributes.add(new Attribute("TOrgRatioNE"));
+		attributes.add(new Attribute("TLocRatioNE"));
+		attributes.add(new Attribute("TPerRatioNE"));
+		attributes.add(new Attribute("CatRatio"));
+		attributes.add(new Attribute("GeoRatio"));
+		// - nominal
+		ArrayList<String> attVals = new ArrayList<>();
+		attVals.add("DIFF");
+		attVals.add("EVENT");
+		attributes.add(new Attribute("Label", attVals));
+		return attributes;
+	}
+	
+	public static ArrayList<Attribute> buildMyAttributesV1() {
 		ArrayList<Attribute> attributes = new ArrayList<>();
 		attributes.add(new Attribute("TitleDist"));
 		attributes.add(new Attribute("TitleRatio"));
@@ -70,7 +96,47 @@ public class MyAttributeBuilder {
 		ArrayList<String> attVals = new ArrayList<>();
 		attVals.add("DIFF");
 		attVals.add("EVENT");
-		attVals.add("DUP");
+		attributes.add(new Attribute("Label", attVals));
+		return attributes;
+	}
+	
+	
+	public static ArrayList<Attribute> buildMyAttributesV2() {
+		ArrayList<Attribute> attributes = new ArrayList<>();
+		attributes.add(new Attribute("TitleRatio"));
+//		attributes.add(new Attribute("TitleLength"));
+		attributes.add(new Attribute("SameSRC"));
+		attributes.add(new Attribute("EpochSpan"));
+		attributes.add(new Attribute("InsertSpan"));
+		attributes.add(new Attribute("SimhashDist"));
+		attributes.add(new Attribute("CKWSRatio"));
+//		attributes.add(new Attribute("CKWSLength"));
+		attributes.add(new Attribute("TKWSRatio"));
+//		attributes.add(new Attribute("TKWSLength"));
+		attributes.add(new Attribute("HKWSRatio"));
+//		attributes.add(new Attribute("HKWSLength"));
+		attributes.add(new Attribute("ChannelRatio"));
+//		attributes.add(new Attribute("ChannelLength"));
+		attributes.add(new Attribute("COrgRatioNE"));
+		attributes.add(new Attribute("COrgRatioSP"));
+//		attributes.add(new Attribute("COrgLengthNE"));
+//		attributes.add(new Attribute("COrgLengthSP"));
+		attributes.add(new Attribute("CLocRatioNE"));
+		attributes.add(new Attribute("CLocRatioSP"));
+//		attributes.add(new Attribute("CLocLengthNE"));
+//		attributes.add(new Attribute("CLocLengthSP"));
+		attributes.add(new Attribute("CPrsRatioNE"));
+		attributes.add(new Attribute("CPrsRatioSP"));
+//		attributes.add(new Attribute("CPrsLengthNE"));
+//		attributes.add(new Attribute("CPrsLengthSP"));
+		attributes.add(new Attribute("CatRatio"));
+//		attributes.add(new Attribute("CatLength"));
+		attributes.add(new Attribute("GeoRatio"));
+//		attributes.add(new Attribute("GeoLength"));
+		// - nominal
+		ArrayList<String> attVals = new ArrayList<>();
+		attVals.add("DIFF");
+		attVals.add("EVENT");
 		attributes.add(new Attribute("Label", attVals));
 		return attributes;
 	}

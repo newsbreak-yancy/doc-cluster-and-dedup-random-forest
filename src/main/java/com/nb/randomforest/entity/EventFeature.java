@@ -2,11 +2,9 @@ package com.nb.randomforest.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.commons.lang3.StringUtils;
 import weka.core.*;
 
-import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -259,7 +257,7 @@ public class EventFeature {
 
     public EventFeature(JsonNode masterNode, JsonNode canditNode, String label) throws Exception {
     	if (!StringUtils.isEmpty(label) && !label.equals("DIFF") && !label.equals("EVENT") && !label.equals("DUP")) {
-    		throw new Exception("Invalid Label! Required DIFF, EVENT , DUP or null.");
+		    throw new Exception("Invalid Label! Required DIFF, EVENT , DUP or null.");
 	    }
         this.label = label;
     	
@@ -362,27 +360,24 @@ public class EventFeature {
 	    this.tKWSLength = weightedAverageLength(masterNode.get("kw_title"), canditNode.get("kw_title"));
 	    
 	    //HigLight Keywords
-//	    List<String> mHighKWSList = new ArrayList<>();
-//	    List<String> cHighKWSList = new ArrayList<>();
-//	    if (masterNode.hasNonNull("highlightkeyword_list") && masterNode.get("highlightkeyword_list").isArray()) {
-//		    masterNode.get("highlightkeyword_list").forEach(kw_pair -> {
-//			    if (kw_pair.get(1).asDouble() > 0.6d) {
-//				    mHighKWSList.add(kw_pair.get(0).asText());
-//			    }
-//		    });
-//	    }
-//	    if (canditNode.hasNonNull("highlightkeyword_list") && canditNode.get("highlightkeyword_list").isArray()) {
-//		    canditNode.get("highlightkeyword_list").forEach(kw_pair -> {
-//		    	if (kw_pair.get(1).asDouble() > 0.6d) {
-//				    cHighKWSList.add(kw_pair.get(0).asText());
-//			    }
-//		    });
-//	    }
-//	    this.hKWSRatio = overlapRatio(mHighKWSList, cHighKWSList);
-//	    this.hKWSLength = averageLength(mHighKWSList, cHighKWSList);
-	    this.hKWSRatio = weightedOverlapRatio(masterNode.get("highlightkeyword_list"), canditNode.get("highlightkeyword_list"));
-	    this.hKWSLength = weightedAverageLength(masterNode.get("highlightkeyword_list"), canditNode.get("highlightkeyword_list"));
-	    
+	    List<String> mHighKWSList = new ArrayList<>();
+	    List<String> cHighKWSList = new ArrayList<>();
+	    if (masterNode.hasNonNull("highlightkeyword_list") && masterNode.get("highlightkeyword_list").isArray()) {
+		    masterNode.get("highlightkeyword_list").forEach(kw_pair -> {
+			    if (kw_pair.get(1).asDouble() > 0.6d) {
+				    mHighKWSList.add(kw_pair.get(0).asText());
+			    }
+		    });
+	    }
+	    if (canditNode.hasNonNull("highlightkeyword_list") && canditNode.get("highlightkeyword_list").isArray()) {
+		    canditNode.get("highlightkeyword_list").forEach(kw_pair -> {
+		    	if (kw_pair.get(1).asDouble() > 0.6d) {
+				    cHighKWSList.add(kw_pair.get(0).asText());
+			    }
+		    });
+	    }
+	    this.hKWSRatio = overlapRatio(mHighKWSList, cHighKWSList);
+	    this.hKWSLength = averageLength(mHighKWSList, cHighKWSList);
 	    
 	    //Channel
 	    List<String> mChnList = new ArrayList<>();
@@ -680,7 +675,30 @@ public class EventFeature {
 		return geoLength;
 	}
 	
-	public Instance toInstance() {
+	public Instance toInstanceV0() {
+		List<Double> doubleList = new ArrayList<>();
+		doubleList.add(titleDist);
+		doubleList.add(sameSRC);
+		doubleList.add(cWordSpan);
+		doubleList.add(epochSpan);
+		doubleList.add(paragraphSpan);
+		doubleList.add(simhashDist);
+		doubleList.add(cKWSRatio);
+		doubleList.add(channelRatio);
+		doubleList.add(cOrgRatioNE);
+		doubleList.add(cLocRatioNE);
+		doubleList.add(cPerRatioNE);
+		doubleList.add(tOrgRatioNE);
+		doubleList.add(tLocRatioNE);
+		doubleList.add(tPerRatioNE);
+		doubleList.add(catRatio);
+		doubleList.add(geoRatio);
+		doubleList.add((StringUtils.isEmpty(label) || StringUtils.equals(label, "DIFF")) ? 0d : StringUtils.equals(label, "EVENT") ? 1d : 2d);
+		double[] doubleArray = doubleList.stream().mapToDouble(d -> d == null ? Utils.missingValue() : d.doubleValue()).toArray();
+		return new DenseInstance(1, doubleArray);
+	}
+	
+	public Instance toInstanceV1() {
 		List<Double> doubleList = new ArrayList<>();
 		doubleList.add(titleDist);
 		doubleList.add(titleRatio);
@@ -740,8 +758,45 @@ public class EventFeature {
 		return new DenseInstance(1, doubleArray);
 	}
 	
-	@Override
-	public String toString() {
+	public Instance toInstanceV2() {
+		List<Double> doubleList = new ArrayList<>();
+		doubleList.add(titleRatio);
+//		doubleList.add(titleLength);
+		doubleList.add(sameSRC);
+		doubleList.add(epochSpan);
+		doubleList.add(insertSpan);
+		doubleList.add(simhashDist);
+		doubleList.add(cKWSRatio);
+//		doubleList.add(cKWSLength);
+		doubleList.add(tKWSRatio);
+//		doubleList.add(tKWSLength);
+		doubleList.add(hKWSRatio);
+//		doubleList.add(hKWSLength);
+		doubleList.add(channelRatio);
+//		doubleList.add(channelLength);
+		doubleList.add(cOrgRatioNE);
+		doubleList.add(cOrgRatioSP);
+//		doubleList.add(cOrgLengthNE);
+//		doubleList.add(cOrgLengthSP);
+		doubleList.add(cLocRatioNE);
+		doubleList.add(cLocRatioSP);
+//		doubleList.add(cLocLengthNE);
+//		doubleList.add(cLocLengthSP);
+		doubleList.add(cPerRatioNE);
+		doubleList.add(cPerRatioSP);
+//		doubleList.add(cPerLengthNE);
+//		doubleList.add(cPerLengthSP);
+		doubleList.add(catRatio);
+//		doubleList.add(catLength);
+		doubleList.add(geoRatio);
+//		doubleList.add(geoLength);
+		doubleList.add((StringUtils.isEmpty(label) || StringUtils.equals(label, "DIFF")) ? 0d : StringUtils.equals(label, "EVENT") ? 1d : 2d);
+		double[] doubleArray = doubleList.stream().mapToDouble(d -> d == null ? Utils.missingValue() : d.doubleValue()).toArray();
+		return new DenseInstance(1, doubleArray);
+	}
+	
+	
+	public String toStringV1() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(titleDist == null ? "?" : titleDist.toString());
 		sb.append(",");
@@ -854,6 +909,73 @@ public class EventFeature {
 	}
 	
 	
+	public String toStringV2() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(titleRatio == null ? "?" : titleRatio.toString());
+		sb.append(",");
+//		sb.append(titleLength == null ? "?" : titleLength.toString());
+//		sb.append(",");
+		sb.append(sameSRC == null ? "?" : sameSRC.toString());
+		sb.append(",");
+		sb.append(epochSpan == null ? "?" : epochSpan.toString());
+		sb.append(",");
+		sb.append(insertSpan == null ? "?" : insertSpan.toString());
+		sb.append(",");
+		sb.append(simhashDist == null ? "?" : simhashDist.toString());
+		sb.append(",");
+		sb.append(cKWSRatio == null ? "?" : cKWSRatio.toString());
+		sb.append(",");
+//		sb.append(cKWSLength == null ? "?" : cKWSLength.toString());
+//		sb.append(",");
+		sb.append(tKWSRatio == null ? "?" : tKWSRatio.toString());
+		sb.append(",");
+//		sb.append(tKWSLength == null ? "?" : tKWSLength.toString());
+//		sb.append(",");
+		sb.append(hKWSRatio == null ? "?" : hKWSRatio.toString());
+		sb.append(",");
+//		sb.append(hKWSLength == null ? "?" : hKWSLength.toString());
+//		sb.append(",");
+		sb.append(channelRatio == null ? "?" : channelRatio.toString());
+		sb.append(",");
+//		sb.append(channelLength == null ? "?" : channelLength.toString());
+//		sb.append(",");
+		sb.append(cOrgRatioNE == null ? "?" : cOrgRatioNE.toString());
+		sb.append(",");
+		sb.append(cOrgRatioSP == null ? "?" : cOrgRatioSP.toString());
+		sb.append(",");
+//		sb.append(cOrgLengthNE == null ? "?" : cOrgLengthNE.toString());
+//		sb.append(",");
+//		sb.append(cOrgLengthSP == null ? "?" : cOrgLengthSP.toString());
+//		sb.append(",");
+		sb.append(cLocRatioNE == null ? "?" : cLocRatioNE.toString());
+		sb.append(",");
+		sb.append(cLocRatioSP == null ? "?" : cLocRatioSP.toString());
+		sb.append(",");
+//		sb.append(cLocLengthNE == null ? "?" : cLocLengthNE.toString());
+//		sb.append(",");
+//		sb.append(cLocLengthSP == null ? "?" : cLocLengthSP.toString());
+//		sb.append(",");
+		sb.append(cPerRatioNE == null ? "?" : cPerRatioNE.toString());
+		sb.append(",");
+		sb.append(cPerRatioSP == null ? "?" : cPerRatioSP.toString());
+		sb.append(",");
+//		sb.append(cPerLengthNE == null ? "?" : cPerLengthNE.toString());
+//		sb.append(",");
+//		sb.append(cPerLengthSP == null ? "?" : cPerLengthSP.toString());
+//		sb.append(",");
+		sb.append(catRatio == null ? "?" : catRatio.toString());
+		sb.append(",");
+//		sb.append(catLength == null ? "?" : catLength.toString());
+//		sb.append(",");
+		sb.append(geoRatio == null ? "?" : geoRatio.toString());
+		sb.append(",");
+//		sb.append(geoLength == null ? "?" : geoLength.toString());
+//		sb.append(",");
+		sb.append(StringUtils.isEmpty(label) ? "?" : label);
+		return sb.toString();
+	}
+	
+	
 	public static void main(String[] args) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		String mStr = "{\"_id\": \"0WxXFOiG\", \"c_word\": 184, \"channels_v2\": [\"Ohio^^Stadium\", \"Ohio^^State\", \"Home^^Game\", \"Buckeye\", \"Football^^Season\", \"Football\", \"Ohio\"], \"epoch\": {\"$numberLong\": \"1599975420\"}, \"geotag_v2\": [{\"name\": \"columbus\", \"score\": 1.0, \"coord\": \"39.961176,-82.998794\", \"pid\": \"columbus,ohio\", \"type\": \"city\"}], \"kws\": [\"Buckeye^^football^^fans\", \"football^^fans\", \"football^^season\", \"Ohio^^Stadium\", \"home^^game\", \"Ohio^^State^^University\", \"COLUMBUS\", \"happy\", \"fall\", \"Competition^^Task^^Force\", \"petitions\"], \"ne_content_location\": {\"Buckeye\": 1, \"Ohio\": 2, \"COLUMBUS\": 1, \"Ohio Stadium\": 1}, \"ne_content_organization\": {\"Competition Task Force\": 1, \"Ohio State\": 1, \"Ohio State University\": 1, \"Associated Press\": 1}, \"ne_content_person\": {}, \"ne_title_location\": {\"Buckeye\": 1}, \"ne_title_organization\": {}, \"ne_title_person\": {}, \"paragraph_count\": 7.0, \"simhash\": \"9a9543b818dcd5c37b9ee3b2e2e4778b\", \"src\": \"WTOL-TV\", \"stitle\": \"Buckeye fans disappointed to not have football for what would have been first home game\", \"text_category_v2\": {\"first_cat\": {\"Sports\": 0.9428178147314257}, \"second_cat\": {\"Sports_AmericanFootball\": 0.7154466756639957, \"Sports_College\": 0.6156932023454093}, \"third_cat\": {\"Sports_AmericanFootball_Other\": 0.7154466756639957, \"Sports_College_Other\": 0.6156932023454093}}}";
@@ -862,7 +984,7 @@ public class EventFeature {
 		JsonNode cNode = mapper.readTree(cStr);
 		EventFeature feature = new EventFeature(mNode, cNode, "");
 		System.out.println(feature);
-		System.out.println(feature.toInstance());
+		System.out.println(feature.toInstanceV0());
 		//69.0,0.0,9.0,0.0,1.0,81.0,0.14646464646464646,0.13392857142857142,0.1875,0.5142857142857142,0.0,0.0,0.0,?,0.3854143638657179,0.75,DIFF
 	}
 }

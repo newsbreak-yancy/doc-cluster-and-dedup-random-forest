@@ -89,7 +89,7 @@ public class ModelUtils {
         RandomForest forest = new RandomForest();
         forest.setNumIterations(200);
         forest.setDebug(false);
-        forest.setNumFeatures(7); // random feature num = log_2{feature num}
+        forest.setNumFeatures(4); // random feature num = log_2{feature num}
         forest.setComputeAttributeImportance(true);
         forest.buildClassifier(trainingDataSet);
     
@@ -106,7 +106,6 @@ public class ModelUtils {
         
         // dump random forest model to file
         SerializationHelper.write(Paths.get(new File(trainFile).getParent(),"forest.model").toString(), forest);
-
     }
     
     
@@ -204,7 +203,7 @@ public class ModelUtils {
      * 基于 Feature V1(16) + Estimate Data => Model Estimate
      *
      */
-    public static void predictEstimateDataFeatureV1(RandomForest forest, String docPairFile) throws Exception {
+    public static void predictEstimateDataFeatureV0(RandomForest forest, String docPairFile) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         
         ArrayList<Attribute> attributes = new ArrayList<>();
@@ -259,7 +258,7 @@ public class ModelUtils {
             EventFeature feature = new EventFeature(mNode, cNode, rCls);
             Instances instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
             instances.setClassIndex(instances.numAttributes() - 1);
-            instances.add(feature.toInstance());
+            instances.add(feature.toInstanceV0());
             double[] distribute = forest.distributionsForInstances(instances)[0];
             double difScr = distribute[0];
             double evtScr = distribute[1];
@@ -309,72 +308,72 @@ public class ModelUtils {
     
     
     /**
-     * 基于 Feature V2(53) + Estimate Data => Model Estimate
+     * 基于 Feature V1(53) + Estimate Data => Model Estimate
      *
      */
-    public static void predictEstimateDataFeatureV2(RandomForest forest, String docPairFile) throws Exception {
+    public static void predictEstimateDataFeatureV1(RandomForest forest, String docPairFile) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         
-        ArrayList<Attribute> attributes = new ArrayList<>();
-        ArrayList<String> attVals = new ArrayList<>();
-        // - numeric
-        attributes.add(new Attribute("TitleDist"));
-        attributes.add(new Attribute("TitleRatio"));
-        attributes.add(new Attribute("TitleLength"));
-        attributes.add(new Attribute("SameSRC"));
-        attributes.add(new Attribute("CWordSpan"));
-        attributes.add(new Attribute("ParagraphSpan"));
-        attributes.add(new Attribute("EpochSpan"));
-        attributes.add(new Attribute("InsertSpan"));
-        attributes.add(new Attribute("SimhashDist"));
-        attributes.add(new Attribute("CKWSRatio"));
-        attributes.add(new Attribute("CKWSLength"));
-        attributes.add(new Attribute("TKWSRatio"));
-        attributes.add(new Attribute("TKWSLength"));
-        attributes.add(new Attribute("HKWSRatio"));
-        attributes.add(new Attribute("HKWSLength"));
-        attributes.add(new Attribute("ChannelRatio"));
-        attributes.add(new Attribute("ChannelLength"));
-        attributes.add(new Attribute("COrgRatioNE"));
-        attributes.add(new Attribute("COrgRatioSP"));
-        attributes.add(new Attribute("COrgLengthNE"));
-        attributes.add(new Attribute("COrgLengthSP"));
-        attributes.add(new Attribute("CLocRatioNE"));
-        attributes.add(new Attribute("CLocRatioSP"));
-        attributes.add(new Attribute("CLocLengthNE"));
-        attributes.add(new Attribute("CLocLengthSP"));
-        attributes.add(new Attribute("CPerRatioNE"));
-        attributes.add(new Attribute("CPerRatioSP"));
-        attributes.add(new Attribute("CPerLengthNE"));
-        attributes.add(new Attribute("CPerLengthSP"));
-        attributes.add(new Attribute("CNUMRatioSP"));
-        attributes.add(new Attribute("CNUMLengthSP"));
-        attributes.add(new Attribute("CTimRatioSP"));
-        attributes.add(new Attribute("CTimLengthSP"));
-        attributes.add(new Attribute("TOrgRatioNE"));
-        attributes.add(new Attribute("TOrgRatioSP"));
-        attributes.add(new Attribute("TOrgLengthNE"));
-        attributes.add(new Attribute("TOrgLengthSP"));
-        attributes.add(new Attribute("TLocRatioNE"));
-        attributes.add(new Attribute("TLocRatioSP"));
-        attributes.add(new Attribute("TLocLengthNE"));
-        attributes.add(new Attribute("TLocLengthSP"));
-        attributes.add(new Attribute("TPerRatioNE"));
-        attributes.add(new Attribute("TPerRatioSP"));
-        attributes.add(new Attribute("TPerLengthNE"));
-        attributes.add(new Attribute("TPerLengthSP"));
-        attributes.add(new Attribute("TNUMRatioSP"));
-        attributes.add(new Attribute("TNUMLengthSP"));
-        attributes.add(new Attribute("TTimRatioSP"));
-        attributes.add(new Attribute("TTimLengthSP"));
-        attributes.add(new Attribute("CatRatio"));
-        attributes.add(new Attribute("CatLength"));
-        attributes.add(new Attribute("GEORatio"));
-        attributes.add(new Attribute("GEOLength"));
-        // - nominal
-        attVals.add("DIFF");
-        attVals.add("EVENT");
-        attributes.add(new Attribute("Label", attVals));
+        ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributesV1();
+//        ArrayList<String> attVals = new ArrayList<>();
+//        // - numeric
+//        attributes.add(new Attribute("TitleDist"));
+//        attributes.add(new Attribute("TitleRatio"));
+//        attributes.add(new Attribute("TitleLength"));
+//        attributes.add(new Attribute("SameSRC"));
+//        attributes.add(new Attribute("CWordSpan"));
+//        attributes.add(new Attribute("ParagraphSpan"));
+//        attributes.add(new Attribute("EpochSpan"));
+//        attributes.add(new Attribute("InsertSpan"));
+//        attributes.add(new Attribute("SimhashDist"));
+//        attributes.add(new Attribute("CKWSRatio"));
+//        attributes.add(new Attribute("CKWSLength"));
+//        attributes.add(new Attribute("TKWSRatio"));
+//        attributes.add(new Attribute("TKWSLength"));
+//        attributes.add(new Attribute("HKWSRatio"));
+//        attributes.add(new Attribute("HKWSLength"));
+//        attributes.add(new Attribute("ChannelRatio"));
+//        attributes.add(new Attribute("ChannelLength"));
+//        attributes.add(new Attribute("COrgRatioNE"));
+//        attributes.add(new Attribute("COrgRatioSP"));
+//        attributes.add(new Attribute("COrgLengthNE"));
+//        attributes.add(new Attribute("COrgLengthSP"));
+//        attributes.add(new Attribute("CLocRatioNE"));
+//        attributes.add(new Attribute("CLocRatioSP"));
+//        attributes.add(new Attribute("CLocLengthNE"));
+//        attributes.add(new Attribute("CLocLengthSP"));
+//        attributes.add(new Attribute("CPerRatioNE"));
+//        attributes.add(new Attribute("CPerRatioSP"));
+//        attributes.add(new Attribute("CPerLengthNE"));
+//        attributes.add(new Attribute("CPerLengthSP"));
+//        attributes.add(new Attribute("CNUMRatioSP"));
+//        attributes.add(new Attribute("CNUMLengthSP"));
+//        attributes.add(new Attribute("CTimRatioSP"));
+//        attributes.add(new Attribute("CTimLengthSP"));
+//        attributes.add(new Attribute("TOrgRatioNE"));
+//        attributes.add(new Attribute("TOrgRatioSP"));
+//        attributes.add(new Attribute("TOrgLengthNE"));
+//        attributes.add(new Attribute("TOrgLengthSP"));
+//        attributes.add(new Attribute("TLocRatioNE"));
+//        attributes.add(new Attribute("TLocRatioSP"));
+//        attributes.add(new Attribute("TLocLengthNE"));
+//        attributes.add(new Attribute("TLocLengthSP"));
+//        attributes.add(new Attribute("TPerRatioNE"));
+//        attributes.add(new Attribute("TPerRatioSP"));
+//        attributes.add(new Attribute("TPerLengthNE"));
+//        attributes.add(new Attribute("TPerLengthSP"));
+//        attributes.add(new Attribute("TNUMRatioSP"));
+//        attributes.add(new Attribute("TNUMLengthSP"));
+//        attributes.add(new Attribute("TTimRatioSP"));
+//        attributes.add(new Attribute("TTimLengthSP"));
+//        attributes.add(new Attribute("CatRatio"));
+//        attributes.add(new Attribute("CatLength"));
+//        attributes.add(new Attribute("GEORatio"));
+//        attributes.add(new Attribute("GEOLength"));
+//        // - nominal
+//        attVals.add("DIFF");
+//        attVals.add("EVENT");
+//        attributes.add(new Attribute("Label", attVals));
         //
         //Real Positive
         int rpDUP = 0;
@@ -404,17 +403,103 @@ public class ModelUtils {
             EventFeature feature = new EventFeature(mNode, cNode, rCls);
             Instances instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
             instances.setClassIndex(instances.numAttributes() - 1);
-            instances.add(feature.toInstance());
+            instances.add(feature.toInstanceV1());
             double[] distribute = forest.distributionsForInstances(instances)[0];
             double difScr = distribute[0];
             double evtScr = distribute[1];
-            if (evtScr > 0.8) {
+            if (evtScr > 0.92) {
                 ppDUP++;
                 pCls = "DUP";
                 if (StringUtils.equals(rCls, pCls)) {
                     tpDUP++;
                 }
-            } else if (evtScr > 0.5) {//EVENT
+            } else if (evtScr > 0.55) {//EVENT
+                if (!StringUtils.equals(rCls, "DUP")) {
+                    ppEVT++;
+                }
+                pCls = "EVENT";
+                if (StringUtils.equals(rCls, "EVENT")) {
+                    tpEVT++;
+                }
+            } else {
+                pCls = "DIFF";
+            }
+            
+            if (StringUtils.equals(rCls, "EVENT")) {
+                rpEVT++;
+            }
+            if (StringUtils.equals(rCls, "DUP")) {
+                rpDUP++;
+            }
+            
+            if (!StringUtils.equals(rCls, pCls)) {
+                bw.write(mDoc + "\t" + cDoc + "\t" + String.valueOf(difScr) + "\t" + String.valueOf(evtScr) + "\t" + pCls + "\t" + rCls);
+                bw.write("\n");
+            }
+        }
+        
+        bw.close();
+        
+        double tprDUP = tpDUP / Double.valueOf(ppDUP);
+        double rcrDUP = tpDUP / Double.valueOf(rpDUP);
+        System.out.println("## TPR DUP    : " + String.valueOf(tpDUP) + "/" + String.valueOf(ppDUP) + "=" + String.valueOf(tprDUP));
+        System.out.println("## RCR DUP    : " + String.valueOf(tpDUP) + "/" + String.valueOf(rpDUP) + "=" + String.valueOf(rcrDUP));
+        
+        double tprEVT = tpEVT / Double.valueOf(ppEVT);
+        double rcrEVT = tpEVT / Double.valueOf(rpEVT);
+        System.out.println("## TPR EVT    : " + String.valueOf(tpEVT) + "/" + String.valueOf(ppEVT) + "=" + String.valueOf(tprEVT));
+        System.out.println("## RCR EVT    : " + String.valueOf(tpEVT) + "/" + String.valueOf(rpEVT) + "=" + String.valueOf(rcrEVT));
+    }
+    
+    
+    /**
+     * 基于 Feature V1(53) + Estimate Data => Model Estimate
+     *
+     */
+    public static void predictEstimateDataFeatureV2(RandomForest forest, String docPairFile) throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributesV2();
+        //
+        //Real Positive
+        int rpDUP = 0;
+        int rpEVT = 0;
+        //True Positive
+        int tpDIF = 0;
+        int tpEVT = 0;
+        int tpDUP = 0;
+        //Predict Positive
+        int ppEVT = 0;
+        int ppDUP = 0;
+        //
+        BufferedReader br = new BufferedReader(new FileReader(new File(docPairFile)));
+        String badpath = Paths.get(Paths.get(docPairFile).getParent().toString(), "badcase").toString();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(new File(badpath)));
+        bw.write("Master\t\tCandidate\tDIF_WEIGHT\tEVT_WEIGHT\tPredict\tReal");
+        bw.write("\n");
+        String line = null;
+        while ((line = br.readLine()) != null) {
+            String[] docPairFields = line.split("\t");
+            String mDoc = docPairFields[0];
+            String cDoc = docPairFields[1];
+            String pCls = "";
+            String rCls = docPairFields[2];
+            JsonNode mNode = objectMapper.readTree(docPairFields[4]);
+            JsonNode cNode = objectMapper.readTree(docPairFields[5]);
+            EventFeature feature = new EventFeature(mNode, cNode, rCls);
+            Instances instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
+            instances.setClassIndex(instances.numAttributes() - 1);
+            instances.add(feature.toInstanceV2());
+            double[] distribute = forest.distributionsForInstances(instances)[0];
+            double difScr = distribute[0];
+            double evtScr = distribute[1];
+            if (evtScr > 0.92) {
+                ppDUP++;
+                pCls = "DUP";
+                if (StringUtils.equals(rCls, pCls)) {
+                    tpDUP++;
+                }
+            } else if (evtScr > 0.55) {//EVENT
                 if (!StringUtils.equals(rCls, "DUP")) {
                     ppEVT++;
                 }
@@ -458,7 +543,7 @@ public class ModelUtils {
      */
     public static List<double[]> predictOnline(RandomForest forest, JsonNode masterNode, JsonNode canditNodes) throws Exception {
         
-        ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributes();
+        ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributesV2();
         Instances instances;
         
         // 2. create Instances object
@@ -467,7 +552,7 @@ public class ModelUtils {
         for (JsonNode canditNode : canditNodes) {
             EventFeature feature = new EventFeature(masterNode, canditNode, null);
             System.out.println(mapper.writeValueAsString(feature));
-            instances.add(feature.toInstance());
+            instances.add(feature.toInstanceV2());
         }
         
         // 3.
@@ -481,39 +566,41 @@ public class ModelUtils {
 
     public static void main(String[] args) throws Exception {
         
-        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201116/";
+        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201116_v2/";
 
         /** Model Training */
-//        String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
-//        String testARFFPath = Paths.get(rootDir, "train.arff").toString();
-//        trainModel(trainARFFPath, null);
+        String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
+        String testARFFPath = Paths.get(rootDir, "train.arff").toString();
+//        trainModel(trainARFFPath, testARFFPath);
 
-        /** Model Inference ABTEST */
-//        RandomForest forest = (RandomForest) SerializationHelper.read(Paths.get(rootDir, "forest.model").toString());
-//        predictABTestBasedARFF2Class(forest, Paths.get(rootDir, "test_fields").toString());
-        
         /** Model Inference ONLINE */
-        ObjectMapper mapper = new ObjectMapper();
-        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/_local/train/20201116/forest.model");
-        String masterStr = "{\"_id\": \"0XP2Wa3W\", \"c_word\": 102, \"channels\": [\"Donald^^Trump\", \"Presidential^^Debate\", \"President^^Biden\", \"White^^Hair\"], \"channels_v2\": [\"Federal\", \"Donald^^Trump\", \"Joe^^Biden\", \"Mike^^Pence\", \"Presidential^^Debate\", \"Nikhila^^Natarajan^^Washington\"], \"epoch\": {\"$numberLong\": \"1603422024\"}, \"geotag\": [], \"geotag_v2\": [], \"highlightkeyword_list\": [[\"Mike^^Pence\", 0.9879817985691198], [\"Kamala^^Harris\", 0.986445297630299], [\"Natarajan\", 1.843513281266286E-5], [\"debate\", 7.064296135209436E-6], [\"Nashville\", 6.173556601522477E-6], [\"Tennessee\", 4.932300812661011E-6], [\"Biden\", 1.1122505337677468E-6]], \"insert_time\": \"2020-10-23 03:01:21\", \"kw_title\": [\"Trump\", \"presidential^^debate\", \"presidential^^debate^^history\", \"Biden\"], \"kws\": [\"Trump\", \"presidential^^debate\", \"presidential^^debate^^history\", \"Biden\", \"white^^hair\", \"Mike^^Pence^^debate\", \"Mike^^Pence\", \"Nashville\", \"Washington\", \"Nikhila^^Natarajan^^Washington\"], \"ne_content_location\": {\"Tennessee\": 1, \"Nashville\": 1, \"US\": 3}, \"ne_content_organization\": {}, \"ne_content_person\": {\"Nikhila Natarajan Washington\": 1, \"Donald Trum\": 1, \"Mike Pence\": 2, \"Kamala Harris\": 1}, \"ne_title_location\": {}, \"ne_title_organization\": {}, \"ne_title_person\": {\"Biden\": 1, \"Trump\": 1}, \"paragraph_count\": 4.0, \"simhash\": \"8e51fde2aae7ced97cb0ff9802a1df44\", \"spacy_content_loc\": [\"Washington\", \"US\", \"US\", \"Nashville\", \"Tennessee\", \"US\"], \"spacy_content_num\": [], \"spacy_content_org\": [\"XYZ\"], \"spacy_content_per\": [\"Nikhila Natarajan\", \"Mike Pence\", \"Kamala Harris - Mike Pence\", \"Donald Trum\"], \"spacy_content_tim\": [\"Oct 23\", \"2020\", \"the year\", \"90 minute\", \"Thursday\", \"night\"], \"spacy_title_loc\": [], \"spacy_title_num\": [], \"spacy_title_org\": [\"Trump\", \"Biden\"], \"spacy_title_per\": [], \"spacy_title_tim\": [], \"src\": \"Social News XYZ\", \"stitle\": \"Mute button , masks headline final Trump , Biden debate\", \"text_category\": {\"first_cat\": {\"PoliticsGovernment\": 0.9220821129312872}, \"second_cat\": {\"PoliticsGovernment_Federal\": 0.8, \"PoliticsGovernment_Elections\": 0.7086743505215961}, \"third_cat\": {\"PoliticsGovernment_Federal_POTUS\": 0.8, \"PoliticsGovernment_Elections_PresidentialCandidates\": 0.6179724311215244}}, \"text_category_v2\": {\"first_cat\": {\"PoliticsGovernment\": 0.9220821129312872}, \"second_cat\": {\"PoliticsGovernment_Federal\": 0.8, \"PoliticsGovernment_Elections\": 0.7086743505215961}, \"third_cat\": {\"PoliticsGovernment_Federal_POTUS\": 0.8, \"PoliticsGovernment_Elections_PresidentialCandidates\": 0.6179724311215244}}, \"url\": \"https://mp.newsbreakapp.com/post/12548458?sig=A80A8B68E61EBF9F4B2B65E2A1F926C2\"}";
-        String canditStr =
-            "[" +
-            "{\"_id\": \"0XP2Cd8D\", \"c_word\": 428, \"channels\": [\"Donald^^Trump\", \"Presidential^^Debate\", \"Democratic^^Debate\", \"Debates\", \"Democratic^^Candidates\"], \"channels_v2\": [\"Federal\", \"Donald^^Trump\", \"Joe^^Biden\", \"Presidential^^Debate\", \"Sharp\", \"Russia\"], \"epoch\": {\"$numberLong\": \"1603419840\"}, \"geotag\": [], \"geotag_v2\": [], \"highlightkeyword_list\": [[\"Joe^^Biden\", 0.9716584759556113], [\"Donald^^Trump\", 0.9561559403861298], [\"NBC^^News\", 0.039192748843770275], [\"Kristen^^Welker\", 0.033825558442444226], [\"Chris^^Wallace\", 0.01418875964657476], [\"Lisa^^Hagen\", 2.0237006167271595E-4], [\"Nashville\", 9.557322860427714E-7], [\"China\", 8.796744741476075E-7], [\"Cleveland\", 8.666353109947745E-7], [\"Russia\", 8.575794267469866E-7]], \"insert_time\": \"2020-10-23 02:49:37\", \"kw_title\": [\"sharp^^exchanges\", \"Trump\", \"President^^Donald^^Trump\", \"Joe^^Biden\", \"Sharp\"], \"kws\": [\"sharp^^exchanges\", \"Trump\", \"presidential^^debate\", \"Presidential^^Debates\", \"President^^Donald^^Trump\", \"Debates\", \"debate^^moderator\", \"Joe^^Biden\", \"Sharp\", \"mute^^candidates\", \"Election\", \"Congress\", \"Russia\", \"China\", \"optimism\", \"Cartoons\", \"NBC^^News\", \"NBC\", \"taxes\", \"Chris^^Wallace\"], \"ne_content_location\": {\"Nashville\": 1, \"Cleveland\": 1, \"China\": 1, \"Russia\": 1}, \"ne_content_organization\": {\"Commission on Presidential Debates\": 1, \"Congress\": 1, \"U.S. News & World\": 1, \"NBC News\": 1, \"Fox News\": 1}, \"ne_content_person\": {\"Lisa Hagen\": 2, \"Donald Trump\": 1, \"Biden\": 4, \"Joe Biden\": 1, \"Chris Wallace\": 1, \"Kristen Welker\": 1, \"Welker\": 1, \"Trump\": 6}, \"ne_title_location\": {}, \"ne_title_organization\": {}, \"ne_title_person\": {\"Biden\": 1, \"Trump\": 1}, \"paragraph_count\": 13.0, \"simhash\": \"afdaeeeb6ad669977c38b1c69b043b60\", \"spacy_content_loc\": [\"Nashville\", \"Russia\", \"China\", \"Cleveland\"], \"spacy_content_num\": [\"second\", \"first\", \"first\", \"one\"], \"spacy_content_org\": [\"Democratic\", \"Trump\", \"Biden\", \"Presidential Debates\", \"Trump\", \"NBC News\", \"Trump\", \"Fox News\", \"Trump\", \"Biden\", \"Trump\", \"Trump\", \"Biden\", \"U.S. News & World Report\", \"Congress\"], \"spacy_content_per\": [\"Donald Trump\", \"Joe Biden\", \"Kristen Welker\", \"Welker\", \"Chris Wallace\", \"Biden\", \"Lisa Hagen\", \"Lisa Hagen\"], \"spacy_content_tim\": [\"last month 's\", \"Thursday\", \"the first two minutes\", \"September\", \"September\", \"Nov. 3\", \"a matter of weeks\", \"the end of the year\", \"2020\"], \"spacy_title_loc\": [], \"spacy_title_num\": [], \"spacy_title_org\": [\"Trump\", \"Biden\", \"Sharp Exchanges\"], \"spacy_title_per\": [], \"spacy_title_tim\": [], \"src\": \"US News and World Report\", \"stitle\": \"Trump , Biden Clash in Sharp Exchanges , But More Civil Tones\", \"text_category\": {\"first_cat\": {\"PoliticsGovernment\": 0.9259256846332614}, \"second_cat\": {\"PoliticsGovernment_Federal\": 0.8, \"PoliticsGovernment_Elections\": 0.6698985474804305}, \"third_cat\": {\"PoliticsGovernment_Federal_POTUS\": 0.8, \"PoliticsGovernment_Elections_PresidentialCandidates\": 0.6820541437867856}}, \"text_category_v2\": {\"first_cat\": {\"PoliticsGovernment\": 0.9259256846332614}, \"second_cat\": {\"PoliticsGovernment_Federal\": 0.8, \"PoliticsGovernment_Elections\": 0.6698985474804305}, \"third_cat\": {\"PoliticsGovernment_Federal_POTUS\": 0.8, \"PoliticsGovernment_Elections_PresidentialCandidates\": 0.6820541437867856}}, \"url\": \"https://www.usnews.com/news/elections/articles/2020-10-22/trump-biden-clash-in-sharp-exchanges-but-in-more-civil-tones\"}" +
-            "]";
-        List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
-        for (double[] weight : indexList) {
-            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]) + "\t" + String.valueOf(weight[2]));
-        }
+//        ObjectMapper mapper = new ObjectMapper();
+//        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/_local/train/20201116_v2/forest.model");
+//        String masterStr = "{\"_id\": \"0XP2Xnzo\", \"c_word\": 627, \"channels\": [\"Tim^^Burton\", \"Edward^^Scissorhands\", \"Halloween\", \"Art^^Style\"], \"channels_v2\": [\"Tim^^Burton\", \"TikTok\"], \"epoch\": {\"$numberLong\": \"1603401180\"}, \"geotag\": [], \"geotag_v2\": [], \"highlightkeyword_list\": [[\"Tim^^Burton\", 0.9715201753931492], [\"Edward^^Scissorhands\", 0.24670950332082395], [\"Ashton^^Gleckman\", 0.1669179506961412], [\"Bella^^Poarch\", 0.04290312210422955], [\"Tai^^Verdes\", 0.0066134378981913475]], \"insert_time\": \"2020-10-23 13:36:40\", \"kw_title\": [\"Tim^^Burton\", \"Tim^^Burton^^characters\", \"Tim^^Burton-style^^characters\"], \"kws\": [\"Tim^^Burton\", \"Tim^^Burton^^characters\", \"Tim^^Burton-style^^characters\", \"Edward^^Scissorhands\", \"Halloween\", \"style\", \"bizarre^^challenges\", \"Christmas\", \"♬^^Ice^^Dance\", \"bizarre\", \"gaunt^^cheeks\", \"interesting^^trends\", \"Snapchat\", \"turning\", \"popularity\", \"anime\", \"rounder\", \"line\", \"face\", \"trend\"], \"ne_content_location\": {}, \"ne_content_organization\": {\"TikTok\": 1}, \"ne_content_person\": {\"Burton\": 1, \"Edward Scissorhands\": 1, \"Tim Burton\": 4, \"Tai Verdes\": 1, \"Bella Poarch\": 1, \"Ashton Gleckman\": 2}, \"ne_title_location\": {}, \"ne_title_organization\": {}, \"ne_title_person\": {\"Tim Burton\": 1}, \"paragraph_count\": 16.0, \"simhash\": \"45a3dae78095bf0b88cbb2c58372c548\", \"spacy_content_loc\": [\"Tai Verdes\"], \"spacy_content_num\": [\"## TimeWarpScan\", \"first\", \"## fyp\", \"## TimeWarpScan\", \"## fypシ\", \"## timburtonchallenge\", \"## perfectnosechallenge\", \"## 4\", \"## asian ## timburtonchallenge\"], \"spacy_content_org\": [\"TikTok\", \"TikTok\", \"TikTok\", \"eboy\", \"TikTok\"], \"spacy_content_per\": [\"Tim Burton\", \"Bella Poarch\", \"Edward Scissorhands ''\", \"Ashton Gleckman\", \"Tim Burton\", \"Tim Burton\", \"Tim Burton\", \"Tim Burton\", \"Edward Scissorhands ''\", \"Ashton Gleckman\", \"Burton\", \"Edward Scissorhands\", \"Tim Burton\"], \"spacy_content_tim\": [\"Halloween\", \"Halloween\"], \"spacy_title_loc\": [], \"spacy_title_num\": [], \"spacy_title_org\": [\"TikTok\"], \"spacy_title_per\": [\"Tim Burton\"], \"spacy_title_tim\": [], \"src\": \"dexerto.com\", \"stitle\": \"How to do the Tim Burton challenge on TikTok\", \"text_category_v2\": {\"first_cat\": {\"ArtsEntertainment\": 0.8784362503642953}, \"second_cat\": {\"ArtsEntertainment_TV\": 0.8214361582234688}, \"third_cat\": {\"ArtsEntertainment_TV_OnlineVideo\": 0.8504731989471512}}, \"url\": \"https://www.dexerto.com/entertainment/how-to-do-the-tim-burton-challenge-on-tiktok-1437610/\", \"text_category\": {\"first_cat\": {\"ArtsEntertainment\": 0.8784362503642953}, \"second_cat\": {\"ArtsEntertainment_TV\": 0.8214361582234688}, \"third_cat\": {\"ArtsEntertainment_TV_OnlineVideo\": 0.8504731989471512}}}";
+//        String canditStr =
+//            "[" +
+//            "{\"_id\": \"0XMUE9z0\", \"c_word\": 440, \"channels\": [\"Tim^^Burton\", \"Time^^Warp\", \"Fun^^Time\"], \"channels_v2\": [\"TikTok\", \"Tim^^Burton\", \"Filter\"], \"epoch\": {\"$numberLong\": \"1603150176\"}, \"geotag\": [], \"geotag_v2\": [], \"highlightkeyword_list\": [[\"Tim^^Burton\", 0.963821822159217]], \"insert_time\": \"2020-10-19 23:35:31\", \"kw_title\": [\"Tim^^Burton\", \"warp^^scan^^filter\"], \"kws\": [\"Tim^^Burton\", \"warp^^scan^^filter\", \"unique^^filters\", \"time^^warp\", \"eyes\", \"fun\", \"sunken^^cheeks\", \"droopy^^eyes\", \"direction\", \"cooking\", \"dancing\", \"face\", \"trend\"], \"ne_content_location\": {}, \"ne_content_organization\": {}, \"ne_content_person\": {\"Tim Burton\": 6}, \"ne_title_location\": {}, \"ne_title_organization\": {}, \"ne_title_person\": {}, \"paragraph_count\": 10.0, \"simhash\": \"f7cadfe6a999b0b30ef99aad0256db58\", \"spacy_content_loc\": [], \"spacy_content_num\": [\"millions\"], \"spacy_content_org\": [\"TikTok\", \"TikTok\", \"TikTok\", \"TikTok\", \"TikTok\", \"un\"], \"spacy_content_per\": [\"Tim Burton\", \"gaga\", \"Tim Burton\", \"Tim Burton\", \"Tim Burton\", \"Tim Burton\", \"Tim Burton\"], \"spacy_content_tim\": [\"the years\"], \"spacy_title_loc\": [], \"spacy_title_num\": [], \"spacy_title_org\": [\"TikTok\"], \"spacy_title_per\": [\"Tom Burton\"], \"spacy_title_tim\": [], \"src\": \"Nickel Savers \", \"stitle\": \"You Can Now Turn Yourself Into a Tom Burton Character With a TikTok Filter\", \"text_category\": {\"first_cat\": {\"ArtsEntertainment\": 0.8146928685884913, \"TechnologyElectronics\": 0.5513523128651256}, \"second_cat\": {\"ArtsEntertainment_TV\": 0.6976869687865721, \"TechnologyElectronics_Other\": 0.5513523128651256}, \"third_cat\": {\"ArtsEntertainment_TV_OnlineVideo\": 0.7909175537940507}}, \"text_category_v2\": {\"first_cat\": {\"ArtsEntertainment\": 0.8146928685884913, \"TechnologyElectronics\": 0.5513523128651256}, \"second_cat\": {\"ArtsEntertainment_TV\": 0.6976869687865721, \"TechnologyElectronics_Other\": 0.5513523128651256}, \"third_cat\": {\"ArtsEntertainment_TV_OnlineVideo\": 0.7909175537940507}}, \"url\": \"https://nickelsavers.com/you-can-now-turn-yourself-into-a-tom-burton-character-with-a-tiktok-filter/\"}" +
+//            "]";
+//        List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
+//        for (double[] weight : indexList) {
+//            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]));
+//        }
         
-//        /** Model Inference STD Estimate */
-//        String onlineModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201014/forest.model";
-//        String testModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201116/forest.model";
-//        String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields";
-//        RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
-//        RandomForest testForest = (RandomForest) SerializationHelper.read(testModelPath);
-//        predictEstimateDataFeatureV1(onlineForest, estimateDataPath);
-//        predictEstimateDataFeatureV2(testForest, estimateDataPath);
-//
+        /** Model Inference STD Estimate */
+        String onlineModelPath = "/Users/yuxi/NB/RandomForest/src/main/resources/model/forest.model";
+        String abtestModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201116_v2/forest.model";
+        RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
+        RandomForest abtestForest = (RandomForest) SerializationHelper.read(abtestModelPath);
         
+        String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields";
+        String trainDataPath = "/Users/yuxi/NB/RandomForest/_local/train/20201116/train_fields";
+        String tmpPath = "/Users/yuxi/NB/RandomForest/_local/append_1105~1107/label_pair_tmp_fields";
+        
+    
+//        predictEstimateDataFeatureV0(onlineForest, estimateDataPath);
+        predictEstimateDataFeatureV2(abtestForest, estimateDataPath);
     }
 }
+
+//{"_id": "0X6BFox7", "c_word": 937, "channels": ["Matter^^Protesters", "City^^Police", "State^^Police", "Jail", "Corrections^^Officer"], "channels_v2": ["LMPD", "Curfew", "Unlawful^^Assembly", "Police", "Protest", "Downtown^^Louisville"], "epoch": {"$numberLong": "1600991880"}, "geotag": [{"name": "louisville", "score": 0.9807114005088806, "coord": "38.252665,-85.758456", "pid": "louisville,kentucky", "type": "city"}], "geotag_v2": [{"name": "louisville", "score": 0.9874213933944702, "coord": "38.252665,-85.758456", "pid": "louisville,kentucky", "type": "city"}], "highlightkeyword_list": [["Jefferson^^Street", 0.01467672015545874], ["Kentucky^^AG", 0.007182585433643762], ["Aubrey^^Gregory", 0.0019834964783965307], ["Robinson^^Desroches", 0.001572360319366017], ["Jonathon^^Gregg", 3.7085317936553136E-4], ["David^^Guildford", 3.1205004330854346E-4], ["Ben^^Crump", 2.893901100856166E-4], ["Louisville", 1.771351866775454E-5], ["LOUISVILLE", 7.028410110858827E-6], ["Facebook", 1.1866025997286383E-6], ["LMPD", 1.1789877427724158E-6], ["TNT", 9.374604361721257E-7], ["Oregon", 8.564928481820795E-7], ["Indiana", 8.564928481820795E-7], ["NPR", 8.035444381637234E-7], ["NBA", 7.240710784127202E-7]], "insert_time": "2020-09-25 09:05:43", "kw_title": ["@washingtoncj^^reports^^protesters", "Police", "Louisville^^Metro^^Police"], "kws": ["@washingtoncj^^reports^^protesters", "Police", "demonstrators", "Louisville^^Metro^^Police", "arrests", "Curfew", "Officer", "nationwide^^protests", "downtown^^Louisville", "jail", "Jefferson^^Street", "Jefferson^^Square^^Park", "people", "LMPD", "home", "LOUISVILLE", "Square", "@guildford56^^reports", "4th^^Street", "Ky."], "ne_content_location": {"Oregon": 1, "LOUISVILLE": 1, "Ky.": 1, "Jefferson Street": 2, "Indiana": 1, "Kentucky": 8, "Louisville": 6, "Broadway": 1, "Fourth St.": 1, "Jefferson Square Park": 4, "Louisville Public Library": 1}, "ne_content_organization": {"NPR": 1, "Louisville Metro Corrections": 1, "Kentucky AG": 1, "Unlawful Assembly": 1, "LMPD": 1, "Louisville Metro Police": 2, "TNT": 1, "NBA": 1, "Facebook": 1}, "ne_content_person": {"Breonna Taylor": 3, "Anthony Piagentini": 1, "Jonathon Gregg": 1, "Aubrey Gregory": 1, "David Guildford": 1, "Taylor": 1, "Greg Fischer": 1, "Chelsea Washington": 1, "Gregory": 1, "Robinson Desroches": 1, "Eileen Street": 1, "Larynzo Johnson": 1, "Ben Crump": 1}, "paragraph_count": 61.0, "simhash": "9d181254ab10542ae2e9648eee16764c", "spacy_content_loc": ["LOUISVILLE", "Ky.", "Louisville", "Jefferson Square Park", "Louisville", "Louisville", "Louisville", "Indiana", "Oregon", "Broadway", "Kentucky", "Louisville", "4th Street", "Louisville", "Kentucky", "Kentucky", "Jefferson Street", "Kentucky", "Jefferson Street", "Kentucky", "Louisville", "Jefferson Square Park", "Kentucky", "Jefferson Square Park", "Kentucky", "Louisville", "Jefferson Square Park", "Kentucky"], "spacy_content_num": ["127", "71", "56", "four", "two", "809", "hundreds"], "spacy_content_org": ["Louisville Metro Police", "LMPD", "NBA", "TNT", "Spectrum News", "LMPD", "the Louisville Public Library", "the Kentucky AG 's", "LMPD", "@washingtoncj", "Spectrum News", "NPR", "@NPR", "@washingtoncj", "Spectrum News", "@eileenstreet", "@washingtoncj", "Spectrum News", "@johnnygregg", "Spectrum News", "@guildford56", "pic.twitter.com/mAu2hdEWpk", "Spectrum News", "Louisville Metro Corrections", "@washingtoncj", "Spectrum News", "@johnnygregg", "Spectrum News"], "spacy_content_per": ["Aubrey Gregory", "Robinson Desroches", "Larynzo Johnson", "Taylor", "Breonna Taylor", "Bre", "pic.twitter.com/iW9K7VYJke", "Ben Crump", "LMPD", "Breonna Taylor", "pic.twitter.com/5fuCIxGSHo", "pic.twitter.com/6uhgjqzChs", "Jonathon Gregg", "David Guildford", "Breonna Taylor", "pic.twitter.com/gLXg508C9p"], "spacy_content_tim": ["Thursday", "night", "9 p.m.", "early Thursday evening", "May", "Wednesday", "Wednesday", "Thursday", "morning", "the day", "Wednesday", "morning", "Wednesday evening", "11:43 pm", "September 25 , 2020", "10:57 pm", "September 25 , 2020", "9:03 pm", "8:53 pm Breonna Taylor 's family", "September 25 , 2020", "September 25 , 2020", "tomorrow", "the weekend", "September 25 , 2020", "8:23 pm", "September 25 , 2020 8:09 pm", "9pm", "September 25 , 2020", "September 25 , 2020", "7:53 pm", "September 24 , 2020", "7:30 pm", "September 24 , 2020", "6:57 pm", "September 24 , 2020", "6:34 pm", "September 24 , 2020", "6:25 pm", "September 24 , 2020", "September 24 , 2020", "6:21 pm", "tonight", "tomorrow", "September 24 , 2020", "6:16 pm", "September 24 , 2020"], "spacy_title_loc": [], "spacy_title_num": [], "spacy_title_org": [], "spacy_title_per": [], "spacy_title_tim": [], "src": "spectrumnews1.com", "stitle": "Police and Protesters Work Together and Both Leave the Area", "text_category": {"first_cat": {"CrimePublicsafety": 0.744892049123898, "Society": 0.6930648275513043}, "second_cat": {"CrimePublicsafety_LawEnforcement": 0.6867310102461621, "Society_Advocacy": 0.6786114893753933}, "third_cat": {"CrimePublicsafety_LawEnforcement_Other": 0.6867310102461621, "Society_Advocacy_ProtestRiot": 0.6709336016804414}}, "text_category_v2": {"first_cat": {"CrimePublicsafety": 0.744892049123898, "Society": 0.6930648275513043}, "second_cat": {"CrimePublicsafety_LawEnforcement": 0.6867310102461621, "Society_Advocacy": 0.6786114893753933}, "third_cat": {"CrimePublicsafety_LawEnforcement_Other": 0.6867310102461621, "Society_Advocacy_ProtestRiot": 0.6709336016804414}}, "url": "https://spectrumnews1.com/ky/lexington/news/2020/09/24/breonna-taylor-blog-day-2-after-decision", "ne_title_location": {}, "ne_title_organization": {"LMPD Declares Unlawful Assembly": 1}, "ne_title_person": {}}
+//{"_id": "0X5bEWyF", "c_word": 912, "channels": ["Police^^Violence", "City^^Police", "Arrested^^at^^Protest", "Chicago^^Police", "Shooting"], "channels_v2": ["Breonna^^Taylor^^'s", "Arrested^^at^^Protest", "Police", "Officer"], "epoch": {"$numberLong": "1600928100"}, "geotag": [{"name": "louisville", "score": 0.8117508292198181, "coord": "38.252665,-85.758456", "pid": "louisville,kentucky", "type": "city"}], "geotag_v2": [{"name": "louisville", "score": 0.8117508292198181, "coord": "38.252665,-85.758456", "pid": "louisville,kentucky", "type": "city"}], "highlightkeyword_list": [["Breonna^^Taylor", 0.9988386193140475], ["Michigan^^Avenue", 0.001361580194399512], ["Carmen^^Jones", 0.0013005507055718262], ["Brett^^Hankison", 8.721735131422076E-4], ["Daniel^^Cameron", 7.964248237270038E-4], ["Robert^^Schroeder", 7.313298688819096E-4], ["Ben^^Crump", 5.648301402179838E-4], ["LOUISVILLE", 7.002816491674354E-6], ["Kentucky", 6.092390272389087E-6], ["Washington", 1.1376332919361356E-6], ["Louisville", 1.043989333553666E-6], ["Philadelphia", 9.397253129607896E-7], ["Atlanta", 8.741713754169883E-7], ["Charlotte", 8.522145508786331E-7], ["Minneapolis", 8.262238124904956E-7], ["FBI", 8.213842046482011E-7], ["Chicago", 7.759299594636976E-7], ["unrest", 4.927841420188377E-7]], "insert_time": "2020-09-24 11:58:19", "kw_title": ["Miss^^Breonna^^Taylor", "Kentucky^^police^^officers", "white^^officers", "Louisville", "downtown^^Louisville", "Officer", "unrest"], "kws": ["Miss^^Breonna^^Taylor", "Kentucky^^police^^officers", "police", "white^^officers", "shooting", "protesters", "Louisville", "Violence", "downtown^^Louisville", "Officer", "demonstrators", "unrest", "protest^^signs", "streets", "Authorities", "Ky.", "Miss^^Taylor", "criminal^^charges", "FBI", "Kentucky^^law"], "ne_content_location": {"North Carolina": 1, "LOUISVILLE": 1, "Ky.": 1, "New York": 1, "Charlotte": 1, "Chicago": 1, "Kentucky": 3, "Louisville": 3, "D.C.": 1, "Washington": 1, "Millennium Park": 1, "U.S.": 1, "Minneapolis": 1, "Michigan Avenue": 1, "Atlanta": 1, "America": 2, "Philadelphia": 1, "Las Vegas": 1}, "ne_content_organization": {"FBI": 1, "Interim Police": 1, "AP": 1}, "ne_content_person": {"Breonna Taylor": 2, "Robert Schroeder": 1, "Malcolm": 1, "Brett Hankison": 1, "Myles -RRB- Cosgrove": 1, "Taylor": 11, "Martin": 1, "Cameron": 2, "Jones": 1, "George Floyd": 1, "Kenneth Walker": 1, "Carmen Jones": 1, "Jonathan -RRB- Mattingly": 1, "Daniel Cameron": 1, "Ben Crump": 1, "Morgan Julianna Lee": 1}, "ne_title_location": {"Louisville": 1, "US": 1}, "ne_title_organization": {}, "ne_title_person": {"Breonna Taylor": 1}, "paragraph_count": 21.0, "simhash": "5211522e079ec02b22700d2f8a36fd58", "spacy_content_loc": ["LOUISVILLE", "Ky.", "Kentucky", "America", "Louisville", "New York", "Washington", "D.C.", "Philadelphia", "Las Vegas", "Chicago", "Millennium Park", "Michigan Avenue", "Atlanta", "Louisville", "Louisville", "U.S.", "America", "Minneapolis", "Kentucky", "Charlotte", "North Carolina", "Kentucky"], "spacy_content_num": ["two", "three", "Hundreds", "two"], "spacy_content_org": ["AP", "Americans", "Republican", "first Black", "SWAT", "Black Americans", "FBI"], "spacy_content_per": ["Breonna Taylor 's", "Taylor", "Daniel Cameron", "Brett Hankison", "Taylor", "Taylor", "Robert Schroeder", "Taylor", "Carmen Jones", "Martin", "Malcolm", "Jones", "Taylor", "George Floyd", "Taylor", "Taylor", "Taylor", "Ben Crump", "Taylor", "Morgan Julianna Lee", "Cameron", "Taylor", "Cameron", "Taylor", "Kenneth Walker", "Breonna Taylor 's"], "spacy_content_tim": ["March", "Wednesday", "Wednesday night", "every day", "nearly three months", "the entire summer", "May", "March 13"], "spacy_title_loc": ["Louisville", "US"], "spacy_title_num": ["2"], "spacy_title_org": [], "spacy_title_per": ["Breonna Taylor"], "spacy_title_tim": [], "src": "tucson.com", "stitle": "2 officers shot in Louisville as unrest over Breonna Taylor decision sweeps US", "text_category": {"first_cat": {"CrimePublicsafety": 0.7456076331366173, "Society": 0.6567081654206074}, "second_cat": {"CrimePublicsafety_LawEnforcement": 0.5820220447378559, "CrimePublicsafety_ViolentCrime": 0.6215998859361835, "Society_Minorities": 0.5646018566134551}, "third_cat": {"Society_Minorities_Other": 0.5646018566134551, "CrimePublicsafety_ViolentCrime_Other": 0.6215998859361835, "CrimePublicsafety_LawEnforcement_Other": 0.5820220447378559}}, "text_category_v2": {"first_cat": {"CrimePublicsafety": 0.7456076331366173, "Society": 0.6567081654206074}, "second_cat": {"CrimePublicsafety_LawEnforcement": 0.5820220447378559, "CrimePublicsafety_ViolentCrime": 0.6215998859361835, "Society_Minorities": 0.5646018566134551}, "third_cat": {"Society_Minorities_Other": 0.5646018566134551, "CrimePublicsafety_ViolentCrime_Other": 0.6215998859361835, "CrimePublicsafety_LawEnforcement_Other": 0.5820220447378559}}, "url": "https://tucson.com/news/2-officers-shot-in-louisville-as-unrest-over-breonna-taylor-decision-sweeps-us/article_4318e3ae-575a-5ee6-b8c4-565ff2e30894.html"}
