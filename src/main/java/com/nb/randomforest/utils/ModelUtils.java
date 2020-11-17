@@ -87,9 +87,9 @@ public class ModelUtils {
         testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
 
         RandomForest forest = new RandomForest();
-        forest.setNumIterations(200);
+        forest.setNumIterations(300);
         forest.setDebug(false);
-        forest.setNumFeatures(4); // random feature num = log_2{feature num}
+        forest.setNumFeatures(8); // random feature num = log_2{feature num}
         forest.setComputeAttributeImportance(true);
         forest.buildClassifier(trainingDataSet);
     
@@ -315,66 +315,6 @@ public class ModelUtils {
         ObjectMapper objectMapper = new ObjectMapper();
         
         ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributesV1();
-//        ArrayList<String> attVals = new ArrayList<>();
-//        // - numeric
-//        attributes.add(new Attribute("TitleDist"));
-//        attributes.add(new Attribute("TitleRatio"));
-//        attributes.add(new Attribute("TitleLength"));
-//        attributes.add(new Attribute("SameSRC"));
-//        attributes.add(new Attribute("CWordSpan"));
-//        attributes.add(new Attribute("ParagraphSpan"));
-//        attributes.add(new Attribute("EpochSpan"));
-//        attributes.add(new Attribute("InsertSpan"));
-//        attributes.add(new Attribute("SimhashDist"));
-//        attributes.add(new Attribute("CKWSRatio"));
-//        attributes.add(new Attribute("CKWSLength"));
-//        attributes.add(new Attribute("TKWSRatio"));
-//        attributes.add(new Attribute("TKWSLength"));
-//        attributes.add(new Attribute("HKWSRatio"));
-//        attributes.add(new Attribute("HKWSLength"));
-//        attributes.add(new Attribute("ChannelRatio"));
-//        attributes.add(new Attribute("ChannelLength"));
-//        attributes.add(new Attribute("COrgRatioNE"));
-//        attributes.add(new Attribute("COrgRatioSP"));
-//        attributes.add(new Attribute("COrgLengthNE"));
-//        attributes.add(new Attribute("COrgLengthSP"));
-//        attributes.add(new Attribute("CLocRatioNE"));
-//        attributes.add(new Attribute("CLocRatioSP"));
-//        attributes.add(new Attribute("CLocLengthNE"));
-//        attributes.add(new Attribute("CLocLengthSP"));
-//        attributes.add(new Attribute("CPerRatioNE"));
-//        attributes.add(new Attribute("CPerRatioSP"));
-//        attributes.add(new Attribute("CPerLengthNE"));
-//        attributes.add(new Attribute("CPerLengthSP"));
-//        attributes.add(new Attribute("CNUMRatioSP"));
-//        attributes.add(new Attribute("CNUMLengthSP"));
-//        attributes.add(new Attribute("CTimRatioSP"));
-//        attributes.add(new Attribute("CTimLengthSP"));
-//        attributes.add(new Attribute("TOrgRatioNE"));
-//        attributes.add(new Attribute("TOrgRatioSP"));
-//        attributes.add(new Attribute("TOrgLengthNE"));
-//        attributes.add(new Attribute("TOrgLengthSP"));
-//        attributes.add(new Attribute("TLocRatioNE"));
-//        attributes.add(new Attribute("TLocRatioSP"));
-//        attributes.add(new Attribute("TLocLengthNE"));
-//        attributes.add(new Attribute("TLocLengthSP"));
-//        attributes.add(new Attribute("TPerRatioNE"));
-//        attributes.add(new Attribute("TPerRatioSP"));
-//        attributes.add(new Attribute("TPerLengthNE"));
-//        attributes.add(new Attribute("TPerLengthSP"));
-//        attributes.add(new Attribute("TNUMRatioSP"));
-//        attributes.add(new Attribute("TNUMLengthSP"));
-//        attributes.add(new Attribute("TTimRatioSP"));
-//        attributes.add(new Attribute("TTimLengthSP"));
-//        attributes.add(new Attribute("CatRatio"));
-//        attributes.add(new Attribute("CatLength"));
-//        attributes.add(new Attribute("GEORatio"));
-//        attributes.add(new Attribute("GEOLength"));
-//        // - nominal
-//        attVals.add("DIFF");
-//        attVals.add("EVENT");
-//        attributes.add(new Attribute("Label", attVals));
-        //
         //Real Positive
         int rpDUP = 0;
         int rpEVT = 0;
@@ -413,7 +353,7 @@ public class ModelUtils {
                 if (StringUtils.equals(rCls, pCls)) {
                     tpDUP++;
                 }
-            } else if (evtScr > 0.55) {//EVENT
+            } else if (evtScr > 0.5) {//EVENT
                 if (!StringUtils.equals(rCls, "DUP")) {
                     ppEVT++;
                 }
@@ -566,12 +506,12 @@ public class ModelUtils {
 
     public static void main(String[] args) throws Exception {
         
-        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201116_v2/";
+        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201117/";
 
         /** Model Training */
         String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
         String testARFFPath = Paths.get(rootDir, "train.arff").toString();
-//        trainModel(trainARFFPath, testARFFPath);
+        trainModel(trainARFFPath, testARFFPath);
 
         /** Model Inference ONLINE */
 //        ObjectMapper mapper = new ObjectMapper();
@@ -588,17 +528,17 @@ public class ModelUtils {
         
         /** Model Inference STD Estimate */
         String onlineModelPath = "/Users/yuxi/NB/RandomForest/src/main/resources/model/forest.model";
-        String abtestModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201116_v2/forest.model";
+        String abtestModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model";
         RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
         RandomForest abtestForest = (RandomForest) SerializationHelper.read(abtestModelPath);
         
         String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields";
-        String trainDataPath = "/Users/yuxi/NB/RandomForest/_local/train/20201116/train_fields";
-        String tmpPath = "/Users/yuxi/NB/RandomForest/_local/append_1105~1107/label_pair_tmp_fields";
+        String trainDataPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/train_fields";
         
     
-//        predictEstimateDataFeatureV0(onlineForest, estimateDataPath);
-        predictEstimateDataFeatureV2(abtestForest, estimateDataPath);
+        predictEstimateDataFeatureV1(abtestForest, estimateDataPath);
+        System.out.println("==========================");
+        predictEstimateDataFeatureV1(abtestForest, trainDataPath);
     }
 }
 
