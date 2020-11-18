@@ -130,8 +130,8 @@ public class FeatureUtils {
 		if (master.isArray()) {
 			master.forEach(node -> {
 				String entity = node.asText().toLowerCase();
-				if (entity.contains("^^")) {
-					String[] words = entity.split("\\^\\^");
+				if (entity.contains("^^") || entity.contains(" ")) {
+					String[] words = entity.split("(\\^\\^| )");
 					for (String word : words) {
 						mCache.put(word, mCache.getOrDefault(word, 0d) + 1);
 					}
@@ -145,8 +145,8 @@ public class FeatureUtils {
 			}
 			candit.forEach(node -> {
 				String entity = node.asText().toLowerCase();
-				if (entity.contains("^^")) {
-					String[] words = entity.split("\\^\\^");
+				if (entity.contains("^^") || entity.contains(" ")) {
+					String[] words = entity.split("(\\^\\^| )");
 					for (String word : words) {
 						cCache.put(word, cCache.getOrDefault(word, 0d) + 1);
 					}
