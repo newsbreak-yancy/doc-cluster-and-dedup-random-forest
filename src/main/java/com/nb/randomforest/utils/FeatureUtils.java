@@ -2,9 +2,12 @@ package com.nb.randomforest.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import edu.stanford.nlp.process.Morphology;
+import edu.stanford.nlp.trees.WordStemmer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.apache.lucene.analysis.en.EnglishMinimalStemFilterFactory;
+import org.apache.lucene.analysis.en.EnglishMinimalStemmer;
 
 import java.util.*;
 
@@ -366,7 +369,7 @@ public class FeatureUtils {
 	}
 	
 	
-	public static void main(String[] args) throws Exception {
+	public static void main2(String[] args) throws Exception {
 		System.out.println("================================================================================");
 		/** 编辑距离 */
 		System.out.println("LevenDist: 5 ~ " + String.valueOf(levenshteinDistance("master_sequence", "candit_sequence")));
@@ -462,5 +465,19 @@ public class FeatureUtils {
 		System.out.println("GEOTag Ratio : " + geotagOverlapRatio(mNode, cNode));
 		System.out.println("GEOTag Length : " + geotagAverageLength(mNode, cNode));
 		System.out.println("================================================================================");
+	}
+	
+	public static void main(String[] args) {
+		Morphology morphology = new Morphology();
+		EnglishMinimalStemmer miniStemmer = new EnglishMinimalStemmer();
+		String sequence = "In court , going to argues with block Biden win in Pennsylvania";
+		sequence = "Amazon opens online pharmacy , shaking up another industry";
+		String[] words = sequence.split(" ");
+		StringBuilder sb = new StringBuilder();
+		for (String word : words) {
+			sb.append(morphology.stem(word));
+			sb.append(" ");
+		}
+		System.out.println(sb.toString());
 	}
 }

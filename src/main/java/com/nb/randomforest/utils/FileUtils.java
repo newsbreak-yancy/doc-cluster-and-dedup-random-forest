@@ -1,10 +1,19 @@
 package com.nb.randomforest.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.bson.Document;
 
 import java.io.*;
@@ -19,6 +28,8 @@ import static com.mongodb.client.model.Filters.in;
  * @date 2020/9/28
  */
 public class FileUtils {
+	
+	public static ObjectMapper objectMapper = new ObjectMapper();
 	
 	public static MongoCollection<Document> collectionStatic;
 	
@@ -157,7 +168,6 @@ public class FileUtils {
 	 * 未标注数据 doc_id \t doc_id \t isSuccess \t jstr |t jstr
 	 */
 	public static void extractDocUrlFromUnlabeledDocPair(File docPair) throws Exception {
-		ObjectMapper mapper = new ObjectMapper();
 		BufferedReader br = new BufferedReader(new FileReader(docPair));
 		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(docPair.getAbsolutePath() + "_urls")));
 		String line = null;
@@ -168,8 +178,8 @@ public class FileUtils {
 			String isFailed = datas[2];
 			String mFeature = datas[3];
 			String cFeature = datas[4];
-			JsonNode mNode = mapper.readTree(mFeature);
-			JsonNode cNode = mapper.readTree(cFeature);
+			JsonNode mNode = objectMapper.readTree(mFeature);
+			JsonNode cNode = objectMapper.readTree(cFeature);
 			if ("SUCCESS".equals(isFailed)) {
 				bw.write(mID);
 				bw.write("\t");
@@ -274,49 +284,30 @@ public class FileUtils {
 	}
 	
 	
+	/**
+	 * 区分 local nonlocal, 分别写入不同文件
+	 * @throws Exception
+	 */
 	public static void calDocPairIsLocal() throws Exception {
-		ObjectMapper mapper = new ObjectMapper();
-		BufferedReader br = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/train/20201014/badcase")));
-		BufferedWriter bw = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/train/20201014/doc_pair_islocal")));
+		BufferedReader br = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields")));
+		BufferedWriter bwLocal = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields_local")));
+		BufferedWriter bwNonlocal = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields_nonlocal")));
 		String line = null;
 		while ((line = br.readLine()) != null) {
-			String[] datas = line.split("\t");
-			String docM = datas[0];
-			String docC = datas[1];
-			Document docMaster;
-			Document docCandit;
-			BasicDBObject fields = new BasicDBObject();
-			fields.append("is_local_news", 1).append("geotag_v2", 1).append("geotag", 1);
-			docMaster = collectionStatic.find(eq("_id", docM)).projection(fields).first();
-			docCandit = collectionStatic.find(eq("_id", docC)).projection(fields).first();
-			if (docMaster == null || docCandit == null) {
-				docMaster = collectionCenter.find(eq("_id", docM)).projection(fields).first();
-				docCandit = collectionCenter.find(eq("_id", docC)).projection(fields).first();
-			}
-			if (docMaster == null || docCandit == null) {
-				System.out.println(line);
-				continue;
-			}
-			String jsM = docMaster.toJson();
-			String jsC = docCandit.toJson();
-			JsonNode nodeM = mapper.readTree(jsM);
-			JsonNode nodeC = mapper.readTree(jsC);
-			bw.write(line);
-			bw.write("\t");
-			if (StringUtils.equals(nodeM.hasNonNull("is_local_news") ? nodeM.get("is_local_news").textValue() : "false", "true") || nodeM.get("geotag").size() != 0 || nodeM.get("geotag_v2").size() != 0) {
-				bw.write("1");
+			String[]  datas = line.split("\t");
+			String mID = datas[0];
+			JsonNode result = get("http://locallikelihood.ha.svc.k8sc1.nb.com:8923/debug?docid=" + mID);
+			double localScore = result.get("result").get("local_score").asDouble();
+			if (localScore > 0.5) {
+				bwLocal.write(line);
+				bwLocal.write("\n");
 			} else {
-				bw.write("0");
+				bwNonlocal.write(line);
+				bwNonlocal.write("\n");
 			}
-			bw.write("\t");
-			if (StringUtils.equals(nodeC.hasNonNull("is_local_news") ? nodeC.get("is_local_news").textValue() : "false", "true") || nodeC.get("geotag").size() != 0 || nodeC.get("geotag_v2").size() != 0) {
-				bw.write("1");
-			} else {
-				bw.write("0");
-			}
-			bw.write("\n");
 		}
-		bw.close();
+		bwLocal.close();
+		bwNonlocal.close();
 	}
 	
 	
@@ -324,11 +315,10 @@ public class FileUtils {
 		BufferedReader respReader = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/estimate/20201023/response.txt")));
 		BufferedReader modelReader = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/estimate/20201023/model_result.txt")));
 		String line = null;
-		ObjectMapper mapper = new ObjectMapper();
 		// master_candit : lr_label, rf_label
 		Map<String, String[]> modelResult = new HashMap<>();
 		while ((line = respReader.readLine()) != null) {
-			JsonNode result = mapper.readTree(line.split("  ")[1]);
+			JsonNode result = objectMapper.readTree(line.split("  ")[1]);
 			JsonNode resp = result.get("RESPONSE");
 			String docID = resp.get("_id").textValue();
 			String nbrID = resp.get("nbr_id").textValue();
@@ -394,7 +384,6 @@ public class FileUtils {
 	
 	
 	private static void buildLabelDataFromDBByResponseLog() throws Exception {
-		ObjectMapper mapper = new ObjectMapper();
 		String logPath = "/Users/yuxi/NB/RandomForest/_local/append_1105~1107/response_shuf.txt";
 		String labelPath = "/Users/yuxi/NB/RandomForest/_local/append_1105~1107/label_doc_pair.txt";
 		
@@ -405,7 +394,7 @@ public class FileUtils {
 		List<String[]> lines = new ArrayList<>();
 		while ((line = br.readLine()) != null) {
 			String logString = line.split("  ")[1];
-			JsonNode logNode = mapper.readTree(logString);
+			JsonNode logNode = objectMapper.readTree(logString);
 			JsonNode respNode = logNode.get("RESPONSE");
 			String[] datas = new String[2];
 			datas[0] = respNode.get("_id").textValue();
@@ -459,7 +448,51 @@ public class FileUtils {
 		}
 	}
 	
+	
+	public static JsonNode get(String uri) {
+		try {
+			CloseableHttpClient client = HttpClientBuilder.create().build();
+			HttpGet httpGet = new HttpGet(uri);
+			CloseableHttpResponse httpResponse = client.execute(httpGet);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
+			String inputLine;
+			StringBuilder response = new StringBuilder();
+			while ((inputLine = reader.readLine()) != null) {
+				response.append(inputLine);
+			}
+			reader.close();
+			client.close();
+			return objectMapper.readValue(response.toString(), JsonNode.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public static JsonNode post(String uri, JsonNode params) {
+		try {
+			CloseableHttpClient client = HttpClientBuilder.create().build();
+			HttpPost httpPost = new HttpPost(uri);
+			HttpEntity entity = new StringEntity(objectMapper.writeValueAsString(params), ContentType.APPLICATION_JSON);
+			httpPost.setEntity(entity);
+			CloseableHttpResponse httpResponse = client.execute(httpPost);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
+			String inputLine;
+			StringBuilder response = new StringBuilder();
+			while ((inputLine = reader.readLine()) != null) {
+				response.append(inputLine);
+			}
+			reader.close();
+			client.close();
+			return objectMapper.readValue(response.toString(), JsonNode.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
-		dumpDocFieldsFromLabelPair();
+//		dumpDocFieldsFromLabelPair();
+		calDocPairIsLocal();
 	}
 }

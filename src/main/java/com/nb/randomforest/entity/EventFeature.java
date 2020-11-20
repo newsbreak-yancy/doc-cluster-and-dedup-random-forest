@@ -262,15 +262,19 @@ public class EventFeature {
         this.label = label;
     	
 	    //Title
-	    String mTitle = stringPreprocess(
-	    	masterNode.hasNonNull("seg_title") ? masterNode.get("seg_title").textValue() :
-			    masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() : ""
-	    );
+	    String mTitleRaw = masterNode.hasNonNull("seg_title") ? masterNode.get("seg_title").textValue() :
+		    masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() : "";
+	    String cTitleRaw = canditNode.hasNonNull("seg_title") ? canditNode.get("seg_title").textValue() :
+		    canditNode.hasNonNull("stitle") ? canditNode.get("stitle").textValue() : "";
+	    if (mTitleRaw.startsWith("The Latest : ")) {
+	    	mTitleRaw = mTitleRaw.substring(13, mTitleRaw.length());
+	    }
+	    if (cTitleRaw.startsWith("The Latest : ")) {
+	    	cTitleRaw = cTitleRaw.substring(13, cTitleRaw.length());
+	    }
+	    String mTitle = stringPreprocess(mTitleRaw);
 	    List<String> mTitleList = Arrays.asList(mTitle.split(" "));
-	    String cTitle = stringPreprocess(
-		    canditNode.hasNonNull("seg_title") ? canditNode.get("seg_title").textValue() :
-			    canditNode.hasNonNull("stitle") ? canditNode.get("stitle").textValue() : ""
-	    );
+	    String cTitle = stringPreprocess(cTitleRaw);
 	    List<String> cTitleList = Arrays.asList(cTitle.split(" "));
         this.titleDist = levenshteinDistance(mTitle, cTitle);
         this.titleRatio = overlapRatio(mTitleList, cTitleList);
@@ -985,8 +989,8 @@ public class EventFeature {
 		JsonNode mNode = mapper.readTree(mStr);
 		JsonNode cNode = mapper.readTree(cStr);
 		EventFeature feature = new EventFeature(mNode, cNode, "");
-		System.out.println(feature);
-		System.out.println(feature.toInstanceV0());
+		System.out.println(mapper.writeValueAsString(feature));
+		System.out.println(feature.toInstanceV1());
 		//69.0,0.0,9.0,0.0,1.0,81.0,0.14646464646464646,0.13392857142857142,0.1875,0.5142857142857142,0.0,0.0,0.0,?,0.3854143638657179,0.75,DIFF
 	}
 }

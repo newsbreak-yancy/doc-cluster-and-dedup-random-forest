@@ -87,7 +87,8 @@ public class DocumentService {
 					(isEconomyMarkets && evtScore > 0.98) ||
 					(isCelebrities && evtScore > 0.95) ||
 					(!isEconomyMarkets && !isCelebrities && evtScore > 0.9) ||
-					(feature.getTitleRatio() > 0.5 && feature.getTitleLength() > 4 && evtScore > 0.7)
+					(feature.getTitleRatio() >= 0.5 && feature.getTitleLength() >= 4 && evtScore > 0.7) ||
+					(feature.getTitleRatio() >= 0.4 && feature.getTitleLength() >= 6 && evtScore > 0.7)
 				) {
 					label = "DUP";
 					score = evtScore;
