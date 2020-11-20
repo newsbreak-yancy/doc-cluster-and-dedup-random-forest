@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.apache.lucene.analysis.en.EnglishMinimalStemFilterFactory;
 import org.apache.lucene.analysis.en.EnglishMinimalStemmer;
+import org.apache.lucene.analysis.synonym.SynonymGraphFilter;
 
 import java.util.*;
 
@@ -467,11 +468,17 @@ public class FeatureUtils {
 		System.out.println("================================================================================");
 	}
 	
+	//TODO : 1.STEM 2.SYNONYM
 	public static void main(String[] args) {
+		
 		Morphology morphology = new Morphology();
 		EnglishMinimalStemmer miniStemmer = new EnglishMinimalStemmer();
 		String sequence = "In court , going to argues with block Biden win in Pennsylvania";
 		sequence = "Amazon opens online pharmacy , shaking up another industry";
+		sequence = "South Korea begins stronger limits in some areas";
+		
+//		sequence = stringPreprocess(sequence);
+//		SynonymGraphFilter
 		String[] words = sequence.split(" ");
 		StringBuilder sb = new StringBuilder();
 		for (String word : words) {
