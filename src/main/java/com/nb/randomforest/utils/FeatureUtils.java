@@ -468,7 +468,18 @@ public class FeatureUtils {
 		System.out.println("================================================================================");
 	}
 	
-	//TODO : 1.STEM 2.SYNONYM
+	/**
+	 * TODO : 1.STEM 2.SYNONYM
+	 * 1.STEM
+	 *
+	 *
+	 * 2.SYNONYM : 回译法效果更好!
+	 * 0XgGUIH4 : US drops case against ex-Mexican general after pressure => U.S. abandons prosecution of former Mexican general after pressure
+	 * 0XfXnbJq : US dropping case against former Mexican defense secretary => U.S. withdraws prosecution against Mexico’s former Secretary of Defense
+	 *
+	 *
+	 */
+	
 	public static void main(String[] args) {
 		
 		Morphology morphology = new Morphology();
@@ -478,7 +489,7 @@ public class FeatureUtils {
 		sequence = "South Korea begins stronger limits in some areas";
 		
 //		sequence = stringPreprocess(sequence);
-//		SynonymGraphFilter
+		
 		String[] words = sequence.split(" ");
 		StringBuilder sb = new StringBuilder();
 		for (String word : words) {
