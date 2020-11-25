@@ -59,6 +59,49 @@ public class FeatureUtils {
 		stopWords.add("as");
 		stopWords.add("before");
 		stopWords.add("after");
+		//符号
+		stopWords.add("!");
+		stopWords.add("\"");
+		stopWords.add("#");
+		stopWords.add("%");
+		stopWords.add("&");
+		stopWords.add("'");
+		stopWords.add("(");
+		stopWords.add(")");
+		stopWords.add("*");
+		stopWords.add("+");
+		stopWords.add(",");
+		stopWords.add("-");
+		stopWords.add(".");
+		stopWords.add("/");
+		stopWords.add(":");
+		stopWords.add(";");
+		stopWords.add("<");
+		stopWords.add("=");
+		stopWords.add(">");
+		stopWords.add("?");
+		stopWords.add("@");
+		stopWords.add("[");
+		stopWords.add("\\");
+		stopWords.add("]");
+		stopWords.add("^");
+		stopWords.add("_");
+		stopWords.add("`");
+		stopWords.add("{");
+		stopWords.add("|");
+		stopWords.add("}");
+		stopWords.add("~");
+		//数字
+		stopWords.add("0");
+		stopWords.add("1");
+		stopWords.add("2");
+		stopWords.add("3");
+		stopWords.add("4");
+		stopWords.add("5");
+		stopWords.add("6");
+		stopWords.add("7");
+		stopWords.add("8");
+		stopWords.add("9");
 		//同义词
 		synonymWords.put("sars-cov-2", "covid virus");
 		synonymWords.put("covid-19", "covid virus");
@@ -90,60 +133,84 @@ public class FeatureUtils {
 	
 	
 	/**
-	 * @param word : 针对词
+	 * @param word : 针对 word, 支持处理连词 A\spaceB or A^^B or A-B
 	 */
 	public static String stemming(String word) {
 		Morphology morphology = new Morphology();
 		return morphology.stem(word);
+//		String[] parts = word.split(" |\\^\\^|-");
+//		StringBuilder sb = new StringBuilder();
+//		for (int i = 0; i < parts.length; i++) {
+//			if (i == 0) {
+//				sb.append(morphology.stem(parts[i]));
+//			} else {
+//				sb.append(" ");
+//				sb.append(morphology.stem(parts[i]));
+//			}
+//		}
+//		return sb.toString();
 	}
 	
 	
 	/**
+	 * 同义词替换
+	 *
 	 * @param word : 针对词
 	 */
 	public static String replaceSynonym(String word) {
 		if (synonymWords.containsKey(word)) {
 			return synonymWords.get(word);
+		} else if (word.contains("-")) {
+			String[] parts = word.split("-");
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < parts.length; i++) {
+				String part = parts[i];
+				if (i == 0) {
+					sb.append(synonymWords.getOrDefault(part, part));
+				} else {
+					sb.append(" ");
+					sb.append(synonymWords.getOrDefault(part, part));
+				}
+			}
+			return sb.toString();
 		} else {
 			return word;
 		}
 	}
 	
 	
-	
-	
 	/**
 	 * 字符串预处理
 	 * 1.lower case
 	 * 2.replace synonym
-	 * 2.remove punctuation
 	 * 3.remove stop word
-	 * 4.remove duplicate space
+	 * 4.stemming
+	 * 5.remove duplicate \space
 	 *
 	 * @data : title
 	 */
 	public static String stringPreprocess(String sequence) {
 		String lowerCase = sequence.toLowerCase();//小写
-		String[] words = lowerCase.split(" |-");//切分
+		String[] words = lowerCase.split(" ");//切分
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < words.length; i++) {
 			String word = words[i];
-			word = replaceSynonym(word);//同义词替换
-			word = stemming(word);
 			word = removeStopWords(word);//去停用词
 			if (StringUtils.isEmpty(word)) {
 				continue;
 			}
-			if (i != (words.length - 1)) {
+			stemming(sequence);
+			word = replaceSynonym(word);//同义词替换
+			if (i == 0) {
 				sb.append(word);
-				sb.append(" ");
 			} else {
+				sb.append(" ");
 				sb.append(word);
 			}
 		}
 		sequence = sb.toString();
-		sequence = removePunctuation(sequence);//去标点符号
-		return sequence.replaceAll(" {2,5}", " ");//删冗余空格符号
+		
+		return sequence;
 	}
 	
 	
@@ -576,7 +643,7 @@ public class FeatureUtils {
 	 *
 	 */
 	public static void main(String[] args) {
-		String test = "I 'm you 're some ex-cases .";
+		String test = "I 'm you 're some ex-cases sars-cov-2.";
 		System.out.println(stringPreprocess(test));
 		System.exit(0);
 		
