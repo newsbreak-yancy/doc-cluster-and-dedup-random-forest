@@ -17,8 +17,6 @@ import weka.core.Instances;
 
 import java.util.*;
 
-import static com.nb.randomforest.utils.FeatureUtils.stringPreprocess;
-
 /**
  * @author yuxi
  * @date 2020/10/9

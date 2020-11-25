@@ -3,12 +3,8 @@ package com.nb.randomforest.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.stanford.nlp.process.Morphology;
-import edu.stanford.nlp.trees.WordStemmer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
-import org.apache.lucene.analysis.en.EnglishMinimalStemFilterFactory;
-import org.apache.lucene.analysis.en.EnglishMinimalStemmer;
-import org.apache.lucene.analysis.synonym.SynonymGraphFilter;
 
 import java.util.*;
 
@@ -182,10 +178,7 @@ public class FeatureUtils {
 	/**
 	 * 字符串预处理
 	 * 1.lower case
-	 * 2.replace synonym
-	 * 3.remove stop word
-	 * 4.stemming
-	 * 5.remove duplicate \space
+	 * 2.remove stop word
 	 *
 	 * @data : title
 	 */
@@ -199,8 +192,7 @@ public class FeatureUtils {
 			if (StringUtils.isEmpty(word)) {
 				continue;
 			}
-			stemming(sequence);
-			word = replaceSynonym(word);//同义词替换
+//			word = replaceSynonym(word);//同义词替换
 			if (i == 0) {
 				sb.append(word);
 			} else {
@@ -209,7 +201,6 @@ public class FeatureUtils {
 			}
 		}
 		sequence = sb.toString();
-		
 		return sequence;
 	}
 	
@@ -297,12 +288,15 @@ public class FeatureUtils {
 		if (master.isArray()) {
 			master.forEach(node -> {
 				String entity = node.asText().toLowerCase();
+				entity = replaceSynonym(entity);
 				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-")) {
 					String[] words = entity.split("(\\^\\^| |-)");
 					for (String word : words) {
+						word = stemming(word);
 						mCache.put(word, mCache.getOrDefault(word, 0d) + 1);
 					}
 				} else {
+					entity = stemming(entity);
 					mCache.put(entity, mCache.getOrDefault(entity, 0d) + 1);
 				}
 			});
@@ -312,12 +306,15 @@ public class FeatureUtils {
 			}
 			candit.forEach(node -> {
 				String entity = node.asText().toLowerCase();
+				entity = replaceSynonym(entity);
 				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-")) {
 					String[] words = entity.split("(\\^\\^| |-)");
 					for (String word : words) {
+						word = stemming(word);
 						cCache.put(word, cCache.getOrDefault(word, 0d) + 1);
 					}
 				} else {
+					entity = stemming(entity);
 					cCache.put(entity, cCache.getOrDefault(entity, 0d) + 1);
 				}
 			});
@@ -401,25 +398,27 @@ public class FeatureUtils {
 			HashSet<String> _ms = new HashSet<>();
 			for (String m : master) {
 				m = m.toLowerCase();
+				m = replaceSynonym(m);
 				if (m.contains("^^") || m.contains(" ") || m.contains("-")) {
 					String[] ms = m.split("(\\^\\^| |-)");
 					for (String _m : ms) {
-						_ms.add(_m);
+						_ms.add(stemming(_m));
 					}
 				} else {
-					_ms.add(m);
+					_ms.add(stemming(m));
 				}
 			}
 			HashSet<String> _cs = new HashSet<>();
 			for (String c : candit) {
 				c = c.toLowerCase();
+				c = replaceSynonym(c);
 				if (c.contains("^^") || c.contains(" ") || c.contains("-")) {
 					String[] cs = c.split("(\\^\\^| |-)");
 					for (String _c : cs) {
-						_cs.add(_c);
+						_cs.add(stemming(_c));
 					}
 				} else {
-					_cs.add(c);
+					_cs.add(stemming(c));
 				}
 			}
 			for (String _m : _ms) {
@@ -533,6 +532,11 @@ public class FeatureUtils {
 	}
 	
 	
+	public static void main(String[] args) {
+		System.out.println(stringPreprocess("Martha Stewart : I have n't spoken to my ex-husband since our divorce"));
+	}
+	
+	
 	public static void main2(String[] args) throws Exception {
 		System.out.println("================================================================================");
 		/** 编辑距离 */
@@ -631,45 +635,4 @@ public class FeatureUtils {
 		System.out.println("================================================================================");
 	}
 	
-	/**
-	 * TODO : 1.STEM 2.SYNONYM
-	 * 1.STEM
-	 *
-	 *
-	 * 2.SYNONYM : 回译法效果更好!
-	 * 0XgGUIH4 : US drops case against ex-Mexican general after pressure => U.S. abandons prosecution of former Mexican general after pressure
-	 * 0XfXnbJq : US dropping case against former Mexican defense secretary => U.S. withdraws prosecution against Mexico’s former Secretary of Defense
-	 *
-	 *
-	 */
-	public static void main(String[] args) {
-		String test = "I 'm you 're some ex-cases sars-cov-2.";
-		System.out.println(stringPreprocess(test));
-		System.exit(0);
-		
-		
-		Morphology morphology = new Morphology();
-		String sequence = "In court , going to argues with block Biden win in Pennsylvania";
-		sequence = "Amazon opens online pharmacy , shaking up another industry";
-		sequence = "South Korea begins stronger limits in some areas";
-		sequence = "A New Study Says Mouthwash Could Kill COVID-19 , So We Checked with Doctors to See If It 's Too Good to Be True";
-		sequence = "Mouthwash kills coronavirus within 30 seconds in laboratory tests , study finds";
-		sequence = stringPreprocess(sequence);
-		sequence = "Michigan certifies Biden win ; a setback for Trump challenge";
-		sequence = "Despite Trump 's prod , Mich. to consider certifying Biden win";
-		sequence = "Michigan Election Staff Recommend Certification of Joe Biden Win";
-		sequence = "could";
-		//trump certify biden win
-		//michigan setback challenge
-		//despite prod mich consider
-		//michigan election staff recommend certification joe biden win
-		
-		String[] words = sequence.split(" ");
-		StringBuilder sb = new StringBuilder();
-		for (String word : words) {
-			sb.append(morphology.stem(word));
-			sb.append(" ");
-		}
-		System.out.println(sb.toString());
-	}
 }
