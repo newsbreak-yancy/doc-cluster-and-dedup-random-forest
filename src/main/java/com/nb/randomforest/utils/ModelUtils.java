@@ -527,8 +527,10 @@ public class ModelUtils {
 //        }
         
         /** Model Inference STD Estimate */
+        String passedModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201014/forest.model";
         String onlineModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model";
         String abtestModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model";
+        RandomForest passedForest = (RandomForest) SerializationHelper.read(passedModelPath);
         RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
         RandomForest abtestForest = (RandomForest) SerializationHelper.read(abtestModelPath);
 
@@ -537,13 +539,14 @@ public class ModelUtils {
 
 //        predictEstimateDataFeatureV1(abtestForest, estimateDataPath);
 //        System.out.println("==========================");
-
+//
 //        predictEstimateDataFeatureV1(abtestForest, trainDataPath);
 //        System.out.println("==========================");
 
         String esLocal = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields_local";
         String esNonlocal = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields_nonlocal";
         predictEstimateDataFeatureV1(onlineForest, esLocal);
+        System.out.println("==========================");
         predictEstimateDataFeatureV1(onlineForest, esNonlocal);
     }
 }

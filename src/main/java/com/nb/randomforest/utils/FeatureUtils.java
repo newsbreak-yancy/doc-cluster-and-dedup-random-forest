@@ -20,11 +20,16 @@ public class FeatureUtils {
 	
 	private final static ObjectMapper mapper = new ObjectMapper();
 	
+	public static Set<String> stopWords = new HashSet<>();
+	
+	public static Map<String, String> synonymWords = new HashMap<>();
+	
 	public static int NBITS_BYTE = 8;
 	
 	public static int[] DIST_MAP = new int[1 << NBITS_BYTE];
 	
 	static {
+		//
 		for (int i = 0; i < DIST_MAP.length; i++) {
 			int j = i;
 			int nbit1 = 0;
@@ -34,6 +39,111 @@ public class FeatureUtils {
 			}
 			DIST_MAP[i] = nbit1;
 		}
+		//停用词
+		stopWords.add("a");
+		stopWords.add("s");
+		stopWords.add("the");
+		stopWords.add("be");
+		stopWords.add("being");
+		stopWords.add("'s");
+		stopWords.add("is");
+		stopWords.add("'m");
+		stopWords.add("am");
+		stopWords.add("'re");
+		stopWords.add("are");
+		stopWords.add("of");
+		stopWords.add("on");
+		stopWords.add("at");
+		stopWords.add("in");
+		stopWords.add("within");
+		stopWords.add("as");
+		stopWords.add("before");
+		stopWords.add("after");
+		//同义词
+		synonymWords.put("sars-cov-2", "covid virus");
+		synonymWords.put("covid-19", "covid virus");
+		synonymWords.put("coronavirus", "covid virus");
+		synonymWords.put("ex", "former");
+	}
+	
+	
+	/**
+	 * ASCii !-@ & [-`
+	 *
+	 * @param sequence : 针对句子
+	 */
+	public static String removePunctuation(String sequence){
+		return sequence.replaceAll("[!-@\\[-`]", "");
+	}
+	
+	
+	/**
+	 * @param word : 针对词
+	 */
+	public static String removeStopWords(String word) {
+		if (stopWords.contains(word)) {
+			return "";
+		} else {
+			return word;
+		}
+	}
+	
+	
+	/**
+	 * @param word : 针对词
+	 */
+	public static String stemming(String word) {
+		Morphology morphology = new Morphology();
+		return morphology.stem(word);
+	}
+	
+	
+	/**
+	 * @param word : 针对词
+	 */
+	public static String replaceSynonym(String word) {
+		if (synonymWords.containsKey(word)) {
+			return synonymWords.get(word);
+		} else {
+			return word;
+		}
+	}
+	
+	
+	
+	
+	/**
+	 * 字符串预处理
+	 * 1.lower case
+	 * 2.replace synonym
+	 * 2.remove punctuation
+	 * 3.remove stop word
+	 * 4.remove duplicate space
+	 *
+	 * @data : title
+	 */
+	public static String stringPreprocess(String sequence) {
+		String lowerCase = sequence.toLowerCase();//小写
+		String[] words = lowerCase.split(" |-");//切分
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < words.length; i++) {
+			String word = words[i];
+			word = replaceSynonym(word);//同义词替换
+			word = stemming(word);
+			word = removeStopWords(word);//去停用词
+			if (StringUtils.isEmpty(word)) {
+				continue;
+			}
+			if (i != (words.length - 1)) {
+				sb.append(word);
+				sb.append(" ");
+			} else {
+				sb.append(word);
+			}
+		}
+		sequence = sb.toString();
+		sequence = removePunctuation(sequence);//去标点符号
+		return sequence.replaceAll(" {2,5}", " ");//删冗余空格符号
 	}
 	
 	
@@ -45,20 +155,6 @@ public class FeatureUtils {
 			return null;
 		}
 		return m.equals(c) ? 1d : 0d;
-	}
-	
-	
-	/**
-	 * 字符串预处理
-	 * 1.lower case 2.remove punctuation 3.remove stop word
-	 * stitle,
-	 */
-	public static String stringPreprocess(String pre) {
-		String post = pre.toLowerCase()
-			.replaceAll("[!-`]", "")
-			.replaceAll(" (after|before|on|in|as|at|of|is|am|are|be|being|the|s|a) ", " ")
-			.replaceAll(" {2,5}", " ");
-		return post;
 	}
 	
 	
@@ -134,8 +230,8 @@ public class FeatureUtils {
 		if (master.isArray()) {
 			master.forEach(node -> {
 				String entity = node.asText().toLowerCase();
-				if (entity.contains("^^") || entity.contains(" ")) {
-					String[] words = entity.split("(\\^\\^| )");
+				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-")) {
+					String[] words = entity.split("(\\^\\^| |-)");
 					for (String word : words) {
 						mCache.put(word, mCache.getOrDefault(word, 0d) + 1);
 					}
@@ -149,8 +245,8 @@ public class FeatureUtils {
 			}
 			candit.forEach(node -> {
 				String entity = node.asText().toLowerCase();
-				if (entity.contains("^^") || entity.contains(" ")) {
-					String[] words = entity.split("(\\^\\^| )");
+				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-")) {
+					String[] words = entity.split("(\\^\\^| |-)");
 					for (String word : words) {
 						cCache.put(word, cCache.getOrDefault(word, 0d) + 1);
 					}
@@ -238,8 +334,8 @@ public class FeatureUtils {
 			HashSet<String> _ms = new HashSet<>();
 			for (String m : master) {
 				m = m.toLowerCase();
-				if (m.contains("^^") || m.contains(" ")) {
-					String[] ms = m.split("(\\^\\^| )");
+				if (m.contains("^^") || m.contains(" ") || m.contains("-")) {
+					String[] ms = m.split("(\\^\\^| |-)");
 					for (String _m : ms) {
 						_ms.add(_m);
 					}
@@ -250,8 +346,8 @@ public class FeatureUtils {
 			HashSet<String> _cs = new HashSet<>();
 			for (String c : candit) {
 				c = c.toLowerCase();
-				if (c.contains("^^") || c.contains(" ")) {
-					String[] cs = c.split("(\\^\\^| )");
+				if (c.contains("^^") || c.contains(" ") || c.contains("-")) {
+					String[] cs = c.split("(\\^\\^| |-)");
 					for (String _c : cs) {
 						_cs.add(_c);
 					}
@@ -479,16 +575,27 @@ public class FeatureUtils {
 	 *
 	 *
 	 */
-	
 	public static void main(String[] args) {
+		String test = "I 'm you 're some ex-cases .";
+		System.out.println(stringPreprocess(test));
+		System.exit(0);
+		
 		
 		Morphology morphology = new Morphology();
-		EnglishMinimalStemmer miniStemmer = new EnglishMinimalStemmer();
 		String sequence = "In court , going to argues with block Biden win in Pennsylvania";
 		sequence = "Amazon opens online pharmacy , shaking up another industry";
 		sequence = "South Korea begins stronger limits in some areas";
-		
-//		sequence = stringPreprocess(sequence);
+		sequence = "A New Study Says Mouthwash Could Kill COVID-19 , So We Checked with Doctors to See If It 's Too Good to Be True";
+		sequence = "Mouthwash kills coronavirus within 30 seconds in laboratory tests , study finds";
+		sequence = stringPreprocess(sequence);
+		sequence = "Michigan certifies Biden win ; a setback for Trump challenge";
+		sequence = "Despite Trump 's prod , Mich. to consider certifying Biden win";
+		sequence = "Michigan Election Staff Recommend Certification of Joe Biden Win";
+		sequence = "could";
+		//trump certify biden win
+		//michigan setback challenge
+		//despite prod mich consider
+		//michigan election staff recommend certification joe biden win
 		
 		String[] words = sequence.split(" ");
 		StringBuilder sb = new StringBuilder();
