@@ -40,6 +40,7 @@ public class DocumentService {
 	 */
 	public List<RFModelResult> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes, Boolean isDebug) {
 		try {
+			String mID = masterNode.hasNonNull("_id") ? masterNode.get("_id").textValue() : "";
 			// 1.预处理
 			Instances instances;
 			List<EventFeature> features = new ArrayList<>();
@@ -80,6 +81,7 @@ public class DocumentService {
 				double diffScore = canditResult[0];
 				double evtScore = canditResult[1];
 				double score;
+				log.info(String.format("MODEL DEBUG: %s\t%s\t%.5f", mID, cID, evtScore));
 				//模型结果后处理
 				if (
 					(isEconomyMarkets && evtScore > 0.98) ||
@@ -99,6 +101,7 @@ public class DocumentService {
 					label = "DIFF";
 					score = diffScore;
 				}
+				
 				cls.add(new RFModelResult(
 					cID, label, score, BooleanUtils.isTrue(isDebug) ? feature : null
 				));
