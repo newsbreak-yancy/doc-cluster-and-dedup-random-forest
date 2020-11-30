@@ -511,7 +511,7 @@ public class ModelUtils {
         /** Model Training */
         String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
         String testARFFPath = Paths.get(rootDir, "train.arff").toString();
-        trainModel(trainARFFPath, testARFFPath);
+//        trainModel(trainARFFPath, testARFFPath);
 
         /** Model Inference ONLINE */
 //        ObjectMapper mapper = new ObjectMapper();
@@ -535,7 +535,7 @@ public class ModelUtils {
         RandomForest abtestForest = (RandomForest) SerializationHelper.read(abtestModelPath);
 
         String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields";
-        String trainDataPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/train_fields";
+        String trainDataPath = "/Users/yuxi/NB/RandomForest/_local/train/20201126/train_fields";
 
         predictEstimateDataFeatureV1(abtestForest, estimateDataPath);
         System.out.println("==========================");
