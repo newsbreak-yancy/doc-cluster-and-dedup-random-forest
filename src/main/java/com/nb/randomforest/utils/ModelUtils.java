@@ -506,12 +506,12 @@ public class ModelUtils {
 
     public static void main(String[] args) throws Exception {
         
-        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201117/";
+        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201126/";
 
         /** Model Training */
         String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
         String testARFFPath = Paths.get(rootDir, "train.arff").toString();
-//        trainModel(trainARFFPath, testARFFPath);
+        trainModel(trainARFFPath, testARFFPath);
 
         /** Model Inference ONLINE */
 //        ObjectMapper mapper = new ObjectMapper();
@@ -529,7 +529,7 @@ public class ModelUtils {
         /** Model Inference STD Estimate */
         String passedModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201014/forest.model";
         String onlineModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model";
-        String abtestModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model";
+        String abtestModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201126/forest.model";
         RandomForest passedForest = (RandomForest) SerializationHelper.read(passedModelPath);
         RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
         RandomForest abtestForest = (RandomForest) SerializationHelper.read(abtestModelPath);
@@ -537,16 +537,16 @@ public class ModelUtils {
         String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields";
         String trainDataPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/train_fields";
 
-//        predictEstimateDataFeatureV1(abtestForest, estimateDataPath);
-//        System.out.println("==========================");
-//
-//        predictEstimateDataFeatureV1(abtestForest, trainDataPath);
-//        System.out.println("==========================");
-
-        String esLocal = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields_local";
-        String esNonlocal = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields_nonlocal";
-        predictEstimateDataFeatureV1(onlineForest, esLocal);
+        predictEstimateDataFeatureV1(abtestForest, estimateDataPath);
         System.out.println("==========================");
-        predictEstimateDataFeatureV1(onlineForest, esNonlocal);
+
+        predictEstimateDataFeatureV1(abtestForest, trainDataPath);
+        System.out.println("==========================");
+
+//        String esLocal = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields_local";
+//        String esNonlocal = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields_nonlocal";
+//        predictEstimateDataFeatureV1(onlineForest, esLocal);
+//        System.out.println("==========================");
+//        predictEstimateDataFeatureV1(onlineForest, esNonlocal);
     }
 }

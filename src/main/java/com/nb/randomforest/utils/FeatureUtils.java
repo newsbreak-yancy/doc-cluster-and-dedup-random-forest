@@ -134,17 +134,6 @@ public class FeatureUtils {
 	public static String stemming(String word) {
 		Morphology morphology = new Morphology();
 		return morphology.stem(word);
-//		String[] parts = word.split(" |\\^\\^|-");
-//		StringBuilder sb = new StringBuilder();
-//		for (int i = 0; i < parts.length; i++) {
-//			if (i == 0) {
-//				sb.append(morphology.stem(parts[i]));
-//			} else {
-//				sb.append(" ");
-//				sb.append(morphology.stem(parts[i]));
-//			}
-//		}
-//		return sb.toString();
 	}
 	
 	
@@ -263,6 +252,75 @@ public class FeatureUtils {
 	
 	
 	/**
+	 * input : ['', '', ...] 字符串切割 or JsonNode.forEach() => List<String>
+	 *
+	 * proc : 针对 'A^^B'~'A' or 'A B'~'A'情况的特殊处理
+	 *
+	 * data : title words, ﻿channels...
+	 */
+	public static Double overlapRatio(List<String> master, List<String> candit) {
+		if (master == null || candit == null || (master.size() == 0 && candit.size() == 0)) {
+			return null;
+		} else if (master.size() == 0 || candit.size() == 0) {
+			return 0d;
+		} else {
+			int sum = 0;
+			HashSet<String> _ms = new HashSet<>();
+			for (String m : master) {
+				m = m.replaceAll("@", "");
+				m = m.toLowerCase();
+				m = replaceSynonym(m);
+				if (m.contains("^^") || m.contains(" ") || m.contains("-") || m.contains("_")) {
+					String[] ms = m.split("(\\^\\^| |-|_)");
+					for (String _m : ms) {
+						if (StringUtils.isEmpty(_m)) {
+							continue;
+						}
+						_ms.add(stemming(_m));
+					}
+				} else {
+					_ms.add(stemming(m));
+				}
+			}
+			HashSet<String> _cs = new HashSet<>();
+			for (String c : candit) {
+				c = c.replaceAll("@", "");
+				c = c.toLowerCase();
+				c = replaceSynonym(c);
+				if (c.contains("^^") || c.contains(" ") || c.contains("-") || c.contains("_")) {
+					String[] cs = c.split("(\\^\\^| |-|_)");
+					for (String _c : cs) {
+						if (StringUtils.isEmpty(_c)) {
+							continue;
+						}
+						_cs.add(stemming(_c));
+					}
+				} else {
+					_cs.add(stemming(c));
+				}
+			}
+			for (String _m : _ms) {
+				if (_cs.contains(_m)) {
+					sum++;
+				}
+			}
+			return sum / ((_ms.size() + _cs.size()) * 0.5d);
+		}
+	}
+	
+	
+	/**
+	 *
+	 */
+	public static Double averageLength(List<String> mList, List<String> cList) {
+		if (mList == null || cList == null || (mList.size() == 0 && cList.size() == 0)) {
+			return null;
+		}
+		return (mList.size() + cList.size()) / 2d;
+	}
+	
+	
+	/**
 	 * data :
 	 *     ne + content / title + org / loc / per
 	 *     sp + content / title + org / loc / per / num / time
@@ -288,10 +346,14 @@ public class FeatureUtils {
 		if (master.isArray()) {
 			master.forEach(node -> {
 				String entity = node.asText().toLowerCase();
+				entity = entity.replaceAll("@", "");
 				entity = replaceSynonym(entity);
-				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-")) {
-					String[] words = entity.split("(\\^\\^| |-)");
+				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-") || entity.contains("_")) {
+					String[] words = entity.split("(\\^\\^| |-|_)");
 					for (String word : words) {
+						if (StringUtils.isEmpty(word)) {
+							continue;
+						}
 						word = stemming(word);
 						mCache.put(word, mCache.getOrDefault(word, 0d) + 1);
 					}
@@ -306,10 +368,14 @@ public class FeatureUtils {
 			}
 			candit.forEach(node -> {
 				String entity = node.asText().toLowerCase();
+				entity = entity.replaceAll("@", "");
 				entity = replaceSynonym(entity);
-				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-")) {
-					String[] words = entity.split("(\\^\\^| |-)");
+				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-") || entity.contains("_")) {
+					String[] words = entity.split("(\\^\\^| |-|_)");
 					for (String word : words) {
+						if (StringUtils.isEmpty(word)) {
+							continue;
+						}
 						word = stemming(word);
 						cCache.put(word, cCache.getOrDefault(word, 0d) + 1);
 					}
@@ -378,67 +444,6 @@ public class FeatureUtils {
 			}
 		}
 		return (masterTotalNum + canditTotalNum) / 2;
-	}
-	
-	
-	/**
-	 * input : ['', '', ...] 字符串切割 or JsonNode.forEach() => List<String>
-	 *
-	 * proc : 针对 'A^^B'~'A' or 'A B'~'A'情况的特殊处理
-	 *
-	 * data : title words, ﻿channels...
-	 */
-	public static Double overlapRatio(List<String> master, List<String> candit) {
-		if (master == null || candit == null || (master.size() == 0 && candit.size() == 0)) {
-			return null;
-		} else if (master.size() == 0 || candit.size() == 0) {
-			return 0d;
-		} else {
-			int sum = 0;
-			HashSet<String> _ms = new HashSet<>();
-			for (String m : master) {
-				m = m.toLowerCase();
-				m = replaceSynonym(m);
-				if (m.contains("^^") || m.contains(" ") || m.contains("-")) {
-					String[] ms = m.split("(\\^\\^| |-)");
-					for (String _m : ms) {
-						_ms.add(stemming(_m));
-					}
-				} else {
-					_ms.add(stemming(m));
-				}
-			}
-			HashSet<String> _cs = new HashSet<>();
-			for (String c : candit) {
-				c = c.toLowerCase();
-				c = replaceSynonym(c);
-				if (c.contains("^^") || c.contains(" ") || c.contains("-")) {
-					String[] cs = c.split("(\\^\\^| |-)");
-					for (String _c : cs) {
-						_cs.add(stemming(_c));
-					}
-				} else {
-					_cs.add(stemming(c));
-				}
-			}
-			for (String _m : _ms) {
-				if (_cs.contains(_m)) {
-					sum++;
-				}
-			}
-			return sum / ((_ms.size() + _cs.size()) * 0.5d);
-		}
-	}
-	
-	
-	/**
-	 *
-	 */
-	public static Double averageLength(List<String> mList, List<String> cList) {
-		if (mList == null || cList == null || (mList.size() == 0 && cList.size() == 0)) {
-			return null;
-		}
-		return (mList.size() + cList.size()) / 2d;
 	}
 	
 	

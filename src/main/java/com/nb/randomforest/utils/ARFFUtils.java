@@ -25,7 +25,6 @@ public class ARFFUtils {
         // 3. dump header
         File sourceFile = new File(sourcePath);
         File dumpedFile = new File(Paths.get(sourceFile.getParentFile().getAbsolutePath(), dumpName + ".arff").toString());
-//        FileUtils.writeStringToFile(dumpFile, instances.toString(), Charset.defaultCharset(), false);
         BufferedReader br = new BufferedReader(new FileReader(sourceFile));
         BufferedWriter bw = new BufferedWriter(new FileWriter(dumpedFile));
         
@@ -43,6 +42,7 @@ public class ARFFUtils {
                         mapper.readTree(cStr),
                         StringUtils.equals(label, "DIFF") ? "DIFF" : "EVENT"
                     );
+//                    System.out.println(mapper.writeValueAsString(feature));
                     bw.write(feature.toStringV1());
                     bw.write("\n");
                 } catch (Exception e) {
@@ -103,6 +103,6 @@ public class ARFFUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        buildARFFV1("/Users/yuxi/NB/RandomForest/_local/train/20201117/train_fields", "train");
+        buildARFFV1("/Users/yuxi/NB/RandomForest/_local/train/20201126/train_fields", "train");
     }
 }

@@ -442,7 +442,7 @@ public class FileUtils {
 //		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0926~0930/dp_0926_0930_royal"));
 //		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0926~0930/dp_0926_0930_tech"));
 //		files.add(new File("/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair"));
-		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_1105~1107/label_pair_tmp"));
+		files.add(new File("/Users/yuxi/NB/RandomForest/_local/badcase/badcase"));
 		for (File file : files) {
 			extractDocFields(file);
 		}
@@ -492,7 +492,6 @@ public class FileUtils {
 	}
 	
 	public static void main(String[] args) throws Exception {
-//		dumpDocFieldsFromLabelPair();
-		calDocPairIsLocal();
+		dumpDocFieldsFromLabelPair();
 	}
 }
