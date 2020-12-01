@@ -98,11 +98,34 @@ public class FeatureUtils {
 		stopWords.add("7");
 		stopWords.add("8");
 		stopWords.add("9");
+		
 		//同义词
+		//coronavirus, covid-19, sars-cov-2, covid virus
 		synonymWords.put("sars-cov-2", "covid virus");
 		synonymWords.put("covid-19", "covid virus");
 		synonymWords.put("coronavirus", "covid virus");
+		//ex, former
 		synonymWords.put("ex", "former");
+		//visitors, visitor, guests, guest, travelers, traveler, interviewer, tourists, tourist, passenger, customer
+		synonymWords.put("travelers", "visitor");
+		synonymWords.put("traveler", "visitor");
+		synonymWords.put("guests", "visitor");
+		synonymWords.put("guest", "visitor");
+		synonymWords.put("travelers", "visitor");
+		synonymWords.put("traveler", "visitor");
+		synonymWords.put("interviewer", "visitor");
+		synonymWords.put("tourists", "visitor");
+		synonymWords.put("tourist", "visitor");
+		synonymWords.put("passengers", "visitor");
+		synonymWords.put("passenger", "visitor");
+		synonymWords.put("customers", "visitor");
+		synonymWords.put("customer", "visitor");
+		//britain, uk, u.k., u.k, england, United-Kingdom
+		synonymWords.put("britain", "united kingdom");
+		synonymWords.put("uk", "united kingdom");
+		synonymWords.put("u.k.", "united kingdom");
+		synonymWords.put("u.k", "united kingdom");
+		synonymWords.put("england", "united kingdom");
 	}
 	
 	
@@ -538,7 +561,7 @@ public class FeatureUtils {
 	
 	
 	public static void main(String[] args) {
-		System.out.println(stringPreprocess("Martha Stewart : I have n't spoken to my ex-husband since our divorce"));
+		System.out.println(stemming("visitors"));
 	}
 	
 	
