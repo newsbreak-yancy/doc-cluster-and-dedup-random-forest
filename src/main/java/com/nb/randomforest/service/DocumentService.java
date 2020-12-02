@@ -99,8 +99,8 @@ public class DocumentService {
 				//模型结果后处理
 				if ((isEconomyMarkets && evtScore > 0.98) ||
 					(isCelebrities && evtScore > 0.95) ||
-					(!isEconomyMarkets && !isCelebrities && evtScore > 0.9) ||
-					(!isSports && !isWeather && feature.getTitleRatio() >= 0.45 && feature.getTitleLength() >= 5 && evtScore > 0.7)
+					(!isEconomyMarkets && !isCelebrities && evtScore > 0.92) ||
+					(!isSports && !isWeather && feature.getTitleRatio() >= 0.45 && feature.getTitleLength() >= 5 && evtScore > 0.72)
 				) {
 					label = "DUP";
 					score = evtScore;
