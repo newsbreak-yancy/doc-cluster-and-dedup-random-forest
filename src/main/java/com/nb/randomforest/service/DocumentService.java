@@ -47,18 +47,32 @@ public class DocumentService {
 			ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributesV1();
 			boolean isCelebrities = false;
 			boolean isEconomyMarkets = false;
+			boolean isSports = false;
+			boolean isWeather = false;
 			if (masterNode.hasNonNull("text_category") && masterNode.get("text_category").hasNonNull("second_cat")) {
+				JsonNode firstCatNode = masterNode.get("text_category").get("first_cat");
+				Iterator<String> itrFirst = firstCatNode.fieldNames();
+				while (itrFirst.hasNext()) {
+					String key = itrFirst.next();
+					if (StringUtils.equals("Sports", key)){
+						isSports = true;
+					}
+				}
+				
 				JsonNode secondCatNode = masterNode.get("text_category").get("second_cat");
-				Iterator<String> itr = secondCatNode.fieldNames();
-				while (itr.hasNext()) {
-					String key = itr.next();
+				Iterator<String> itrSecond = secondCatNode.fieldNames();
+				while (itrSecond.hasNext()) {
+					String key = itrSecond.next();
 					if (StringUtils.equals("BusinessEconomy_Markets", key)){
 						isEconomyMarkets = true;
 					} else if (StringUtils.equals("ArtsEntertainment_Celebrities", key)) {
 						isCelebrities = true;
+					} else if (StringUtils.equals("ClimateEnvironment_Weather", key)) {
+						isWeather = true;
 					}
 				}
 			}
+			
 			
 			// 2. prepare instances for RFModel
 			instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
@@ -83,17 +97,18 @@ public class DocumentService {
 				double score;
 				log.info(String.format("MODEL DEBUG: %s\t%s\t%.5f", mID, cID, evtScore));
 				//模型结果后处理
-				if (
-					(isEconomyMarkets && evtScore > 0.98) ||
+				if ((isEconomyMarkets && evtScore > 0.98) ||
 					(isCelebrities && evtScore > 0.95) ||
 					(!isEconomyMarkets && !isCelebrities && evtScore > 0.9) ||
-					(feature.getTitleRatio() >= 0.5 && feature.getTitleLength() >= 4 && evtScore > 0.7) ||
-					(feature.getTitleRatio() >= 0.4 && feature.getTitleLength() >= 6 && evtScore > 0.7)
+					(!isSports && !isWeather && feature.getTitleRatio() >= 0.45 && feature.getTitleLength() >= 5 && evtScore > 0.7)
 				) {
 					label = "DUP";
 					score = evtScore;
-				} else if (
-					((isEconomyMarkets && evtScore > 0.55) || (!isEconomyMarkets && evtScore > 0.45))
+				} else if ((isEconomyMarkets && evtScore > 0.55) ||
+					(isSports && evtScore > 0.6) ||
+					(isWeather && evtScore > 0.6 && feature.getGeoRatio() != null && feature.getGeoRatio() > 0.5) ||
+					(isWeather && evtScore > 0.8 && feature.getGeoRatio() == null) ||
+					(!isEconomyMarkets && !isSports && !isWeather && evtScore > 0.5)
 				) {
 					label = "EVENT";
 					score = evtScore;
