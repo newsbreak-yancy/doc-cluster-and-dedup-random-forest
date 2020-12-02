@@ -41,6 +41,9 @@ public class DocumentService {
 	public List<RFModelResult> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes, Boolean isDebug) {
 		try {
 			String mID = masterNode.hasNonNull("_id") ? masterNode.get("_id").textValue() : "";
+			String title = masterNode.hasNonNull("seg_title") ? masterNode.get("seg_title").textValue() :
+				masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() : "";
+			title = title.toLowerCase();
 			// 1.预处理
 			Instances instances;
 			List<EventFeature> features = new ArrayList<>();
@@ -49,6 +52,7 @@ public class DocumentService {
 			boolean isEconomyMarkets = false;
 			boolean isSports = false;
 			boolean isWeather = false;
+			boolean aboutFauci = false;
 			if (masterNode.hasNonNull("text_category") && masterNode.get("text_category").hasNonNull("second_cat")) {
 				JsonNode firstCatNode = masterNode.get("text_category").get("first_cat");
 				Iterator<String> itrFirst = firstCatNode.fieldNames();
@@ -71,6 +75,10 @@ public class DocumentService {
 						isWeather = true;
 					}
 				}
+			}
+			
+			if (title.contains("fauci says")) {
+				aboutFauci = true;
 			}
 			
 			
@@ -99,8 +107,8 @@ public class DocumentService {
 				//模型结果后处理
 				if ((isEconomyMarkets && evtScore > 0.98) ||
 					(isCelebrities && evtScore > 0.95) ||
-					(!isEconomyMarkets && !isCelebrities && evtScore > 0.92) ||
-					(!isSports && !isWeather && feature.getTitleRatio() >= 0.45 && feature.getTitleLength() >= 5 && evtScore > 0.72)
+					(!isEconomyMarkets && !isCelebrities && !aboutFauci && evtScore > 0.92) ||
+					(!aboutFauci && !isSports && !isWeather && feature.getTitleRatio() >= 0.45 && feature.getTitleLength() >= 5 && evtScore > 0.72)
 				) {
 					label = "DUP";
 					score = evtScore;
@@ -108,7 +116,8 @@ public class DocumentService {
 					(isSports && evtScore > 0.6) ||
 					(isWeather && evtScore > 0.6 && feature.getGeoRatio() != null && feature.getGeoRatio() > 0.5) ||
 					(isWeather && evtScore > 0.8 && feature.getGeoRatio() == null) ||
-					(!isEconomyMarkets && !isSports && !isWeather && evtScore > 0.5)
+					(aboutFauci && evtScore > 0.85) ||
+					(!isEconomyMarkets && !isSports && !isWeather && !aboutFauci && evtScore > 0.5)
 				) {
 					label = "EVENT";
 					score = evtScore;
