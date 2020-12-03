@@ -107,7 +107,11 @@ public class DocumentService {
 				//模型结果后处理
 				if ((isEconomyMarkets && evtScore > 0.98) ||
 					(isCelebrities && evtScore > 0.95) ||
+					//normal case 阈值
 					(!isEconomyMarkets && !isCelebrities && !aboutFauci && evtScore > 0.92) ||
+//					//title 相似度豁免
+					(isWeather && feature.getTitleRatio() >= 0.7 && feature.getTitleLength() >= 5 && evtScore > 0.85) ||
+					(isSports && feature.getTitleRatio() >= 0.5 && feature.getTitleLength() >= 5 && evtScore > 0.85) ||
 					(!aboutFauci && !isSports && !isWeather && feature.getTitleRatio() >= 0.45 && feature.getTitleLength() >= 5 && evtScore > 0.72)
 				) {
 					label = "DUP";
