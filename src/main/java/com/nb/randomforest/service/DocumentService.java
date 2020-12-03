@@ -112,7 +112,10 @@ public class DocumentService {
 //					//title 相似度豁免
 					(isWeather && feature.getTitleRatio() >= 0.7 && feature.getTitleLength() >= 5 && evtScore > 0.85) ||
 					(isSports && feature.getTitleRatio() >= 0.5 && feature.getTitleLength() >= 5 && evtScore > 0.85) ||
-					(!aboutFauci && !isSports && !isWeather && feature.getTitleRatio() >= 0.45 && feature.getTitleLength() >= 5 && evtScore > 0.75)
+					(!aboutFauci && !isSports && !isWeather && feature.getTitleRatio() >= 0.7 && feature.getTitleLength() >= 3 && evtScore > 0.8) ||
+					(!aboutFauci && !isSports && !isWeather && feature.getTitleRatio() >= 0.45 && feature.getTitleLength() >= 5 && evtScore > 0.72) ||
+					//simhash dist 豁免
+					(feature.getSimhashDist() != null && feature.getSimhashDist() < 10)
 				) {
 					label = "DUP";
 					score = evtScore;

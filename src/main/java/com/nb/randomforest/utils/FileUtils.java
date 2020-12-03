@@ -133,7 +133,10 @@ public class FileUtils {
 	 * doc + doc + title + title + url + url
 	 */
 	public static void buildLabelDataFromDBByDocPair() throws Exception {
-		BufferedReader br = new BufferedReader(new FileReader(new File("/Users/yuxi/NB/RandomForest/_local/preprocessor/same_title_shuf_500.txt")));
+		String input = "/Users/yuxi/NB/RandomForest/_local/append_1128~1130/doc_pair_shuf_10k";
+		String output = "/Users/yuxi/NB/RandomForest/_local/append_1128~1130/doc_pair_shuf_10k_unlabeled";
+		
+		BufferedReader br = new BufferedReader(new FileReader(new File(input)));
 		String line = null;
 		Set<String> ids = new HashSet<>();
 		Map<String, Document> idMap = new HashMap<>();
@@ -150,11 +153,12 @@ public class FileUtils {
 			String id = d.getString("_id");
 			idMap.put(id, d);
 		}
-		BufferedWriter bw = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/preprocessor/same_title_shuf_500_label_data.txt")));
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(output)));
 		for (String[] strs : lines) {
 			String docM = strs[0];
 			String docC = strs[1];
-			bw.write(docM + "\t" + docC + "\t" +
+			String info = strs[2];
+			bw.write(docM + "\t" + docC + "\t" + info + "\t" +
 				idMap.get(docM).getString("stitle") + "\t" + idMap.get(docC).getString("stitle") + "\t" +
 				idMap.get(docM).getString("url") + "\t" + idMap.get(docC).getString("url") + "\n"
 			);
@@ -165,7 +169,8 @@ public class FileUtils {
 	
 	/**
 	 * 基于 #未标注数据# 的属性构造待标注文档对
-	 * 未标注数据 doc_id \t doc_id \t isSuccess \t jstr |t jstr
+	 * @input :  doc_id \t doc_id \t isSuccess \t jstr |t jstr
+	 * @output : m_id \t c_id \t isFailed \t m_url \t c_url
 	 */
 	public static void extractDocUrlFromUnlabeledDocPair(File docPair) throws Exception {
 		BufferedReader br = new BufferedReader(new FileReader(docPair));
@@ -492,6 +497,7 @@ public class FileUtils {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		dumpDocFieldsFromLabelPair();
+//		dumpDocFieldsFromLabelPair();
+		buildLabelDataFromDBByDocPair();
 	}
 }
