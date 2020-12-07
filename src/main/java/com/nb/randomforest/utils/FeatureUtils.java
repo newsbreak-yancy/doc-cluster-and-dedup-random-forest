@@ -55,6 +55,8 @@ public class FeatureUtils {
 		stopWords.add("as");
 		stopWords.add("before");
 		stopWords.add("after");
+		stopWords.add("to");
+		stopWords.add("gives");
 		//符号
 		stopWords.add("!");
 		stopWords.add("\"");
@@ -102,8 +104,12 @@ public class FeatureUtils {
 		//同义词
 		//coronavirus, covid-19, sars-cov-2, covid virus
 		synonymWords.put("sars-cov-2", "covid virus");
+		synonymWords.put("covid19", "covid virus");
 		synonymWords.put("covid-19", "covid virus");
+		synonymWords.put("covid-2019", "covid virus");
+		synonymWords.put("covid2019", "covid virus");
 		synonymWords.put("coronavirus", "covid virus");
+		synonymWords.put("wuflu", "covid virus");
 		//ex, former
 		synonymWords.put("ex", "former");
 		//visitors, visitor, guests, guest, travelers, traveler, interviewer, tourists, tourist, passenger, customer
@@ -120,12 +126,57 @@ public class FeatureUtils {
 		synonymWords.put("passenger", "visitor");
 		synonymWords.put("customers", "visitor");
 		synonymWords.put("customer", "visitor");
+		//United Nations
+		synonymWords.put("un", "united nations");
 		//britain, uk, u.k., u.k, england, United-Kingdom
 		synonymWords.put("britain", "united kingdom");
 		synonymWords.put("uk", "united kingdom");
 		synonymWords.put("u.k.", "united kingdom");
 		synonymWords.put("u.k", "united kingdom");
 		synonymWords.put("england", "united kingdom");
+		//america, u.s.a. us. u.s.
+		synonymWords.put("us", "united states");
+		synonymWords.put("u.s.", "united states");
+		synonymWords.put("u.s", "united states");
+		synonymWords.put("u.s.a.", "united states");
+		synonymWords.put("u.s.a", "united states");
+		synonymWords.put("america", "united states");
+		synonymWords.put("potus", "president united states");
+		//India
+		synonymWords.put("bharat", "india");
+		//China
+		synonymWords.put("prc", "china");
+		//Japan
+		synonymWords.put("jpn", "japan");
+		//Switzerland suisse
+		synonymWords.put("schweiz", "switzerland");
+		synonymWords.put("suisse", "switzerland");
+		//Swedan
+		synonymWords.put("sverige", "sweden");
+		//
+		synonymWords.put("biblical", "bible");
+		synonymWords.put("bibles", "bible");
+		
+		synonymWords.put("nflx", "netflix");
+		synonymWords.put("macos", "macbook operating system");
+		synonymWords.put("ios", "iphone operating system");
+		
+		synonymWords.put("coca-cola", "coca cola");
+		synonymWords.put("single-player", "single player");
+		synonymWords.put("wiki", "wikipedia");
+		
+		synonymWords.put("a.i.", "artificial intelligence");
+		synonymWords.put("ai", "artificial intelligence");
+		
+		synonymWords.put("win10", "windows 10");
+		synonymWords.put("chromeos", "chrome os");
+		
+		//Gov. Governor
+		synonymWords.put("gov.", "governor");
+		synonymWords.put("ca", "california");
+		synonymWords.put("ca.", "california");
+		synonymWords.put("la", "los angeles");
+		synonymWords.put("ny", "new york");
 	}
 	
 	
@@ -194,7 +245,19 @@ public class FeatureUtils {
 	 *
 	 * @data : title
 	 */
-	public static String stringPreprocess(String sequence) {
+	public static String titlePreprocess(String sequence) {
+		if (sequence.startsWith("The Latest : ")) {
+			sequence = sequence.substring(13, sequence.length());
+		}
+		if (sequence.startsWith("WATCH TODAY : ")) {
+			sequence = sequence.substring(14, sequence.length());
+		}
+		if (sequence.startsWith("WATCH LIVE : ")) {
+			sequence = sequence.substring(13, sequence.length());
+		}
+		if (sequence.startsWith("WATCH LIVE TODAY : ")) {
+			sequence = sequence.substring(19, sequence.length());
+		}
 		String lowerCase = sequence.toLowerCase();//小写
 		String[] words = lowerCase.split(" ");//切分
 		StringBuilder sb = new StringBuilder();
@@ -561,7 +624,15 @@ public class FeatureUtils {
 	
 	
 	public static void main(String[] args) {
-		System.out.println(stemming("visitors"));
+		String s = "Gov. Newsom to announce new stay-at-home order in California";
+		s = titlePreprocess(s);
+		System.out.println(s);
+//		String t = "New California stay-home order weighed as COVID hospitalizations surge";
+		String t = "WATCH TODAY : Gov. Newsom gives update on possible stay-at-home order in California";
+		t = titlePreprocess(t);
+		System.out.println(t);
+		
+		System.out.println(overlapRatio(Arrays.asList(s.split(" ")), Arrays.asList(t.split(" "))));
 	}
 	
 	
@@ -585,8 +656,8 @@ public class FeatureUtils {
 
 		/** pre process */
 		//be
-		System.out.println("Preprocess : be result ~ " + stringPreprocess("B!@#$%^&*()_-+=E?/><.,;:\"`' is result"));
-		System.out.println("Preprocess : " + stringPreprocess("Fantasy Football : Is Bengals ' Joe Burrow worthy of being a QB1 ?"));
+		System.out.println("Preprocess : be result ~ " + titlePreprocess("B!@#$%^&*()_-+=E?/><.,;:\"`' is result"));
+		System.out.println("Preprocess : " + titlePreprocess("Fantasy Football : Is Bengals ' Joe Burrow worthy of being a QB1 ?"));
 		System.out.println("================================================================================");
 		
 		

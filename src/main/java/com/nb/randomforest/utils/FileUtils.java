@@ -1,6 +1,5 @@
 package com.nb.randomforest.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
@@ -82,7 +81,7 @@ public class FileUtils {
 	 * 已标注数据 : doc_id \t doc_id |t label => doc_id \t doc_id |t label \t isSuccess \t jstr \t jstr
 	 * 未标注数据 : doc_id \t doc_id          => doc_id \t doc_id          |t isSuccess \t jstr \t jstr
 	 */
-	public static void extractDocFields(File docPair) throws Exception {
+	public static void dumpDocFieldsFromDocPairFile(File docPair) throws Exception {
 		BufferedReader br = new BufferedReader(new FileReader(docPair));
 		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(docPair.getAbsolutePath() + "_fields")));
 		String line = null;
@@ -123,6 +122,33 @@ public class FileUtils {
 				bw.write("FAILED");
 				bw.write("\n");
 			}
+		}
+		bw.close();
+	}
+	
+	
+	public static void dumpDocFieldsFromDocListFile(File docListFile) throws Exception {
+		BufferedReader br = new BufferedReader(new FileReader(docListFile));
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(docListFile.getAbsolutePath() + "_fields")));
+		String line = null;
+		List<String> idList = new ArrayList<>();
+		Set<String> idCache = new HashSet<>();
+		Map<String, Document> idMap = new HashMap<>();
+		while ((line = br.readLine()) != null) {
+			String docID = line.trim();
+			idCache.add(docID);
+			idList.add(docID);
+		}
+		MongoCursor<Document> cursor = collectionStatic.find(in("_id", idCache.toArray())).projection(fields).cursor();
+		while (cursor.hasNext()) {
+			Document d = cursor.next();
+			String id = d.getString("_id");
+			idMap.put(id, d);
+		}
+		for (String docID : idList) {
+			Document feature = idMap.get(docID);
+			bw.write(docID + "\t" + (feature != null ? feature.toJson() : ""));
+			bw.write("\n");
 		}
 		bw.close();
 	}
@@ -435,7 +461,7 @@ public class FileUtils {
 	 *
 	 * @throws Exception
 	 */
-	public static void dumpDocFieldsFromLabelPair() throws Exception {
+	public static void dumpDocFieldsFromDocPairFiles() throws Exception {
 		List<File> files = new ArrayList<>();
 //		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0720~0920/doc_pair_0720~0920"));
 //		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0720~0920/doc_pair_0903"));
@@ -449,7 +475,7 @@ public class FileUtils {
 //		files.add(new File("/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair"));
 		files.add(new File("/Users/yuxi/NB/RandomForest/_local/badcase/badcase"));
 		for (File file : files) {
-			extractDocFields(file);
+			dumpDocFieldsFromDocPairFile(file);
 		}
 	}
 	
@@ -497,7 +523,8 @@ public class FileUtils {
 	}
 	
 	public static void main(String[] args) throws Exception {
-//		dumpDocFieldsFromLabelPair();
-		buildLabelDataFromDBByDocPair();
+//		dumpDocFieldsFromDocPairFiles();
+//		buildLabelDataFromDBByDocPair();
+		dumpDocFieldsFromDocListFile(new File("/Users/yuxi/NB/crumbs/experiment/doc_cluster/0XtBbBhm_evt_cluster_docs"));
 	}
 }

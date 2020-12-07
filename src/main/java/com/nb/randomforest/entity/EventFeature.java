@@ -266,15 +266,9 @@ public class EventFeature {
 		    masterNode.hasNonNull("stitle") ? masterNode.get("stitle").textValue() : "";
 	    String cTitleRaw = canditNode.hasNonNull("seg_title") ? canditNode.get("seg_title").textValue() :
 		    canditNode.hasNonNull("stitle") ? canditNode.get("stitle").textValue() : "";
-	    if (mTitleRaw.startsWith("The Latest : ")) {
-	    	mTitleRaw = mTitleRaw.substring(13, mTitleRaw.length());
-	    }
-	    if (cTitleRaw.startsWith("The Latest : ")) {
-	    	cTitleRaw = cTitleRaw.substring(13, cTitleRaw.length());
-	    }
-	    String mTitle = stringPreprocess(mTitleRaw);
+	    String mTitle = titlePreprocess(mTitleRaw);
 	    List<String> mTitleList = Arrays.asList(mTitle.split(" "));
-	    String cTitle = stringPreprocess(cTitleRaw);
+	    String cTitle = titlePreprocess(cTitleRaw);
 	    List<String> cTitleList = Arrays.asList(cTitle.split(" "));
         this.titleDist = levenshteinDistance(mTitle, cTitle);
         this.titleRatio = overlapRatio(mTitleList, cTitleList);

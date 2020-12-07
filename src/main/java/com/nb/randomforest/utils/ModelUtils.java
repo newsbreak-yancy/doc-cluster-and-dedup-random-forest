@@ -2,6 +2,8 @@ package com.nb.randomforest.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nb.randomforest.entity.EventFeature;
 import org.apache.commons.lang3.StringUtils;
 import weka.classifiers.trees.RandomForest;
@@ -491,7 +493,7 @@ public class ModelUtils {
         instances.setClassIndex(instances.numAttributes() - 1);
         for (JsonNode canditNode : canditNodes) {
             EventFeature feature = new EventFeature(masterNode, canditNode, null);
-            System.out.println(mapper.writeValueAsString(feature));
+//            System.out.println(mapper.writeValueAsString(feature));
             instances.add(feature.toInstanceV1());
         }
         
@@ -503,17 +505,101 @@ public class ModelUtils {
         }
         return result;
     }
-
-    public static void main(String[] args) throws Exception {
+    
+    
+    /**
+     *
+     */
+    public static List<Double> getTgtFeature(JsonNode masterNode, JsonNode canditNodes) throws Exception {
+        List<Double> result = new ArrayList<>();
+        ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributesV1();
+        Instances instances;
+    
+        // 2. create Instances object
+        instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
+        instances.setClassIndex(instances.numAttributes() - 1);
+        for (JsonNode canditNode : canditNodes) {
+            EventFeature feature = new EventFeature(masterNode, canditNode, null);
+            result.add(feature.getcKWSRatio());
+        }
         
-        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201126/";
-
+        return result;
+    }
+    
+    
+    /**
+     * 基于模型分数构造相似度矩阵
+     */
+    public static void buildModelSimMatrix() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        String modelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model";
+        RandomForest forest = (RandomForest) SerializationHelper.read(modelPath);
+        
+        File docListFile = new File("/Users/yuxi/NB/crumbs/experiment/doc_cluster/0XtBbBhm_evt_cluster_docs_fields");
+        File simMatrixFile = new File(docListFile.getAbsolutePath() + "_matrix");
+        BufferedReader br = new BufferedReader(new FileReader(docListFile));
+        BufferedWriter bw = new BufferedWriter(new FileWriter(simMatrixFile));
+        String line = null;
+        ArrayNode allCandidate = mapper.createArrayNode();
+        while ((line = br.readLine()) != null) {
+            allCandidate.add(mapper.readTree(line.split("\t")[1]));
+        }
+    
+        for (int i = 0; i < allCandidate.size(); i++) {
+            JsonNode master = allCandidate.get(i);
+            List<double[]> indexList = predictOnline(forest, master, allCandidate);
+            StringBuilder sb = new StringBuilder();
+            for (double[] weight : indexList) {
+                sb.append(String.format("%.4f", weight[1]));
+                sb.append(",");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            bw.write(sb.toString());
+            bw.write("\n");
+        }
+        bw.close();
+    }
+    
+    
+    /**
+     * 基于指定特征构造相似度矩阵
+     */
+    public static void buildModelFeaMatrix() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        
+        File docListFile = new File("/Users/yuxi/NB/crumbs/experiment/doc_cluster_ap_kws_overlap/0XsqzI0z_dup_cluster_docs_fields");
+        File simMatrixFile = new File(docListFile.getAbsolutePath() + "_matrix");
+        BufferedReader br = new BufferedReader(new FileReader(docListFile));
+        BufferedWriter bw = new BufferedWriter(new FileWriter(simMatrixFile));
+        String line = null;
+        ArrayNode allCandidate = mapper.createArrayNode();
+        while ((line = br.readLine()) != null) {
+            allCandidate.add(mapper.readTree(line.split("\t")[1]));
+        }
+        
+        for (int i = 0; i < allCandidate.size(); i++) {
+            JsonNode master = allCandidate.get(i);
+            List<Double> indexList = getTgtFeature(master, allCandidate);
+            StringBuilder sb = new StringBuilder();
+            for (double weight : indexList) {
+                sb.append(String.format("%.4f", weight));
+                sb.append(",");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            bw.write(sb.toString());
+            bw.write("\n");
+        }
+        bw.close();
+    }
+    
+    public static void someModelWork() throws Exception {
         /** Model Training */
+        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201126/";
         String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
         String testARFFPath = Paths.get(rootDir, "train.arff").toString();
 //        trainModel(trainARFFPath, testARFFPath);
 
-        /** Model Inference ONLINE */
+//        /** Model Inference ONLINE */
 //        ObjectMapper mapper = new ObjectMapper();
 //        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model");
 //        String masterStr = "{ \"_id\" : \"0NmUZOpH\", \"c_word\" : 1110, \"channels\" : [ \"Facebook^^Inc.\", \"Social^^Media\", \"Social^^Life\", \"Facebook^^Privacy\", \"Social^^Engagement\" ], \"epoch\" : 1578459600, \"geotag\" : [], \"highlightkeyword_list\" : [ [ \"Cambridge^^Analytica\", 0.237125387901459 ], [ \"Mark^^Zuckerberg\", 0.00497122202215844 ], [ \"Robin^^Dunbar\", 0.00207098628466191 ], [ \"Facebook\", 0.000276432088162368 ], [ \"media\", 1.43794217017694e-06 ], [ \"Google\", 8.52768552463887e-07 ], [ \"Snowden\", 8.22066513865799e-07 ] ], \"insert_time\" : \"2020-01-08 11:40:13\", \"kw_title\" : [ \"Facebook\", \"social\", \"social^^media^^platforms\", \"social^^life\", \"Facebook^^accounts\", \"social^^networks\", \"social^^groups\", \"Facebook^^deletion\", \"people\" ], \"kws\" : [ \"Facebook\", \"social\", \"social^^media^^platforms\", \"social^^life\", \"Facebook^^accounts\", \"social^^networks\", \"social^^groups\", \"personal^^experiences\", \"Facebook^^deletion\", \"engagement\", \"people\", \"active^^users\", \"Google\", \"data^^privacy\", \"interesting^^trends\", \"digital^^forms\", \"behavioural^^influence\", \"smart^^technology\", \"Mark^^Zuckerberg\", \"perpetual^^social^^comparison\" ], \"ne_content_location\" : { \"US\" : 2 }, \"ne_content_organization\" : { \"Google\" : 1, \"Facebook\" : 25, \"Cambridge Analytica\" : 3 }, \"ne_content_person\" : { \"Robin Dunbar\" : 1, \"Snowden\" : 1, \"Donald Trump\" : 1, \"Mark Zuckerberg\" : 1 }, \"ne_title_location\" : {}, \"ne_title_organization\" : { \"Facebook\" : 1 }, \"ne_title_person\" : {}, \"paragraph_count\" : 22.0, \"simhash\" : \"78944e3a3416dfbe8a64cc47ced97ed2\", \"spacy_content_loc\" : [ \"US\", \"US\" ], \"spacy_content_num\" : [ \"2.45 billion\", \"approximately 32 %\", \"9 %\", \"35 %\", \"at least one\", \"150\", \"several thousand\", \"One\" ], \"spacy_content_org\" : [ \"Facebook\", \"Google\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Digital\", \"Facebook\", \"Dunbar\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\" ], \"spacy_content_per\" : [ \"Snowden\", \"Mark Zuckerberg 's\", \"Donald Trump\", \"Cambridge Analytica\", \"Cambridge Analytica\", \"Robin Dunbar\" ], \"spacy_content_tim\" : [ \"the previous month\", \"2018\" ], \"spacy_title_loc\" : [], \"spacy_title_num\" : [], \"spacy_title_org\" : [ \"Facebook\" ], \"spacy_title_per\" : [], \"spacy_title_tim\" : [], \"src\" : \"The Conversation\", \"stitle\" : \"Why people leave Facebook -- and what it tells us about the future of social media\", \"text_category\" : {}, \"url\" : \"https://theconversation.com/why-people-leave-facebook-and-what-it-tells-us-about-the-future-of-social-media-128952\" }";
@@ -525,7 +611,7 @@ public class ModelUtils {
 //        for (double[] weight : indexList) {
 //            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]));
 //        }
-        
+    
         /** Model Inference STD Estimate */
         String passedModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201014/forest.model";
         String onlineModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model";
@@ -533,13 +619,13 @@ public class ModelUtils {
         RandomForest passedForest = (RandomForest) SerializationHelper.read(passedModelPath);
         RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
         RandomForest abtestForest = (RandomForest) SerializationHelper.read(abtestModelPath);
-
+    
         String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields";
         String trainDataPath = "/Users/yuxi/NB/RandomForest/_local/train/20201126/train_fields";
-
+    
         predictEstimateDataFeatureV1(abtestForest, estimateDataPath);
         System.out.println("==========================");
-
+    
         predictEstimateDataFeatureV1(abtestForest, trainDataPath);
         System.out.println("==========================");
 
@@ -548,5 +634,10 @@ public class ModelUtils {
 //        predictEstimateDataFeatureV1(onlineForest, esLocal);
 //        System.out.println("==========================");
 //        predictEstimateDataFeatureV1(onlineForest, esNonlocal);
+    }
+    
+    public static void main(String[] args) throws Exception {
+//        buildModelSimMatrix();
+        buildModelFeaMatrix();
     }
 }

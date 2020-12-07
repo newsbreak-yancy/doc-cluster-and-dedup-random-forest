@@ -112,7 +112,7 @@ public class DocumentService {
 //					//title 相似度豁免
 					(isWeather && feature.getTitleRatio() >= 0.7 && feature.getTitleLength() >= 5 && evtScore > 0.85) ||
 					(isSports && feature.getTitleRatio() >= 0.5 && feature.getTitleLength() >= 5 && evtScore > 0.85) ||
-					(!aboutFauci && !isSports && !isWeather && feature.getTitleRatio() >= 0.45 && feature.getTitleLength() >= 5 && evtScore > 0.72) ||
+					(!aboutFauci && !isSports && !isWeather && feature.getTitleRatio() >= 0.65 && feature.getTitleLength() >= 5 && evtScore > 0.75) ||
 					//simhash dist 豁免
 					(!aboutFauci && !isSports && !isWeather && feature.getSimhashDist() != null && feature.getSimhashDist() < 5 && evtScore > 0.8)
 				) {
