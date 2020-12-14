@@ -976,6 +976,82 @@ public class EventFeature {
 	}
 	
 	
+	public String toCSV() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(StringUtils.equals("DIFF", label) ? "0" : "1");
+		sb.append(",");
+		sb.append(titleDist == null ?  "-1" : sparse2continuous(titleDist, new double[]{5, 15, 30}));
+		sb.append(",");
+		sb.append(titleRatio == null ?  "-1" : sparse2continuous(titleRatio, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(titleLength == null ?  "-1" : sparse2continuous(titleLength, new double[]{5}));
+		sb.append(",");
+		sb.append(epochSpan == null ?  "-1" : sparse2continuous(epochSpan, new double[]{86400}));
+		sb.append(",");
+		sb.append(insertSpan == null ?  "-1" : sparse2continuous(insertSpan, new double[]{86400}));
+		sb.append(",");
+		sb.append(simhashDist == null ?  "-1" : sparse2continuous(simhashDist, new double[]{25, 50, 75}));
+		sb.append(",");
+		sb.append(cKWSRatio == null ?  "-1" : sparse2continuous(cKWSRatio, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(cKWSLength == null ?  "-1" : sparse2continuous(cKWSLength, new double[]{5}));
+		sb.append(",");
+		sb.append(hKWSRatio == null ?  "-1" : sparse2continuous(hKWSRatio, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(hKWSLength == null ?  "-1" : sparse2continuous(hKWSLength, new double[]{5}));
+		sb.append(",");
+		sb.append(channelRatio == null ?  "-1" : sparse2continuous(channelRatio, new double[]{0.3, 0.6}));
+		sb.append(",");
+		sb.append(channelLength == null ?  "-1" : sparse2continuous(channelLength, new double[]{2}));
+		sb.append(",");
+		sb.append(cOrgRatioNE == null ?  "-1" : sparse2continuous(cOrgRatioNE, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(cOrgRatioSP == null ?  "-1" : sparse2continuous(cOrgRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(cOrgLengthNE == null ?  "-1" : sparse2continuous(cOrgLengthNE, new double[]{4}));
+		sb.append(",");
+		sb.append(cOrgLengthSP == null ?  "-1" : sparse2continuous(cOrgLengthSP, new double[]{4}));
+		sb.append(",");
+		sb.append(cLocRatioNE == null ?  "-1" : sparse2continuous(cLocRatioNE, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(cLocRatioSP == null ?  "-1" : sparse2continuous(cLocRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(cLocLengthNE == null ?  "-1" : sparse2continuous(cLocLengthNE, new double[]{3}));
+		sb.append(",");
+		sb.append(cLocLengthSP == null ?  "-1" : sparse2continuous(cLocLengthSP, new double[]{3}));
+		sb.append(",");
+		sb.append(cPerRatioNE == null ?  "-1" : sparse2continuous(cPerRatioNE, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(cPerRatioSP == null ?  "-1" : sparse2continuous(cPerRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(cPerLengthNE == null ?  "-1" : sparse2continuous(cPerLengthNE, new double[]{3}));
+		sb.append(",");
+		sb.append(cPerLengthSP == null ?  "-1" : sparse2continuous(cPerLengthSP, new double[]{3}));
+		sb.append(",");
+		sb.append(cNUMRatioSP == null ?  "-1" : sparse2continuous(cNUMRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(cNUMLengthSP == null ?  "-1" : sparse2continuous(cNUMLengthSP, new double[]{3}));
+		sb.append(",");
+		sb.append(cTimRatioSP == null ?  "-1" : sparse2continuous(cTimRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(",");
+		sb.append(cTimLengthSP == null ?  "-1" : sparse2continuous(cTimLengthSP, new double[]{3}));
+		sb.append(",");
+		sb.append(catRatio == null ?  "-1" : sparse2continuous(catRatio, new double[]{0.5}));
+		return sb.toString();
+	}
+	
+	
+	public int sparse2continuous(double srcCode, double[] thrArray) {
+		int result = thrArray.length;
+		for (int i = 0; i < thrArray.length; i++) {
+			if (srcCode < thrArray[i]) {
+				return i;
+			}
+		}
+		return result;
+	}
+	
+	
 	public static void main(String[] args) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		String mStr = "{\"_id\": \"0WxXFOiG\", \"c_word\": 184, \"channels_v2\": [\"Ohio^^Stadium\", \"Ohio^^State\", \"Home^^Game\", \"Buckeye\", \"Football^^Season\", \"Football\", \"Ohio\"], \"epoch\": {\"$numberLong\": \"1599975420\"}, \"geotag_v2\": [{\"name\": \"columbus\", \"score\": 1.0, \"coord\": \"39.961176,-82.998794\", \"pid\": \"columbus,ohio\", \"type\": \"city\"}], \"kws\": [\"Buckeye^^football^^fans\", \"football^^fans\", \"football^^season\", \"Ohio^^Stadium\", \"home^^game\", \"Ohio^^State^^University\", \"COLUMBUS\", \"happy\", \"fall\", \"Competition^^Task^^Force\", \"petitions\"], \"ne_content_location\": {\"Buckeye\": 1, \"Ohio\": 2, \"COLUMBUS\": 1, \"Ohio Stadium\": 1}, \"ne_content_organization\": {\"Competition Task Force\": 1, \"Ohio State\": 1, \"Ohio State University\": 1, \"Associated Press\": 1}, \"ne_content_person\": {}, \"ne_title_location\": {\"Buckeye\": 1}, \"ne_title_organization\": {}, \"ne_title_person\": {}, \"paragraph_count\": 7.0, \"simhash\": \"9a9543b818dcd5c37b9ee3b2e2e4778b\", \"src\": \"WTOL-TV\", \"stitle\": \"Buckeye fans disappointed to not have football for what would have been first home game\", \"text_category_v2\": {\"first_cat\": {\"Sports\": 0.9428178147314257}, \"second_cat\": {\"Sports_AmericanFootball\": 0.7154466756639957, \"Sports_College\": 0.6156932023454093}, \"third_cat\": {\"Sports_AmericanFootball_Other\": 0.7154466756639957, \"Sports_College_Other\": 0.6156932023454093}}}";
