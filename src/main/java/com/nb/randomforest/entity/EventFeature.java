@@ -978,7 +978,7 @@ public class EventFeature {
 	
 	public String toCSV() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(StringUtils.equals("DIFF", label) ? "0" : "1");
+		sb.append(StringUtils.equals("DIFF", label) ? "0" : StringUtils.equals("EVENT", label) ? "1" : "1.0001");
 		sb.append(",");
 		sb.append(titleDist == null ?  "-1" : sparse2continuous(titleDist, new double[]{5, 15, 30}));
 		sb.append(",");

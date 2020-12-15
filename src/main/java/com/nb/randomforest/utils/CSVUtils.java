@@ -68,12 +68,10 @@ public class CSVUtils {
 	/**
 	 * sparse 特征转 连续值特征
 	 */
-	
-	
 	public static void main(String[] args) throws Exception {
 		buildCSV(
-			"/Users/yuxi/NB/doc-clu-model-widedeep/data/train/doc_pair_rf_1k_fields",
-			"/Users/yuxi/NB/doc-clu-model-widedeep/data/train/doc_pair_rf_1k_fields.csv"
+			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_pair_rf_fields",
+			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_pair_rf_fields.csv"
 		);
 	}
 }

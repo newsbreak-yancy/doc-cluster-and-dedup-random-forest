@@ -71,8 +71,6 @@ public class FileUtils {
 			.append("text_category", 1).append("text_category_v2", 1)
 			.append("geotag", 1).append("geotag_v2", 1)
 			.append("url", 1);
-		
-		
 	}
 	
 	
@@ -473,7 +471,7 @@ public class FileUtils {
 //		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0926~0930/dp_0926_0930_royal"));
 //		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_0926~0930/dp_0926_0930_tech"));
 //		files.add(new File("/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair"));
-		files.add(new File("/Users/yuxi/NB/RandomForest/_local/badcase/badcase"));
+		files.add(new File("/Users/yuxi/NB/RandomForest/_local/append_1128~1130/doc_pair_labeled"));
 		for (File file : files) {
 			dumpDocFieldsFromDocPairFile(file);
 		}
@@ -523,8 +521,8 @@ public class FileUtils {
 	}
 	
 	public static void main(String[] args) throws Exception {
-//		dumpDocFieldsFromDocPairFiles();
+		dumpDocFieldsFromDocPairFiles();
 //		buildLabelDataFromDBByDocPair();
-		dumpDocFieldsFromDocListFile(new File("/Users/yuxi/NB/crumbs/experiment/doc_cluster/0XtBbBhm_evt_cluster_docs"));
+//		dumpDocFieldsFromDocListFile(new File("/Users/yuxi/NB/crumbs/experiment/doc_cluster/0XtBbBhm_evt_cluster_docs"));
 	}
 }
