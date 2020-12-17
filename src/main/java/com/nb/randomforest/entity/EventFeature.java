@@ -478,7 +478,6 @@ public class EventFeature {
 				    this.categoryIndex += 1;
 			    }
 		    }
-		
 		    JsonNode secondCatNode = mCategory.get("second_cat");
 		    Iterator<String> itrSecond = secondCatNode.fieldNames();
 		    while (itrSecond.hasNext()) {
@@ -1119,7 +1118,7 @@ public class EventFeature {
 		sb.append(catRatio == null ?  "-1" : sparse2continuous(catRatio, new double[]{0.5}));
 		sb.append(",");
 		//Category Cross Feature : 用于降权!!!!
-		//Sports + Celebrities : Organization + Location + Person
+		//Sports + Celebrities : Organization + Location + Person + KWS
 		if ((categoryIndex == 1 || categoryIndex == 4 || categoryIndex == 5) &&
 			(
 				(cOrgRatioSP != null && cOrgRatioSP < 0.4 && cOrgLengthSP > 5) ||
@@ -1127,11 +1126,12 @@ public class EventFeature {
 				(cLocRatioSP != null && cLocRatioSP < 0.4 && cLocLengthSP > 5) ||
 				(cLocRatioNE != null && cLocRatioNE < 0.4 && cLocLengthNE > 5) ||
 				(cPerRatioSP != null && cPerRatioSP < 0.4 && cPerLengthSP > 5) ||
-				(cPerRatioNE != null && cPerRatioNE < 0.4 && cPerLengthNE > 5)
+				(cPerRatioNE != null && cPerRatioNE < 0.4 && cPerLengthNE > 5) ||
+				(cKWSRatio != null && cKWSRatio < 0.4 && cKWSLength > 5)
 			)
 		) {
 			sb.append("1,1,");
-		} else if (categoryIndex == 2 && //Economy Markets : NUM + TIM + KWS
+		} else if (categoryIndex == 2 && //Economy Markets : ORG + NUM + TIM + KWS
 			(
 				(cNUMRatioSP != null && cNUMRatioSP < 0.4 && cNUMLengthSP > 5) ||
 				(cTimRatioSP != null && cTimRatioSP < 0.4 && cTimLengthSP > 5) ||

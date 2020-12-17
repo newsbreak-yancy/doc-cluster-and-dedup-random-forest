@@ -100,6 +100,10 @@ public class FeatureUtils {
 		stopWords.add("7");
 		stopWords.add("8");
 		stopWords.add("9");
+		//媒体 : 相同媒体近似事件导致误伤(提取了相同报道媒体)
+		stopWords.add("ap");
+		stopWords.add("cnn");
+		stopWords.add("bbc");
 		
 		//同义词
 		//coronavirus, covid-19, sars-cov-2, covid virus
@@ -204,8 +208,12 @@ public class FeatureUtils {
 	
 	/**
 	 * @param word : 针对 word, 支持处理连词 A\spaceB or A^^B or A-B
+	 *             针对 A + [space] + B 直接返回 word
 	 */
 	public static String stemming(String word) {
+		if (word.contains(" ")) {
+			return word;
+		}
 		Morphology morphology = new Morphology();
 		return morphology.stem(word);
 	}
@@ -353,7 +361,12 @@ public class FeatureUtils {
 			int sum = 0;
 			HashSet<String> _ms = new HashSet<>();
 			for (String m : master) {
-				m = m.replaceAll("@", "");
+				m = m.replaceAll("@", "")
+					.replaceAll("\\$", "")
+					.replaceAll("%", "")
+					.replaceAll("the", "")
+					.replaceAll("cents", "")
+					.replaceAll("million", "");
 				m = m.toLowerCase();
 				m = replaceSynonym(m);
 				if (m.contains("^^") || m.contains(" ") || m.contains("-") || m.contains("_")) {
@@ -370,7 +383,12 @@ public class FeatureUtils {
 			}
 			HashSet<String> _cs = new HashSet<>();
 			for (String c : candit) {
-				c = c.replaceAll("@", "");
+				c = c.replaceAll("@", "")
+					.replaceAll("\\$", "")
+					.replaceAll("%", "")
+					.replaceAll("the", "")
+					.replaceAll("cents", "")
+					.replaceAll("million", "");
 				c = c.toLowerCase();
 				c = replaceSynonym(c);
 				if (c.contains("^^") || c.contains(" ") || c.contains("-") || c.contains("_")) {
@@ -432,7 +450,12 @@ public class FeatureUtils {
 		if (master.isArray()) {
 			master.forEach(node -> {
 				String entity = node.asText().toLowerCase();
-				entity = entity.replaceAll("@", "");
+				entity = entity.replaceAll("@", "")
+					.replaceAll("\\$", "")
+					.replaceAll("%", "")
+					.replaceAll("the", "")
+					.replaceAll("cents", "")
+					.replaceAll("million", "");
 				entity = replaceSynonym(entity);
 				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-") || entity.contains("_")) {
 					String[] words = entity.split("(\\^\\^| |-|_)");
@@ -454,7 +477,12 @@ public class FeatureUtils {
 			}
 			candit.forEach(node -> {
 				String entity = node.asText().toLowerCase();
-				entity = entity.replaceAll("@", "");
+				entity = entity.replaceAll("@", "")
+					.replaceAll("\\$", "")
+					.replaceAll("%", "")
+					.replaceAll("the", "")
+					.replaceAll("cents", "")
+					.replaceAll("million", "");
 				entity = replaceSynonym(entity);
 				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-") || entity.contains("_")) {
 					String[] words = entity.split("(\\^\\^| |-|_)");
@@ -624,15 +652,26 @@ public class FeatureUtils {
 	
 	
 	public static void main(String[] args) {
-		String s = "Gov. Newsom to announce new stay-at-home order in California";
-		s = titlePreprocess(s);
+		String s = "$ 4.2 % million";
+		s = s.replaceAll("@", "")
+			.replaceAll("\\$", "")
+			.replaceAll("%", "")
+			.replaceAll("cents", "")
+			.replaceAll("million", "");
 		System.out.println(s);
-//		String t = "New California stay-home order weighed as COVID hospitalizations surge";
-		String t = "WATCH TODAY : Gov. Newsom gives update on possible stay-at-home order in California";
-		t = titlePreprocess(t);
-		System.out.println(t);
-		
-		System.out.println(overlapRatio(Arrays.asList(s.split(" ")), Arrays.asList(t.split(" "))));
+		System.out.println("------------");
+		Morphology m = new Morphology();
+		System.out.println(m.stem(s)); // 4.2
+
+//		String s = "Gov. Newsom to announce new stay-at-home order in California";
+//		s = titlePreprocess(s);
+//		System.out.println(s);
+////		String t = "New California stay-home order weighed as COVID hospitalizations surge";
+//		String t = "WATCH TODAY : Gov. Newsom gives update on possible stay-at-home order in California";
+//		t = titlePreprocess(t);
+//		System.out.println(t);
+//
+//		System.out.println(overlapRatio(Arrays.asList(s.split(" ")), Arrays.asList(t.split(" "))));
 	}
 	
 	
