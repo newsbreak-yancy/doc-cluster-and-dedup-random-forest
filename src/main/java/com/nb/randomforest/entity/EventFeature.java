@@ -254,6 +254,8 @@ public class EventFeature {
 	
 	private Double geoLength;
 	
+	private Integer categoryIndex;
+	
 
     public EventFeature(JsonNode masterNode, JsonNode canditNode, String label) throws Exception {
     	if (!StringUtils.isEmpty(label) && !label.equals("DIFF") && !label.equals("EVENT") && !label.equals("DUP")) {
@@ -456,6 +458,40 @@ public class EventFeature {
 	    JsonNode cGeo = canditNode.has("geotag") ? canditNode.get("geotag") : canditNode.get("geotag_v2");
 	    this.geoRatio = geotagOverlapRatio(mGeo, cGeo);
 	    this.geoLength = geotagAverageLength(mGeo, cGeo);
+	    
+	    //Category Index : Huffman feature encoding for wide & deep model
+	    // wrong       : -1
+	    // normal      : 0
+	    // sports      : 1
+	    // economy     : 2
+	    // celebrities : 4
+	    // weather     : 8
+	    this.categoryIndex = 0;
+	    if (mCategory == null || mCategory.size() == 0) {
+	    	this.categoryIndex = -1;
+	    } else {
+		    JsonNode firstCatNode = mCategory.get("first_cat");
+		    Iterator<String> itrFirst = firstCatNode.fieldNames();
+		    while (itrFirst.hasNext()) {
+			    String key = itrFirst.next();
+			    if (StringUtils.equals("Sports", key)){
+				    this.categoryIndex += 1;
+			    }
+		    }
+		
+		    JsonNode secondCatNode = mCategory.get("second_cat");
+		    Iterator<String> itrSecond = secondCatNode.fieldNames();
+		    while (itrSecond.hasNext()) {
+			    String key = itrSecond.next();
+			    if (StringUtils.equals("BusinessEconomy_Markets", key)){
+				    this.categoryIndex += 2;
+			    } else if (StringUtils.equals("ArtsEntertainment_Celebrities", key)) {
+				    this.categoryIndex += 4;
+			    } else if (StringUtils.equals("ClimateEnvironment_Weather", key)) {
+				    this.categoryIndex += 8;
+			    }
+		    }
+	    }
     }
     
     
@@ -980,63 +1016,142 @@ public class EventFeature {
 		StringBuilder sb = new StringBuilder();
 		sb.append(StringUtils.equals("DIFF", label) ? "0" : StringUtils.equals("EVENT", label) ? "1" : "1.0001");
 		sb.append(",");
+		//Title Wide Feature
 		sb.append(titleDist == null ?  "-1" : sparse2continuous(titleDist, new double[]{5, 15, 30}));
 		sb.append(",");
 		sb.append(titleRatio == null ?  "-1" : sparse2continuous(titleRatio, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
-		sb.append(titleLength == null ?  "-1" : sparse2continuous(titleLength, new double[]{5}));
+		//Title Cross Feature
+		sb.append(titleRatio == null ?  "0" : sparse2continuous(titleRatio, new double[]{0.6}));
 		sb.append(",");
+		sb.append(titleLength == null ?  "0" : sparse2continuous(titleLength, new double[]{5}));
+		sb.append(",");
+		//Wide Feature
 		sb.append(epochSpan == null ?  "-1" : sparse2continuous(epochSpan, new double[]{86400}));
 		sb.append(",");
 		sb.append(insertSpan == null ?  "-1" : sparse2continuous(insertSpan, new double[]{86400}));
 		sb.append(",");
 		sb.append(simhashDist == null ?  "-1" : sparse2continuous(simhashDist, new double[]{25, 50, 75}));
 		sb.append(",");
+		//Content Words Wide Feature
 		sb.append(cKWSRatio == null ?  "-1" : sparse2continuous(cKWSRatio, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
-		sb.append(cKWSLength == null ?  "-1" : sparse2continuous(cKWSLength, new double[]{5}));
+		//Content Words Cross Feature
+		sb.append(cKWSRatio == null ?  "0" : sparse2continuous(cKWSRatio, new double[]{0.4}));
 		sb.append(",");
+		sb.append(cKWSLength == null ?  "0" : sparse2continuous(cKWSLength, new double[]{6}));
+		sb.append(",");
+		//Highlight Words Wide Feature
 		sb.append(hKWSRatio == null ?  "-1" : sparse2continuous(hKWSRatio, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
-		sb.append(hKWSLength == null ?  "-1" : sparse2continuous(hKWSLength, new double[]{5}));
+		//Highlight Words Cross Feature
+		sb.append(hKWSRatio == null ?  "0" : sparse2continuous(hKWSRatio, new double[]{0.4}));
 		sb.append(",");
+		sb.append(hKWSLength == null ?  "0" : sparse2continuous(hKWSLength, new double[]{3}));
+		sb.append(",");
+		//Channels Wide Feature
 		sb.append(channelRatio == null ?  "-1" : sparse2continuous(channelRatio, new double[]{0.3, 0.6}));
 		sb.append(",");
-		sb.append(channelLength == null ?  "-1" : sparse2continuous(channelLength, new double[]{2}));
+		//Channels Cross Feature
+		sb.append(channelRatio == null ?  "0" : sparse2continuous(channelRatio, new double[]{0.5}));
 		sb.append(",");
+		sb.append(channelLength == null ?  "0" : sparse2continuous(channelLength, new double[]{3}));
+		sb.append(",");
+		//Content Organization Wide Feature
 		sb.append(cOrgRatioNE == null ?  "-1" : sparse2continuous(cOrgRatioNE, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
 		sb.append(cOrgRatioSP == null ?  "-1" : sparse2continuous(cOrgRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
-		sb.append(cOrgLengthNE == null ?  "-1" : sparse2continuous(cOrgLengthNE, new double[]{4}));
+		//Content Organization Cross Feature
+		sb.append(cOrgRatioNE == null ?  "0" : sparse2continuous(cOrgRatioNE, new double[]{0.5}));
 		sb.append(",");
-		sb.append(cOrgLengthSP == null ?  "-1" : sparse2continuous(cOrgLengthSP, new double[]{4}));
+		sb.append(cOrgLengthNE == null ?  "0" : sparse2continuous(cOrgLengthNE, new double[]{6}));
 		sb.append(",");
+		sb.append(cOrgRatioSP == null ?  "0" : sparse2continuous(cOrgRatioSP, new double[]{0.5}));
+		sb.append(",");
+		sb.append(cOrgLengthSP == null ?  "0" : sparse2continuous(cOrgLengthSP, new double[]{6}));
+		sb.append(",");
+		//Content Location Wide Feature
 		sb.append(cLocRatioNE == null ?  "-1" : sparse2continuous(cLocRatioNE, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
 		sb.append(cLocRatioSP == null ?  "-1" : sparse2continuous(cLocRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
-		sb.append(cLocLengthNE == null ?  "-1" : sparse2continuous(cLocLengthNE, new double[]{3}));
+		//Content Location Cross Feature
+		sb.append(cLocRatioNE == null ?  "0" : sparse2continuous(cLocRatioNE, new double[]{0.5}));
 		sb.append(",");
-		sb.append(cLocLengthSP == null ?  "-1" : sparse2continuous(cLocLengthSP, new double[]{3}));
+		sb.append(cLocLengthNE == null ?  "0" : sparse2continuous(cLocLengthNE, new double[]{6}));
 		sb.append(",");
+		sb.append(cLocRatioSP == null ?  "0" : sparse2continuous(cLocRatioSP, new double[]{0.5}));
+		sb.append(",");
+		sb.append(cLocLengthSP == null ?  "0" : sparse2continuous(cLocLengthSP, new double[]{6}));
+		sb.append(",");
+		//Content Person Wide Feature
 		sb.append(cPerRatioNE == null ?  "-1" : sparse2continuous(cPerRatioNE, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
 		sb.append(cPerRatioSP == null ?  "-1" : sparse2continuous(cPerRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
-		sb.append(cPerLengthNE == null ?  "-1" : sparse2continuous(cPerLengthNE, new double[]{3}));
+		//Content Person Cross Feature
+		sb.append(cPerRatioNE == null ?  "0" : sparse2continuous(cPerRatioNE, new double[]{0.5}));
 		sb.append(",");
-		sb.append(cPerLengthSP == null ?  "-1" : sparse2continuous(cPerLengthSP, new double[]{3}));
+		sb.append(cPerLengthNE == null ?  "0" : sparse2continuous(cPerLengthNE, new double[]{4}));
 		sb.append(",");
+		sb.append(cPerRatioSP == null ?  "0" : sparse2continuous(cPerRatioSP, new double[]{0.5}));
+		sb.append(",");
+		sb.append(cPerLengthSP == null ?  "0" : sparse2continuous(cPerLengthSP, new double[]{4}));
+		sb.append(",");
+		//Content NUM Wide Feature
 		sb.append(cNUMRatioSP == null ?  "-1" : sparse2continuous(cNUMRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
-		sb.append(cNUMLengthSP == null ?  "-1" : sparse2continuous(cNUMLengthSP, new double[]{3}));
+		//Content NUM Cross Feature
+		sb.append(cNUMRatioSP == null ?  "0" : sparse2continuous(cNUMRatioSP, new double[]{0.5}));
 		sb.append(",");
+		sb.append(cNUMLengthSP == null ?  "0" : sparse2continuous(cNUMLengthSP, new double[]{4}));
+		sb.append(",");
+		//Content TIM Wide Feature
 		sb.append(cTimRatioSP == null ?  "-1" : sparse2continuous(cTimRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
 		sb.append(",");
-		sb.append(cTimLengthSP == null ?  "-1" : sparse2continuous(cTimLengthSP, new double[]{3}));
+		//Content TIM Cross Feature
+		sb.append(cTimRatioSP == null ?  "0" : sparse2continuous(cTimRatioSP, new double[]{0.5}));
 		sb.append(",");
+		sb.append(cTimLengthSP == null ?  "0" : sparse2continuous(cTimLengthSP, new double[]{4}));
+		sb.append(",");
+		//Category Wide Feature
 		sb.append(catRatio == null ?  "-1" : sparse2continuous(catRatio, new double[]{0.5}));
+		sb.append(",");
+		//Category Cross Feature : 用于降权!!!!
+		//Sports + Celebrities : Organization + Location + Person
+		if ((categoryIndex == 1 || categoryIndex == 4 || categoryIndex == 5) &&
+			(
+				(cOrgRatioSP != null && cOrgRatioSP < 0.4 && cOrgLengthSP > 5) ||
+				(cOrgRatioNE != null && cOrgRatioNE < 0.4 && cOrgLengthNE > 5) ||
+				(cLocRatioSP != null && cLocRatioSP < 0.4 && cLocLengthSP > 5) ||
+				(cLocRatioNE != null && cLocRatioNE < 0.4 && cLocLengthNE > 5) ||
+				(cPerRatioSP != null && cPerRatioSP < 0.4 && cPerLengthSP > 5) ||
+				(cPerRatioNE != null && cPerRatioNE < 0.4 && cPerLengthNE > 5)
+			)
+		) {
+			sb.append("1,1,");
+		} else if (categoryIndex == 2 && //Economy Markets : NUM + TIM + KWS
+			(
+				(cNUMRatioSP != null && cNUMRatioSP < 0.4 && cNUMLengthSP > 5) ||
+				(cTimRatioSP != null && cTimRatioSP < 0.4 && cTimLengthSP > 5) ||
+				(cKWSRatio != null && cKWSRatio < 0.4 && cKWSLength > 5)
+			)
+		) {
+			sb.append("1,1,");
+		} else if (categoryIndex == 8 && //Weather : Location
+			(
+				(cLocRatioSP != null && cLocRatioSP < 0.4 && cLocLengthSP > 5) ||
+				(cLocRatioNE != null && cLocRatioNE < 0.4 && cLocLengthNE > 5) ||
+				(geoRatio != null && geoRatio < 0.4)
+			)
+		) {
+			sb.append("1,1,");
+		} else {
+			sb.append("0,0,");
+		}
+		//Category Continuous Feature
+		sb.append(String.valueOf(categoryIndex));
 		return sb.toString();
 	}
 	
