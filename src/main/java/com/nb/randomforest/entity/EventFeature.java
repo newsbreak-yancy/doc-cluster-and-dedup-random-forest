@@ -1014,11 +1014,12 @@ public class EventFeature {
 	public String toCSV() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(StringUtils.equals("DIFF", label) ? "0" : StringUtils.equals("EVENT", label) ? "1" : "1.0001");
+//		sb.append(StringUtils.equals("DIFF", label) ? "0" : "1");
 		sb.append(",");
 		//Title Wide Feature
 		sb.append(titleDist == null ?  "-1" : sparse2continuous(titleDist, new double[]{5, 15, 30}));
 		sb.append(",");
-		sb.append(titleRatio == null ?  "-1" : sparse2continuous(titleRatio, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(titleRatio == null ?  "-1" : sparse2continuous(titleRatio, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
 		//Title Cross Feature
 		sb.append(titleRatio == null ?  "0" : sparse2continuous(titleRatio, new double[]{0.6}));
@@ -1030,10 +1031,10 @@ public class EventFeature {
 		sb.append(",");
 		sb.append(insertSpan == null ?  "-1" : sparse2continuous(insertSpan, new double[]{86400}));
 		sb.append(",");
-		sb.append(simhashDist == null ?  "-1" : sparse2continuous(simhashDist, new double[]{25, 50, 75}));
+		sb.append(simhashDist == null ?  "-1" : sparse2continuous(simhashDist, new double[]{20, 40, 60, 80}));
 		sb.append(",");
 		//Content Words Wide Feature
-		sb.append(cKWSRatio == null ?  "-1" : sparse2continuous(cKWSRatio, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(cKWSRatio == null ?  "-1" : sparse2continuous(cKWSRatio, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
 		//Content Words Cross Feature
 		sb.append(cKWSRatio == null ?  "0" : sparse2continuous(cKWSRatio, new double[]{0.4}));
@@ -1041,7 +1042,7 @@ public class EventFeature {
 		sb.append(cKWSLength == null ?  "0" : sparse2continuous(cKWSLength, new double[]{6}));
 		sb.append(",");
 		//Highlight Words Wide Feature
-		sb.append(hKWSRatio == null ?  "-1" : sparse2continuous(hKWSRatio, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(hKWSRatio == null ?  "-1" : sparse2continuous(hKWSRatio, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
 		//Highlight Words Cross Feature
 		sb.append(hKWSRatio == null ?  "0" : sparse2continuous(hKWSRatio, new double[]{0.4}));
@@ -1057,9 +1058,9 @@ public class EventFeature {
 		sb.append(channelLength == null ?  "0" : sparse2continuous(channelLength, new double[]{3}));
 		sb.append(",");
 		//Content Organization Wide Feature
-		sb.append(cOrgRatioNE == null ?  "-1" : sparse2continuous(cOrgRatioNE, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(cOrgRatioNE == null ?  "-1" : sparse2continuous(cOrgRatioNE, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
-		sb.append(cOrgRatioSP == null ?  "-1" : sparse2continuous(cOrgRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(cOrgRatioSP == null ?  "-1" : sparse2continuous(cOrgRatioSP, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
 		//Content Organization Cross Feature
 		sb.append(cOrgRatioNE == null ?  "0" : sparse2continuous(cOrgRatioNE, new double[]{0.5}));
@@ -1071,9 +1072,9 @@ public class EventFeature {
 		sb.append(cOrgLengthSP == null ?  "0" : sparse2continuous(cOrgLengthSP, new double[]{6}));
 		sb.append(",");
 		//Content Location Wide Feature
-		sb.append(cLocRatioNE == null ?  "-1" : sparse2continuous(cLocRatioNE, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(cLocRatioNE == null ?  "-1" : sparse2continuous(cLocRatioNE, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
-		sb.append(cLocRatioSP == null ?  "-1" : sparse2continuous(cLocRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(cLocRatioSP == null ?  "-1" : sparse2continuous(cLocRatioSP, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
 		//Content Location Cross Feature
 		sb.append(cLocRatioNE == null ?  "0" : sparse2continuous(cLocRatioNE, new double[]{0.5}));
@@ -1085,9 +1086,9 @@ public class EventFeature {
 		sb.append(cLocLengthSP == null ?  "0" : sparse2continuous(cLocLengthSP, new double[]{6}));
 		sb.append(",");
 		//Content Person Wide Feature
-		sb.append(cPerRatioNE == null ?  "-1" : sparse2continuous(cPerRatioNE, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(cPerRatioNE == null ?  "-1" : sparse2continuous(cPerRatioNE, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
-		sb.append(cPerRatioSP == null ?  "-1" : sparse2continuous(cPerRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(cPerRatioSP == null ?  "-1" : sparse2continuous(cPerRatioSP, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
 		//Content Person Cross Feature
 		sb.append(cPerRatioNE == null ?  "0" : sparse2continuous(cPerRatioNE, new double[]{0.5}));
@@ -1099,7 +1100,7 @@ public class EventFeature {
 		sb.append(cPerLengthSP == null ?  "0" : sparse2continuous(cPerLengthSP, new double[]{4}));
 		sb.append(",");
 		//Content NUM Wide Feature
-		sb.append(cNUMRatioSP == null ?  "-1" : sparse2continuous(cNUMRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(cNUMRatioSP == null ?  "-1" : sparse2continuous(cNUMRatioSP, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
 		//Content NUM Cross Feature
 		sb.append(cNUMRatioSP == null ?  "0" : sparse2continuous(cNUMRatioSP, new double[]{0.5}));
@@ -1107,7 +1108,7 @@ public class EventFeature {
 		sb.append(cNUMLengthSP == null ?  "0" : sparse2continuous(cNUMLengthSP, new double[]{4}));
 		sb.append(",");
 		//Content TIM Wide Feature
-		sb.append(cTimRatioSP == null ?  "-1" : sparse2continuous(cTimRatioSP, new double[]{0.2, 0.4, 0.6, 0.8}));
+		sb.append(cTimRatioSP == null ?  "-1" : sparse2continuous(cTimRatioSP, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
 		//Content TIM Cross Feature
 		sb.append(cTimRatioSP == null ?  "0" : sparse2continuous(cTimRatioSP, new double[]{0.5}));
@@ -1115,7 +1116,7 @@ public class EventFeature {
 		sb.append(cTimLengthSP == null ?  "0" : sparse2continuous(cTimLengthSP, new double[]{4}));
 		sb.append(",");
 		//Category Wide Feature
-		sb.append(catRatio == null ?  "-1" : sparse2continuous(catRatio, new double[]{0.5}));
+		sb.append(catRatio == null ?  "-1" : sparse2continuous(catRatio, new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}));
 		sb.append(",");
 		//Category Cross Feature : 用于降权!!!!
 		//Sports + Celebrities : Organization + Location + Person + KWS

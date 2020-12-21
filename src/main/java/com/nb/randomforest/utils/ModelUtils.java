@@ -355,12 +355,15 @@ public class ModelUtils {
                 if (StringUtils.equals(rCls, pCls)) {
                     tpDUP++;
                 }
-            } else if (evtScr > 0.45) {//EVENT
-                if (!StringUtils.equals(rCls, "DUP")) {
-                    ppEVT++;
+                
+                ppEVT++;
+                if (StringUtils.equals(rCls, "EVENT") || StringUtils.equals(rCls, "DUP")) {
+                    tpEVT++;
                 }
+            } else if (evtScr > 0.45) {//EVENT
+                ppEVT++;
                 pCls = "EVENT";
-                if (StringUtils.equals(rCls, "EVENT")) {
+                if (StringUtils.equals(rCls, "EVENT") || StringUtils.equals(rCls, "DUP")) {
                     tpEVT++;
                 }
             } else {
@@ -372,6 +375,7 @@ public class ModelUtils {
             }
             if (StringUtils.equals(rCls, "DUP")) {
                 rpDUP++;
+                rpEVT++;
             }
             
             if (!StringUtils.equals(rCls, pCls)) {
@@ -592,7 +596,8 @@ public class ModelUtils {
         bw.close();
     }
     
-    public static void someModelWork() throws Exception {
+    
+    public static void main(String[] args) throws Exception {
         /** Model Training */
         String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201126/";
         String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
@@ -614,7 +619,7 @@ public class ModelUtils {
     
         /** Model Inference STD Estimate */
         String passedModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201014/forest.model";
-        String onlineModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model";
+        String onlineModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117-deployed/forest.model";
         String abtestModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201126/forest.model";
         RandomForest passedForest = (RandomForest) SerializationHelper.read(passedModelPath);
         RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
@@ -623,11 +628,11 @@ public class ModelUtils {
         String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields";
         String trainDataPath = "/Users/yuxi/NB/RandomForest/_local/train/20201126/train_fields";
     
-        predictEstimateDataFeatureV1(abtestForest, estimateDataPath);
+        predictEstimateDataFeatureV1(onlineForest, estimateDataPath);
         System.out.println("==========================");
     
-        predictEstimateDataFeatureV1(abtestForest, trainDataPath);
-        System.out.println("==========================");
+//        predictEstimateDataFeatureV1(onlineForest, trainDataPath);
+//        System.out.println("==========================");
 
 //        String esLocal = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields_local";
 //        String esNonlocal = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields_nonlocal";
@@ -636,7 +641,7 @@ public class ModelUtils {
 //        predictEstimateDataFeatureV1(onlineForest, esNonlocal);
     }
     
-    public static void main(String[] args) throws Exception {
+    public static void main2(String[] args) throws Exception {
 //        buildModelSimMatrix();
         buildModelFeaMatrix();
     }
