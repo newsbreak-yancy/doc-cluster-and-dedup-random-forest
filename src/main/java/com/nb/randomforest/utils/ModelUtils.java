@@ -613,7 +613,7 @@ public class ModelUtils {
         trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
         Instances testingDataSet = getDataSet(testARFFPath);
         testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
-        trainModel(rootDir, trainingDataSet, 32, 10, 4);
+//        trainModel(rootDir, trainingDataSet, 32, 10, 6);
     
     
         /** Model Inference STD Estimate */

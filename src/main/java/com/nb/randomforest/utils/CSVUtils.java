@@ -2,6 +2,8 @@ package com.nb.randomforest.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nb.randomforest.entity.EventFeature;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.util.Date;
@@ -16,9 +18,9 @@ import java.util.Stack;
 public class CSVUtils {
 	
 	/**
-	 * Build Wide Feature From Doc Fields
+	 * Build Wide&Deep Model Input Feature From Doc Fields
 	 */
-	public static void buildCSVFromDocFields(String sourcePath, String dumpPath) throws Exception {
+	public static void buildCSVFromDocFields(String sourcePath, String dumpPath, Boolean forTrain, Boolean useDecisionTree) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		
 		File sourceFile = new File(sourcePath);
@@ -37,13 +39,22 @@ public class CSVUtils {
 				String cEmbed = datas[7];
 				
 				try {
+					//label
+					bw.write(StringUtils.equals("DIFF", label) ? "0" : StringUtils.equals("EVENT", label) ? "1" : forTrain ? "1" : "1.0001");
+					bw.write(",");
+					//wide & cross & cont feature
 					EventFeature feature = new EventFeature(
 						mapper.readTree(mField),
 						mapper.readTree(cField),
 						label
 					);
-					bw.write(feature.toCSV());
-					bw.write(",");
+					if (useDecisionTree) {
+						bw.write(_LogicUtils.transformDecisionLogicToWideFeature(feature));
+					} else {
+						bw.write(feature.toCSV());
+						bw.write(",");
+					}
+					//embed
 					bw.write("\"");
 					bw.write(mEmbed);
 					bw.write("\"");
@@ -317,16 +328,34 @@ public class CSVUtils {
 	 * sparse 特征转 连续值特征
 	 */
 	public static void main(String[] args) throws Exception {
-//		buildCSVFromDocFields(
-//			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_fields.txt",
-//			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_fields.csv"
-//		);
-		
-		
-		
+		//基于 forest decision path 生成 decision logic
 		buildDecisionLogicFileFromRFTree(
 			"/Users/yuxi/NB/RandomForest/_local/train/20201222/forest.out",
 			"/Users/yuxi/NB/RandomForest/src/main/java/com/nb/randomforest/utils/_LogicUtils.java"
 		);
+		
+//		//基于 doc fields 生成 wide & deep model input data
+//		buildCSVFromDocFields(
+//			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_fields.txt",
+//			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_fields.csv",
+//			false,
+//			true
+//		);
+//		buildCSVFromDocFields(
+//			"/Users/yuxi/NB/doc-clu-model-widedeep/data/train/doc_fields_shuf.txt",
+//			"/Users/yuxi/NB/doc-clu-model-widedeep/data/train/doc_fields_shuf.csv",
+//			true,
+//		    true
+//		);
+	}
+	
+	public static void main2(String[] args) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 512; i++) {
+			sb.append("'f");
+			sb.append(i);
+			sb.append("',");
+		}
+		System.out.println(sb.toString());
 	}
 }
