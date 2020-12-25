@@ -3,7 +3,6 @@ package com.nb.randomforest.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nb.randomforest.entity.EventFeature;
 import org.apache.commons.lang3.StringUtils;
 import weka.classifiers.trees.RandomForest;
@@ -82,32 +81,23 @@ public class ModelUtils {
     /**
      * Model training and estimate based on train, test file.
      */
-    public static void trainModel(String trainFile, String testFile) throws Exception {
-        Instances trainingDataSet = getDataSet(trainFile);
-        trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
-        Instances testingDataSet = getDataSet(testFile);
-        testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
-
+    public static RandomForest trainModel(
+        String rootPath, Instances trainingDataSet, Integer randomTreeNum, Integer featureNum, Integer maxDepth
+    ) throws Exception {
         RandomForest forest = new RandomForest();
-        forest.setNumIterations(300);
+        //some forest params
+        forest.setNumIterations(randomTreeNum);
+        forest.setNumFeatures(featureNum); // random feature num = log_2{feature num}
+        forest.setMaxDepth(maxDepth);
+        
+        //some debug info
         forest.setDebug(false);
-        forest.setNumFeatures(8); // random feature num = log_2{feature num}
         forest.setComputeAttributeImportance(true);
+        
+        //build classifier
         forest.buildClassifier(trainingDataSet);
-    
-        Evaluation eval = new Evaluation(trainingDataSet);
-        eval.evaluateModel(forest, testingDataSet);
-    
-        
-
-        /** Print the algorithm summary */
-        System.out.println("** Decision Tress Evaluation with Datasets **");
-        System.out.println(eval.toSummaryString());
-        System.out.print(" the expression for the input data as per alogorithm is ");
-        System.out.println(forest);
-        
-        // dump random forest model to file
-        SerializationHelper.write(Paths.get(new File(trainFile).getParent(),"forest.model").toString(), forest);
+        SerializationHelper.write(Paths.get(rootPath,"forest.model").toString(), forest);
+        return forest;
     }
     
     
@@ -349,7 +339,7 @@ public class ModelUtils {
             double[] distribute = forest.distributionsForInstances(instances)[0];
             double difScr = distribute[0];
             double evtScr = distribute[1];
-            if (evtScr > 0.95) {
+            if (evtScr > 0.8) {
                 ppDUP++;
                 pCls = "DUP";
                 if (StringUtils.equals(rCls, pCls)) {
@@ -488,7 +478,6 @@ public class ModelUtils {
      *
      */
     public static List<double[]> predictOnline(RandomForest forest, JsonNode masterNode, JsonNode canditNodes) throws Exception {
-        
         ArrayList<Attribute> attributes = MyAttributeBuilder.buildMyAttributesV1();
         Instances instances;
         
@@ -597,34 +586,49 @@ public class ModelUtils {
     }
     
     
+    /**
+     * Inference ONLINE
+     */
+    public static void inferenceOnline() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model");
+        String masterStr = "{ \"_id\" : \"0NmUZOpH\", \"c_word\" : 1110, \"channels\" : [ \"Facebook^^Inc.\", \"Social^^Media\", \"Social^^Life\", \"Facebook^^Privacy\", \"Social^^Engagement\" ], \"epoch\" : 1578459600, \"geotag\" : [], \"highlightkeyword_list\" : [ [ \"Cambridge^^Analytica\", 0.237125387901459 ], [ \"Mark^^Zuckerberg\", 0.00497122202215844 ], [ \"Robin^^Dunbar\", 0.00207098628466191 ], [ \"Facebook\", 0.000276432088162368 ], [ \"media\", 1.43794217017694e-06 ], [ \"Google\", 8.52768552463887e-07 ], [ \"Snowden\", 8.22066513865799e-07 ] ], \"insert_time\" : \"2020-01-08 11:40:13\", \"kw_title\" : [ \"Facebook\", \"social\", \"social^^media^^platforms\", \"social^^life\", \"Facebook^^accounts\", \"social^^networks\", \"social^^groups\", \"Facebook^^deletion\", \"people\" ], \"kws\" : [ \"Facebook\", \"social\", \"social^^media^^platforms\", \"social^^life\", \"Facebook^^accounts\", \"social^^networks\", \"social^^groups\", \"personal^^experiences\", \"Facebook^^deletion\", \"engagement\", \"people\", \"active^^users\", \"Google\", \"data^^privacy\", \"interesting^^trends\", \"digital^^forms\", \"behavioural^^influence\", \"smart^^technology\", \"Mark^^Zuckerberg\", \"perpetual^^social^^comparison\" ], \"ne_content_location\" : { \"US\" : 2 }, \"ne_content_organization\" : { \"Google\" : 1, \"Facebook\" : 25, \"Cambridge Analytica\" : 3 }, \"ne_content_person\" : { \"Robin Dunbar\" : 1, \"Snowden\" : 1, \"Donald Trump\" : 1, \"Mark Zuckerberg\" : 1 }, \"ne_title_location\" : {}, \"ne_title_organization\" : { \"Facebook\" : 1 }, \"ne_title_person\" : {}, \"paragraph_count\" : 22.0, \"simhash\" : \"78944e3a3416dfbe8a64cc47ced97ed2\", \"spacy_content_loc\" : [ \"US\", \"US\" ], \"spacy_content_num\" : [ \"2.45 billion\", \"approximately 32 %\", \"9 %\", \"35 %\", \"at least one\", \"150\", \"several thousand\", \"One\" ], \"spacy_content_org\" : [ \"Facebook\", \"Google\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Digital\", \"Facebook\", \"Dunbar\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\" ], \"spacy_content_per\" : [ \"Snowden\", \"Mark Zuckerberg 's\", \"Donald Trump\", \"Cambridge Analytica\", \"Cambridge Analytica\", \"Robin Dunbar\" ], \"spacy_content_tim\" : [ \"the previous month\", \"2018\" ], \"spacy_title_loc\" : [], \"spacy_title_num\" : [], \"spacy_title_org\" : [ \"Facebook\" ], \"spacy_title_per\" : [], \"spacy_title_tim\" : [], \"src\" : \"The Conversation\", \"stitle\" : \"Why people leave Facebook -- and what it tells us about the future of social media\", \"text_category\" : {}, \"url\" : \"https://theconversation.com/why-people-leave-facebook-and-what-it-tells-us-about-the-future-of-social-media-128952\" }";
+        String canditStr =
+            "[" +
+                "{ \"_id\" : \"0XZqO2ay\", \"c_word\" : 362, \"channels\" : [ \"Facebook^^Inc.\", \"Free^^People\" ], \"channels_v2\" : [ \"Internet\", \"Censorship\" ], \"dup_id\" : \"0XZqO2ay\", \"epoch\" : 1604937493, \"evt_id\" : \"0XZqO2ay\", \"geotag\" : [], \"geotag_v2\" : [], \"highlightkeyword_list\" : [ [ \"Leave^^Facebook\", 0.00659497546488851 ] ], \"insert_time\" : \"2020-11-09 19:10:00\", \"kw_title\" : [ \"Leave^^Facebook\", \"Facebook\", \"people\" ], \"kws\" : [ \"Leave^^Facebook\", \"Facebook\", \"people\", \"social\", \"slander\", \"censorship\", \"includes^^blood^^relatives\", \"defamation\", \"time\", \"home\", \"victim\" ], \"nbr_id\" : \"0XZqO2ay\", \"ne_content_location\" : {}, \"ne_content_organization\" : { \"Facebook\" : 4 }, \"ne_content_person\" : {}, \"ne_title_location\" : {}, \"ne_title_organization\" : { \"Leave Facebook\" : 1 }, \"ne_title_person\" : {}, \"paragraph_count\" : 6.0, \"simhash\" : \"ce0323f8ec0319206ff9e1678fd57bd9\", \"spacy_content_loc\" : [], \"spacy_content_num\" : [ \"a dozen\" ], \"spacy_content_org\" : [ \"Facebook\", \"Facebook\" ], \"spacy_content_per\" : [], \"spacy_content_tim\" : [], \"spacy_title_loc\" : [], \"spacy_title_num\" : [], \"spacy_title_org\" : [], \"spacy_title_per\" : [], \"spacy_title_tim\" : [], \"src\" : \"FMX 94.5\", \"stitle\" : \"Are People Really Going to Leave Facebook ?\", \"text_category\" : { \"first_cat\" : { \"TechnologyElectronics\" : 0.815229921585327 }, \"second_cat\" : { \"TechnologyElectronics_Internet\" : 0.764268210077496 }, \"third_cat\" : { \"TechnologyElectronics_Internet_Other\" : 0.764268210077496 } }, \"text_category_v2\" : { \"first_cat\" : { \"TechnologyElectronics\" : 0.815229921585327 }, \"second_cat\" : { \"TechnologyElectronics_Internet\" : 0.764268210077496 }, \"third_cat\" : { \"TechnologyElectronics_Internet_Other\" : 0.764268210077496 } }, \"url\" : \"https://kfmx.com/are-people-really-going-to-leave-facebook/\" }" +
+                "]";
+        List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
+        for (double[] weight : indexList) {
+            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]));
+        }
+    }
+    
+    
     public static void main(String[] args) throws Exception {
-        /** Model Training */
+        /** Model Training & Evaluation **/
         String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201222/";
         String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
         String testARFFPath = Paths.get(rootDir, "train.arff").toString();
-        trainModel(trainARFFPath, testARFFPath);
-
-//        /** Model Inference ONLINE */
-//        ObjectMapper mapper = new ObjectMapper();
-//        RandomForest forest = (RandomForest) SerializationHelper.read("/Users/yuxi/NB/RandomForest/_local/train/20201117/forest.model");
-//        String masterStr = "{ \"_id\" : \"0NmUZOpH\", \"c_word\" : 1110, \"channels\" : [ \"Facebook^^Inc.\", \"Social^^Media\", \"Social^^Life\", \"Facebook^^Privacy\", \"Social^^Engagement\" ], \"epoch\" : 1578459600, \"geotag\" : [], \"highlightkeyword_list\" : [ [ \"Cambridge^^Analytica\", 0.237125387901459 ], [ \"Mark^^Zuckerberg\", 0.00497122202215844 ], [ \"Robin^^Dunbar\", 0.00207098628466191 ], [ \"Facebook\", 0.000276432088162368 ], [ \"media\", 1.43794217017694e-06 ], [ \"Google\", 8.52768552463887e-07 ], [ \"Snowden\", 8.22066513865799e-07 ] ], \"insert_time\" : \"2020-01-08 11:40:13\", \"kw_title\" : [ \"Facebook\", \"social\", \"social^^media^^platforms\", \"social^^life\", \"Facebook^^accounts\", \"social^^networks\", \"social^^groups\", \"Facebook^^deletion\", \"people\" ], \"kws\" : [ \"Facebook\", \"social\", \"social^^media^^platforms\", \"social^^life\", \"Facebook^^accounts\", \"social^^networks\", \"social^^groups\", \"personal^^experiences\", \"Facebook^^deletion\", \"engagement\", \"people\", \"active^^users\", \"Google\", \"data^^privacy\", \"interesting^^trends\", \"digital^^forms\", \"behavioural^^influence\", \"smart^^technology\", \"Mark^^Zuckerberg\", \"perpetual^^social^^comparison\" ], \"ne_content_location\" : { \"US\" : 2 }, \"ne_content_organization\" : { \"Google\" : 1, \"Facebook\" : 25, \"Cambridge Analytica\" : 3 }, \"ne_content_person\" : { \"Robin Dunbar\" : 1, \"Snowden\" : 1, \"Donald Trump\" : 1, \"Mark Zuckerberg\" : 1 }, \"ne_title_location\" : {}, \"ne_title_organization\" : { \"Facebook\" : 1 }, \"ne_title_person\" : {}, \"paragraph_count\" : 22.0, \"simhash\" : \"78944e3a3416dfbe8a64cc47ced97ed2\", \"spacy_content_loc\" : [ \"US\", \"US\" ], \"spacy_content_num\" : [ \"2.45 billion\", \"approximately 32 %\", \"9 %\", \"35 %\", \"at least one\", \"150\", \"several thousand\", \"One\" ], \"spacy_content_org\" : [ \"Facebook\", \"Google\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Digital\", \"Facebook\", \"Dunbar\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\", \"Facebook\" ], \"spacy_content_per\" : [ \"Snowden\", \"Mark Zuckerberg 's\", \"Donald Trump\", \"Cambridge Analytica\", \"Cambridge Analytica\", \"Robin Dunbar\" ], \"spacy_content_tim\" : [ \"the previous month\", \"2018\" ], \"spacy_title_loc\" : [], \"spacy_title_num\" : [], \"spacy_title_org\" : [ \"Facebook\" ], \"spacy_title_per\" : [], \"spacy_title_tim\" : [], \"src\" : \"The Conversation\", \"stitle\" : \"Why people leave Facebook -- and what it tells us about the future of social media\", \"text_category\" : {}, \"url\" : \"https://theconversation.com/why-people-leave-facebook-and-what-it-tells-us-about-the-future-of-social-media-128952\" }";
-//        String canditStr =
-//            "[" +
-//            "{ \"_id\" : \"0XZqO2ay\", \"c_word\" : 362, \"channels\" : [ \"Facebook^^Inc.\", \"Free^^People\" ], \"channels_v2\" : [ \"Internet\", \"Censorship\" ], \"dup_id\" : \"0XZqO2ay\", \"epoch\" : 1604937493, \"evt_id\" : \"0XZqO2ay\", \"geotag\" : [], \"geotag_v2\" : [], \"highlightkeyword_list\" : [ [ \"Leave^^Facebook\", 0.00659497546488851 ] ], \"insert_time\" : \"2020-11-09 19:10:00\", \"kw_title\" : [ \"Leave^^Facebook\", \"Facebook\", \"people\" ], \"kws\" : [ \"Leave^^Facebook\", \"Facebook\", \"people\", \"social\", \"slander\", \"censorship\", \"includes^^blood^^relatives\", \"defamation\", \"time\", \"home\", \"victim\" ], \"nbr_id\" : \"0XZqO2ay\", \"ne_content_location\" : {}, \"ne_content_organization\" : { \"Facebook\" : 4 }, \"ne_content_person\" : {}, \"ne_title_location\" : {}, \"ne_title_organization\" : { \"Leave Facebook\" : 1 }, \"ne_title_person\" : {}, \"paragraph_count\" : 6.0, \"simhash\" : \"ce0323f8ec0319206ff9e1678fd57bd9\", \"spacy_content_loc\" : [], \"spacy_content_num\" : [ \"a dozen\" ], \"spacy_content_org\" : [ \"Facebook\", \"Facebook\" ], \"spacy_content_per\" : [], \"spacy_content_tim\" : [], \"spacy_title_loc\" : [], \"spacy_title_num\" : [], \"spacy_title_org\" : [], \"spacy_title_per\" : [], \"spacy_title_tim\" : [], \"src\" : \"FMX 94.5\", \"stitle\" : \"Are People Really Going to Leave Facebook ?\", \"text_category\" : { \"first_cat\" : { \"TechnologyElectronics\" : 0.815229921585327 }, \"second_cat\" : { \"TechnologyElectronics_Internet\" : 0.764268210077496 }, \"third_cat\" : { \"TechnologyElectronics_Internet_Other\" : 0.764268210077496 } }, \"text_category_v2\" : { \"first_cat\" : { \"TechnologyElectronics\" : 0.815229921585327 }, \"second_cat\" : { \"TechnologyElectronics_Internet\" : 0.764268210077496 }, \"third_cat\" : { \"TechnologyElectronics_Internet_Other\" : 0.764268210077496 } }, \"url\" : \"https://kfmx.com/are-people-really-going-to-leave-facebook/\" }" +
-//            "]";
-//        List<double[]> indexList = predictOnline(forest, mapper.readTree(masterStr), mapper.readTree(canditStr));
-//        for (double[] weight : indexList) {
-//            System.out.println(String.valueOf(weight[0]) + "\t" + String.valueOf(weight[1]));
-//        }
+        Instances trainingDataSet = getDataSet(trainARFFPath);
+        trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
+        Instances testingDataSet = getDataSet(testARFFPath);
+        testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
+        trainModel(rootDir, trainingDataSet, 32, 10, 4);
+    
     
         /** Model Inference STD Estimate */
         String onlineModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117-deployed/forest.model";
         String abtestModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201222/forest.model";
-        RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
+//        RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
         RandomForest abtestForest = (RandomForest) SerializationHelper.read(abtestModelPath);
-    
+        abtestForest.setPrintClassifiers(true);
+        abtestForest.setComputeAttributeImportance(false);
+        BufferedWriter bw = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/train/20201222/forest.out")));
+        bw.write(abtestForest.toString());
+        bw.close();
+        
+
         String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields";
-    
         predictEstimateDataFeatureV1(abtestForest, estimateDataPath);
         System.out.println("==========================");
     

@@ -64,10 +64,10 @@ public class MyAttributeBuilder {
 		attributes.add(new Attribute("CLocRatioSP"));
 		attributes.add(new Attribute("CLocLengthNE"));
 		attributes.add(new Attribute("CLocLengthSP"));
-		attributes.add(new Attribute("CPrsRatioNE"));
-		attributes.add(new Attribute("CPrsRatioSP"));
-		attributes.add(new Attribute("CPrsLengthNE"));
-		attributes.add(new Attribute("CPrsLengthSP"));
+		attributes.add(new Attribute("CPerRatioNE"));
+		attributes.add(new Attribute("CPerRatioSP"));
+		attributes.add(new Attribute("CPerLengthNE"));
+		attributes.add(new Attribute("CPerLengthSP"));
 		attributes.add(new Attribute("CNUMRatioSP"));
 		attributes.add(new Attribute("CNUMLengthSP"));
 		attributes.add(new Attribute("CTimRatioSP"));
