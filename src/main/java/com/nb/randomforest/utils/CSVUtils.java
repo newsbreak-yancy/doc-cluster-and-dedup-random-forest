@@ -633,20 +633,20 @@ public class CSVUtils {
 		String nodePath = "/Users/yuxi/NB/RandomForest/_local/train/20201222/forest.out";
 		String dlPath = "/Users/yuxi/NB/RandomForest/src/main/java/com/nb/randomforest/utils/_LogicUtils.java";
 //		buildDecisionLogicFileFromTreeNodeSequenceSerialize (nodePath, dlPath);
-		buildDecisionLogicFileFromTreeNodeSequenceDiscriminate(nodePath, dlPath, 32, 6);
+//		buildDecisionLogicFileFromTreeNodeSequenceDiscriminate(nodePath, dlPath, 4, 10);
 		
 		//基于 doc fields 生成 wide & deep model input data
-//		buildCSVFromDocFields(
-//			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_fields.txt",
-//			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_fields.csv",
-//			false,
-//			true
-//		);
-//		buildCSVFromDocFields(
-//			"/Users/yuxi/NB/doc-clu-model-widedeep/data/train/doc_fields_shuf.txt",
-//			"/Users/yuxi/NB/doc-clu-model-widedeep/data/train/doc_fields_shuf.csv",
-//			true,
-//		    true
-//		);
+		buildCSVFromDocFields(
+			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_fields.txt",
+			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_fields.csv",
+			false,
+			true
+		);
+		buildCSVFromDocFields(
+			"/Users/yuxi/NB/doc-clu-model-widedeep/data/train/doc_fields_shuf.txt",
+			"/Users/yuxi/NB/doc-clu-model-widedeep/data/train/doc_fields_shuf.csv",
+			true,
+		    true
+		);
 	}
 }

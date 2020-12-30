@@ -339,7 +339,7 @@ public class ModelUtils {
             double[] distribute = forest.distributionsForInstances(instances)[0];
             double difScr = distribute[0];
             double evtScr = distribute[1];
-            if (evtScr > 0.8) {
+            if (evtScr > 0.85) {
                 ppDUP++;
                 pCls = "DUP";
                 if (StringUtils.equals(rCls, pCls)) {
@@ -613,7 +613,7 @@ public class ModelUtils {
         trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
         Instances testingDataSet = getDataSet(testARFFPath);
         testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
-//        trainModel(rootDir, trainingDataSet, 32, 10, 6);
+        trainModel(rootDir, trainingDataSet, 4, 12, 10);
     
     
         /** Model Inference STD Estimate */
