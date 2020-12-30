@@ -48,7 +48,7 @@ public class CSVUtils {
 						label
 					);
 					if (useDecisionTree) {
-//						bw.write(_LogicUtils.transformDecisionLogicToWideFeature(feature));
+						bw.write(_LogicUtils.transformDecisionLogicToWideFeature(feature));
 					} else {
 						bw.write(feature.toCSV());
 						bw.write(",");
@@ -319,14 +319,13 @@ public class CSVUtils {
 	/**
 	 * Build Decision Logic File From Random Forest Nodes * Discriminate
 	 */
-	public static void buildDecisionLogicFileFromTreeNodeSequenceDiscriminate(String nodePath, String logicPath) throws Exception {
+	public static void buildDecisionLogicFileFromTreeNodeSequenceDiscriminate(String nodePath, String logicPath, int treeNum, int treeDepth) throws Exception {
 		BufferedReader br = new BufferedReader(new FileReader(new File(nodePath)));
 		BufferedWriter bwDiscrim = new BufferedWriter(new FileWriter(new File(logicPath)));
 		//utils header
 		bwDiscrim.write("package com.nb.randomforest.utils;");
 		bwDiscrim.write("\n\n");
 		bwDiscrim.write("import com.nb.randomforest.entity.EventFeature;");
-		bwDiscrim.write("import java.util.ArrayList;");
 		bwDiscrim.write("\n\n");
 		bwDiscrim.write("/**\n" +
 			" * @author yuxi\n" +
@@ -498,7 +497,7 @@ public class CSVUtils {
 		bwDiscrim.write("StringBuilder sb = new StringBuilder();");
 		bwDiscrim.write("\n");
 		bwDiscrim.write("\t\t");
-		bwDiscrim.write("int[] ints = new int[4];");
+		bwDiscrim.write("int[] ints = new int[" + (treeNum * (1<<treeDepth)) + "];");
 		bwDiscrim.write("\n");
 		//
 		String line = null;
@@ -519,7 +518,7 @@ public class CSVUtils {
 					line = line.split(" : ")[0];
 				}
 				//
-				if (curtDepth > lastDepth && !isOut) {//判断逻辑
+				if (curtDepth > lastDepth && !isOut) {
 					for (int i = 1; i < curtDepth; i++) {
 						bwDiscrim.write("\t");
 					}
@@ -533,13 +532,8 @@ public class CSVUtils {
 					bwDiscrim.write("if (");
 					bwDiscrim.write(line);
 					bwDiscrim.write(") {");
-					bwDiscrim.write("ints[" + 1 + "] = 1;}\n");
-				} else if (curtDepth == lastDepth && isOut) {
-					for (int i = 1; i < curtDepth; i++) {
-						bwDiscrim.write("\t");
-					}
-					bwDiscrim.write("else {");
-					bwDiscrim.write("ints[" + 1 + "] = 1;}\n");
+					bwDiscrim.write("ints[" + ((curtTree - 1) * (1<<treeDepth) + index) + "] = 1;}\n");
+					index += 1;
 				} else if (curtDepth == lastDepth && !isOut) {
 					for (int i = 1; i < curtDepth; i++) {
 						bwDiscrim.write("\t");
@@ -547,6 +541,13 @@ public class CSVUtils {
 					bwDiscrim.write("if (");
 					bwDiscrim.write(line);
 					bwDiscrim.write(") {\n");
+				} else if (curtDepth == lastDepth && isOut) {
+					for (int i = 1; i < curtDepth; i++) {
+						bwDiscrim.write("\t");
+					}
+					bwDiscrim.write("else {");
+					bwDiscrim.write("ints[" + ((curtTree - 1) * (1<<treeDepth) + index) + "] = 1;}\n");
+					index += 1;
 				} else if (curtDepth < lastDepth && !isOut) {//curtDepth < lastDepth 收尾 + 是否为新树?
 					if (curtTree != lastTree) {
 						lastTree = curtTree;
@@ -589,7 +590,8 @@ public class CSVUtils {
 								bwDiscrim.write("\t");
 							}
 							if (lastDepth - j - curtDepth == 1) {
-								bwDiscrim.write("} else {ints[" + 1 + "] = 1;}\n");
+								bwDiscrim.write("} else {ints[" + ((curtTree - 1) * (1<<treeDepth) + index) + "] = 1;}\n");
+								index += 1;
 							} else {
 								bwDiscrim.write("}\n");
 							}
@@ -611,8 +613,12 @@ public class CSVUtils {
 			bwDiscrim.write("}\n");
 		}
 		
-		bwDiscrim.write("\t\t");
-		bwDiscrim.write("return sb.toString();");
+		
+		bwDiscrim.write("\t\tfor (int i = 0; i < ints.length; i++) {\n");
+		bwDiscrim.write("\t\t\tsb.append(ints[i]);\n");
+		bwDiscrim.write("\t\t\tsb.append(\",\");\n");
+		bwDiscrim.write("\t\t}\n");
+		bwDiscrim.write("\t\treturn sb.toString();\n");
 		bwDiscrim.write("\n");
 		bwDiscrim.write("\t}\n}");
 		bwDiscrim.close();
@@ -627,9 +633,9 @@ public class CSVUtils {
 		String nodePath = "/Users/yuxi/NB/RandomForest/_local/train/20201222/forest.out";
 		String dlPath = "/Users/yuxi/NB/RandomForest/src/main/java/com/nb/randomforest/utils/_LogicUtils.java";
 //		buildDecisionLogicFileFromTreeNodeSequenceSerialize (nodePath, dlPath);
-		buildDecisionLogicFileFromTreeNodeSequenceDiscriminate(nodePath, dlPath);
+		buildDecisionLogicFileFromTreeNodeSequenceDiscriminate(nodePath, dlPath, 32, 6);
 		
-//		//基于 doc fields 生成 wide & deep model input data
+		//基于 doc fields 生成 wide & deep model input data
 //		buildCSVFromDocFields(
 //			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_fields.txt",
 //			"/Users/yuxi/NB/doc-clu-model-widedeep/data/estimate/doc_fields.csv",
@@ -642,15 +648,5 @@ public class CSVUtils {
 //			true,
 //		    true
 //		);
-	}
-	
-	public static void main2(String[] args) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < 512; i++) {
-			sb.append("'f");
-			sb.append(i);
-			sb.append("',");
-		}
-		System.out.println(sb.toString());
 	}
 }
