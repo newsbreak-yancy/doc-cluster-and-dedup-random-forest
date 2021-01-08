@@ -122,12 +122,12 @@ public class EventFeature {
 	    JsonNode cChannel = canditNode.has("channels_v2") ? canditNode.get("channels_v2") : canditNode.get("channels");
 	    this.channelRatio = overlapRatio(mChannel, cChannel);
 	    
-	    this.cOrgOverlapRatio = weightedOverlapRatio(masterNode.get("ne_content_organization"), canditNode.get("ne_content_organization"));
-	    this.cLocOverlapRatio = weightedOverlapRatio(masterNode.get("ne_content_location"), canditNode.get("ne_content_location"));
-	    this.cPrsOverlapRatio = weightedOverlapRatio(masterNode.get("ne_content_person"), canditNode.get("ne_content_person"));
-	    this.tOrgOverlapRatio = weightedOverlapRatio(masterNode.get("ne_title_organization"), canditNode.get("ne_title_organization"));
-	    this.tLocOverlapRatio = weightedOverlapRatio(masterNode.get("ne_title_location"), canditNode.get("ne_title_location"));
-	    this.tPrsOverlapRatio = weightedOverlapRatio(masterNode.get("ne_title_person"), canditNode.get("ne_title_person"));
+	    this.cOrgOverlapRatio = weightedOverlapRatio(masterNode.get("spacy_content_org"), canditNode.get("spacy_content_org"));
+	    this.cLocOverlapRatio = weightedOverlapRatio(masterNode.get("spacy_content_loc"), canditNode.get("spacy_content_loc"));
+	    this.cPrsOverlapRatio = weightedOverlapRatio(masterNode.get("spacy_content_per"), canditNode.get("spacy_content_per"));
+	    this.tOrgOverlapRatio = weightedOverlapRatio(masterNode.get("spacy_title_org"), canditNode.get("spacy_title_org"));
+	    this.tLocOverlapRatio = weightedOverlapRatio(masterNode.get("spacy_title_loc"), canditNode.get("spacy_title_loc"));
+	    this.tPrsOverlapRatio = weightedOverlapRatio(masterNode.get("spacy_title_per"), canditNode.get("spacy_title_per"));
 	    
 	    JsonNode mCategory = masterNode.has("text_category_v2") ? masterNode.get("text_category_v2") : masterNode.get("text_category");
 	    JsonNode cCategory = canditNode.has("text_category_v2") ? canditNode.get("text_category_v2") : canditNode.get("text_category");
