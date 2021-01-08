@@ -25,6 +25,10 @@ public class EventFeature {
 	 * Overlap Ratio
 	 * Average Length
 	 */
+	private String mTitle;
+	
+	private String cTitle;
+	
 	private Double titleDist;
 	
 	private Double titleRatio;
@@ -272,6 +276,8 @@ public class EventFeature {
 	    List<String> mTitleList = Arrays.asList(mTitle.split(" "));
 	    String cTitle = titlePreprocess(cTitleRaw);
 	    List<String> cTitleList = Arrays.asList(cTitle.split(" "));
+	    this.mTitle = mTitle;
+	    this.cTitle = cTitle;
         this.titleDist = levenshteinDistance(mTitle, cTitle);
         this.titleRatio = overlapRatio(mTitleList, cTitleList);
         this.titleLength = averageLength(mTitleList, cTitleList);
@@ -708,6 +714,18 @@ public class EventFeature {
 	
 	public Double getGeoLength() {
 		return geoLength;
+	}
+	
+	public Integer getCategoryIndex() {
+		return categoryIndex;
+	}
+	
+	public String getmTitle() {
+		return mTitle;
+	}
+	
+	public String getcTitle() {
+		return cTitle;
 	}
 	
 	public Instance toInstanceV0() {

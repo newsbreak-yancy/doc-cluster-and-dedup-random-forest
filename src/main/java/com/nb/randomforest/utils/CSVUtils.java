@@ -49,18 +49,30 @@ public class CSVUtils {
 					);
 					if (useDecisionTree) {
 						bw.write(_LogicUtils.transformDecisionLogicToWideFeature(feature));
+						bw.write(String.valueOf(feature.getCategoryIndex()));
+						bw.write(",");
 					} else {
 						bw.write(feature.toCSV());
 						bw.write(",");
 					}
-					//embed
+//					//embed
+//					bw.write("\"");
+//					bw.write(mEmbed);
+//					bw.write("\"");
+//					bw.write(",");
+//					bw.write("\"");
+//					bw.write(cEmbed);
+//					bw.write("\"");
+//					bw.write(",");
+					
+					
+					//text
 					bw.write("\"");
-					bw.write(mEmbed);
+					bw.write(feature.getmTitle().replaceAll("-", " "));
+					bw.write(" , ");
+					bw.write(feature.getcTitle().replaceAll("-", " "));
 					bw.write("\"");
-					bw.write(",");
-					bw.write("\"");
-					bw.write(cEmbed);
-					bw.write("\"");
+					
 					bw.write("\n");
 				} catch (Exception e) {
 					e.printStackTrace();
