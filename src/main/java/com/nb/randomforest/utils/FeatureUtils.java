@@ -47,16 +47,17 @@ public class FeatureUtils {
 		stopWords.add("am");
 		stopWords.add("'re");
 		stopWords.add("are");
+		stopWords.add("and");
 		stopWords.add("of");
 		stopWords.add("on");
 		stopWords.add("at");
 		stopWords.add("in");
+		stopWords.add("from");
 		stopWords.add("within");
 		stopWords.add("as");
 		stopWords.add("before");
 		stopWords.add("after");
 		stopWords.add("to");
-		stopWords.add("gives");
 		//符号
 		stopWords.add("!");
 		stopWords.add("\"");

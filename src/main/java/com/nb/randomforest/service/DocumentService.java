@@ -76,11 +76,9 @@ public class DocumentService {
 					}
 				}
 			}
-			
 			if (title.contains("fauci says")) {
 				aboutFauci = true;
 			}
-			
 			
 			// 2. prepare instances for RFModel
 			instances = new Instances(UUID.randomUUID().toString(), attributes, 1);

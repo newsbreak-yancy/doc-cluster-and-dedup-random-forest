@@ -157,8 +157,8 @@ public class FileUtils {
 	 * doc + doc + title + title + url + url
 	 */
 	public static void buildLabelDataFromDBByDocPair() throws Exception {
-		String input = "/Users/yuxi/NB/RandomForest/_local/append_1128~1130/doc_pair_shuf_10k";
-		String output = "/Users/yuxi/NB/RandomForest/_local/append_1128~1130/doc_pair_shuf_10k_unlabeled";
+		String input = "/Users/yuxi/NB/crumbs/experiment/doc_clu_0118_caption/video_web_pair";
+		String output = "/Users/yuxi/NB/crumbs/experiment/doc_clu_0118_caption/video_web_pair_unlabeled";
 		
 		BufferedReader br = new BufferedReader(new FileReader(new File(input)));
 		String line = null;
@@ -182,10 +182,14 @@ public class FileUtils {
 			String docM = strs[0];
 			String docC = strs[1];
 			String info = strs[2];
-			bw.write(docM + "\t" + docC + "\t" + info + "\t" +
-				idMap.get(docM).getString("stitle") + "\t" + idMap.get(docC).getString("stitle") + "\t" +
-				idMap.get(docM).getString("url") + "\t" + idMap.get(docC).getString("url") + "\n"
-			);
+			try {
+				bw.write(docM + "\t" + docC + "\t" + info + "\t" +
+					idMap.get(docM).getString("stitle") + "\t" + idMap.get(docC).getString("stitle") + "\t" +
+					idMap.get(docM).getString("url") + "\t" + idMap.get(docC).getString("url") + "\n"
+				);
+			} catch (Exception e) {
+				System.out.println(lines);
+			}
 		}
 		bw.close();
 	}
@@ -521,7 +525,8 @@ public class FileUtils {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		dumpDocFieldsFromDocPairFiles();
+		buildLabelDataFromDBByDocPair();
+//		dumpDocFieldsFromDocPairFiles();
 //		buildLabelDataFromDBByDocPair();
 //		dumpDocFieldsFromDocListFile(new File("/Users/yuxi/NB/crumbs/experiment/doc_cluster/0XtBbBhm_evt_cluster_docs"));
 	}
