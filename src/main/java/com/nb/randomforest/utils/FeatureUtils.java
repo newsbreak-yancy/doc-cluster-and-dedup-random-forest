@@ -224,8 +224,8 @@ public class FeatureUtils {
 	public static String replaceSynonym(String word) {
 		if (synonymWords.containsKey(word)) {
 			return synonymWords.get(word);
-		} else if (word.contains("-")) {
-			String[] parts = word.split("-");
+		} else if (word.contains("-") || word.contains("^^") || word.contains(" ") || word.contains("_")) {
+			String[] parts = word.split("(\\^\\^| |-|_)");
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < parts.length; i++) {
 				String part = parts[i];
