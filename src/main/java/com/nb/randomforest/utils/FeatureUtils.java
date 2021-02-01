@@ -43,10 +43,12 @@ public class FeatureUtils {
 		stopWords.add("being");
 		stopWords.add("'s");
 		stopWords.add("is");
+		stopWords.add("was");
 		stopWords.add("'m");
 		stopWords.add("am");
 		stopWords.add("'re");
 		stopWords.add("are");
+		stopWords.add("were");
 		stopWords.add("and");
 		stopWords.add("of");
 		stopWords.add("on");
@@ -131,15 +133,38 @@ public class FeatureUtils {
 		synonymWords.put("passenger", "visitor");
 		synonymWords.put("customers", "visitor");
 		synonymWords.put("customer", "visitor");
-		//United Nations
+		synonymWords.put("biblical", "bible");
+		synonymWords.put("bibles", "bible");
+		synonymWords.put("nflx", "netflix");
+		synonymWords.put("coca-cola", "coca cola");
+		synonymWords.put("single-player", "single player");
+		//abbreviation
+		//number
+		synonymWords.put("1st", "first");
+		synonymWords.put("2nd", "second");
+		synonymWords.put("3rd", "third");
+		synonymWords.put("4th", "fourth");
+		//Gov. Governor
+		synonymWords.put("gov.", "governor");
+		synonymWords.put("ca", "california");
+		synonymWords.put("ca.", "california");
+		synonymWords.put("la", "los angeles");
+		synonymWords.put("ny", "new york");
+		//Computer
+		synonymWords.put("a.i.", "artificial intelligence");
+		synonymWords.put("ai", "artificial intelligence");
+		synonymWords.put("win10", "windows 10");
+		synonymWords.put("chromeos", "chrome os");
+		synonymWords.put("wiki", "wikipedia");
+		synonymWords.put("ios", "iphone operating system");
+		synonymWords.put("macos", "macbook operating system");
+		//Country
 		synonymWords.put("un", "united nations");
-		//britain, uk, u.k., u.k, england, United-Kingdom
 		synonymWords.put("britain", "united kingdom");
 		synonymWords.put("uk", "united kingdom");
 		synonymWords.put("u.k.", "united kingdom");
 		synonymWords.put("u.k", "united kingdom");
 		synonymWords.put("england", "united kingdom");
-		//america, u.s.a. us. u.s.
 		synonymWords.put("us", "united states");
 		synonymWords.put("u.s.", "united states");
 		synonymWords.put("u.s", "united states");
@@ -147,41 +172,12 @@ public class FeatureUtils {
 		synonymWords.put("u.s.a", "united states");
 		synonymWords.put("america", "united states");
 		synonymWords.put("potus", "president united states");
-		//India
 		synonymWords.put("bharat", "india");
-		//China
 		synonymWords.put("prc", "china");
-		//Japan
 		synonymWords.put("jpn", "japan");
-		//Switzerland suisse
 		synonymWords.put("schweiz", "switzerland");
 		synonymWords.put("suisse", "switzerland");
-		//Swedan
 		synonymWords.put("sverige", "sweden");
-		//
-		synonymWords.put("biblical", "bible");
-		synonymWords.put("bibles", "bible");
-		
-		synonymWords.put("nflx", "netflix");
-		synonymWords.put("macos", "macbook operating system");
-		synonymWords.put("ios", "iphone operating system");
-		
-		synonymWords.put("coca-cola", "coca cola");
-		synonymWords.put("single-player", "single player");
-		synonymWords.put("wiki", "wikipedia");
-		
-		synonymWords.put("a.i.", "artificial intelligence");
-		synonymWords.put("ai", "artificial intelligence");
-		
-		synonymWords.put("win10", "windows 10");
-		synonymWords.put("chromeos", "chrome os");
-		
-		//Gov. Governor
-		synonymWords.put("gov.", "governor");
-		synonymWords.put("ca", "california");
-		synonymWords.put("ca.", "california");
-		synonymWords.put("la", "los angeles");
-		synonymWords.put("ny", "new york");
 	}
 	
 	
@@ -257,18 +253,15 @@ public class FeatureUtils {
 	public static String titlePreprocess(String sequence) {
 		if (sequence.startsWith("The Latest : ")) {
 			sequence = sequence.substring(13, sequence.length());
-		}
-		if (sequence.startsWith("WATCH TODAY : ")) {
+		} else if (sequence.startsWith("WATCH TODAY : ")) {
 			sequence = sequence.substring(14, sequence.length());
-		}
-		if (sequence.startsWith("WATCH LIVE : ")) {
+		} else if (sequence.startsWith("WATCH LIVE : ")) {
 			sequence = sequence.substring(13, sequence.length());
-		}
-		if (sequence.startsWith("WATCH LIVE TODAY : ")) {
+		} else if (sequence.startsWith("WATCH LIVE TODAY : ")) {
 			sequence = sequence.substring(19, sequence.length());
 		}
 		String lowerCase = sequence.toLowerCase();//小写
-		String[] words = lowerCase.split(" ");//切分
+		String[] words = lowerCase.split("( |-)");//切分
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < words.length; i++) {
 			String word = words[i];
@@ -653,26 +646,11 @@ public class FeatureUtils {
 	
 	
 	public static void main(String[] args) {
-		String s = "$ 4.2 % million";
-		s = s.replaceAll("@", "")
-			.replaceAll("\\$", "")
-			.replaceAll("%", "")
-			.replaceAll("cents", "")
-			.replaceAll("million", "");
-		System.out.println(s);
-		System.out.println("------------");
-		Morphology m = new Morphology();
-		System.out.println(m.stem(s)); // 4.2
-
-//		String s = "Gov. Newsom to announce new stay-at-home order in California";
-//		s = titlePreprocess(s);
-//		System.out.println(s);
-////		String t = "New California stay-home order weighed as COVID hospitalizations surge";
-//		String t = "WATCH TODAY : Gov. Newsom gives update on possible stay-at-home order in California";
-//		t = titlePreprocess(t);
-//		System.out.println(t);
-//
-//		System.out.println(overlapRatio(Arrays.asList(s.split(" ")), Arrays.asList(t.split(" "))));
+		String s = "You Look-From";
+		String[] strs = s.split("( |-)");
+		for (String str : strs) {
+			System.out.println(str);
+		}
 	}
 	
 	

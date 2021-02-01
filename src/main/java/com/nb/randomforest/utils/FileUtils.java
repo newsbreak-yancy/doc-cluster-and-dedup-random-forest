@@ -157,8 +157,8 @@ public class FileUtils {
 	 * doc + doc + title + title + url + url
 	 */
 	public static void buildLabelDataFromDBByDocPair() throws Exception {
-		String input = "/Users/yuxi/NB/crumbs/experiment/doc_clu_0118_caption/video_web_pair";
-		String output = "/Users/yuxi/NB/crumbs/experiment/doc_clu_0118_caption/video_web_pair_unlabeled";
+		String input = "/Users/yuxi/NB/crumbs/experiment/doc_clu_0118_caption/video_web_cap_pair";
+		String output = "/Users/yuxi/NB/crumbs/experiment/doc_clu_0118_caption/video_web_cap_pair_unlabeled.tsv";
 		
 		BufferedReader br = new BufferedReader(new FileReader(new File(input)));
 		String line = null;
@@ -166,6 +166,9 @@ public class FileUtils {
 		Map<String, Document> idMap = new HashMap<>();
 		List<String[]> lines = new ArrayList<>();
 		while ((line = br.readLine()) != null) {
+			if (line.startsWith("\uFEFF")) {
+				line = line.replace("\uFEFF", "");
+			}
 			String[] datas = line.split("\t");
 			ids.add(datas[0]);
 			ids.add(datas[1]);
@@ -188,7 +191,8 @@ public class FileUtils {
 					idMap.get(docM).getString("url") + "\t" + idMap.get(docC).getString("url") + "\n"
 				);
 			} catch (Exception e) {
-				System.out.println(lines);
+				e.printStackTrace();
+				System.out.println(strs);
 			}
 		}
 		bw.close();
