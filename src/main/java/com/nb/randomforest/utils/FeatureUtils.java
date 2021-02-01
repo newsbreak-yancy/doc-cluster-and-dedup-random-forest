@@ -103,10 +103,16 @@ public class FeatureUtils {
 		stopWords.add("7");
 		stopWords.add("8");
 		stopWords.add("9");
+		//单位
+		stopWords.add("cents");
+		stopWords.add("meter");
+		stopWords.add("million");
 		//媒体 : 相同媒体近似事件导致误伤(提取了相同报道媒体)
 		stopWords.add("ap");
 		stopWords.add("cnn");
 		stopWords.add("bbc");
+		//位置 : county 郡县
+		stopWords.add("county");
 		
 		//同义词
 		//coronavirus, covid-19, sars-cov-2, covid virus
@@ -358,20 +364,19 @@ public class FeatureUtils {
 				m = m.toLowerCase();
 				m = m.replaceAll("@", "")
 					.replaceAll("\\$", "")
-					.replaceAll("%", "")
-					.replaceAll("the", "")
-					.replaceAll("cents", "")
-					.replaceAll("million", "");
+					.replaceAll("%", "");
 				m = replaceSynonym(m);
 				if (m.contains("^^") || m.contains(" ") || m.contains("-") || m.contains("_")) {
 					String[] ms = m.split("(\\^\\^| |-|_)");
 					for (String _m : ms) {
+						_m = removeStopWords(_m);
 						if (StringUtils.isEmpty(_m)) {
 							continue;
 						}
 						_ms.add(stemming(_m));
 					}
 				} else {
+					m = removeStopWords(m);
 					if (StringUtils.isEmpty(m)) {
 						continue;
 					}
@@ -383,20 +388,19 @@ public class FeatureUtils {
 				c = c.toLowerCase();
 				c = c.replaceAll("@", "")
 					.replaceAll("\\$", "")
-					.replaceAll("%", "")
-					.replaceAll("the", "")
-					.replaceAll("cents", "")
-					.replaceAll("million", "");
+					.replaceAll("%", "");
 				c = replaceSynonym(c);
 				if (c.contains("^^") || c.contains(" ") || c.contains("-") || c.contains("_")) {
 					String[] cs = c.split("(\\^\\^| |-|_)");
 					for (String _c : cs) {
+						_c = removeStopWords(_c);
 						if (StringUtils.isEmpty(_c)) {
 							continue;
 						}
 						_cs.add(stemming(_c));
 					}
 				} else {
+					c = removeStopWords(c);
 					if (StringUtils.isEmpty(c)) {
 						continue;
 					}
@@ -452,14 +456,12 @@ public class FeatureUtils {
 				String entity = node.asText().toLowerCase();
 				entity = entity.replaceAll("@", "")
 					.replaceAll("\\$", "")
-					.replaceAll("%", "")
-					.replaceAll("the", "")
-					.replaceAll("cents", "")
-					.replaceAll("million", "");
+					.replaceAll("%", "");
 				entity = replaceSynonym(entity);
 				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-") || entity.contains("_")) {
 					String[] words = entity.split("(\\^\\^| |-|_)");
 					for (String word : words) {
+						word = removeStopWords(word);
 						if (StringUtils.isEmpty(word)) {
 							continue;
 						}
@@ -467,8 +469,11 @@ public class FeatureUtils {
 						mCache.put(word, mCache.getOrDefault(word, 0d) + 1);
 					}
 				} else {
-					entity = stemming(entity);
-					mCache.put(entity, mCache.getOrDefault(entity, 0d) + 1);
+					entity = removeStopWords(entity);
+					if (!StringUtils.isEmpty(entity)) {
+						entity = stemming(entity);
+						mCache.put(entity, mCache.getOrDefault(entity, 0d) + 1);
+					}
 				}
 			});
 			Collection<Double> mValues = mCache.values();
@@ -479,14 +484,12 @@ public class FeatureUtils {
 				String entity = node.asText().toLowerCase();
 				entity = entity.replaceAll("@", "")
 					.replaceAll("\\$", "")
-					.replaceAll("%", "")
-					.replaceAll("the", "")
-					.replaceAll("cents", "")
-					.replaceAll("million", "");
+					.replaceAll("%", "");
 				entity = replaceSynonym(entity);
 				if (entity.contains("^^") || entity.contains(" ") || entity.contains("-") || entity.contains("_")) {
 					String[] words = entity.split("(\\^\\^| |-|_)");
 					for (String word : words) {
+						word = removeStopWords(word);
 						if (StringUtils.isEmpty(word)) {
 							continue;
 						}
@@ -494,8 +497,11 @@ public class FeatureUtils {
 						cCache.put(word, cCache.getOrDefault(word, 0d) + 1);
 					}
 				} else {
-					entity = stemming(entity);
-					cCache.put(entity, cCache.getOrDefault(entity, 0d) + 1);
+					entity = removeStopWords(entity);
+					if (!StringUtils.isEmpty(entity)) {
+						entity = stemming(entity);
+						cCache.put(entity, cCache.getOrDefault(entity, 0d) + 1);
+					}
 				}
 			});
 			Collection<Double> cValues = cCache.values();
