@@ -261,7 +261,7 @@ public class FeatureUtils {
 			sequence = sequence.substring(19, sequence.length());
 		}
 		String lowerCase = sequence.toLowerCase();//小写
-		String[] words = lowerCase.split("( |-)");//切分
+		String[] words = lowerCase.split("( )");//切分
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < words.length; i++) {
 			String word = words[i];
@@ -355,13 +355,13 @@ public class FeatureUtils {
 			int sum = 0;
 			HashSet<String> _ms = new HashSet<>();
 			for (String m : master) {
+				m = m.toLowerCase();
 				m = m.replaceAll("@", "")
 					.replaceAll("\\$", "")
 					.replaceAll("%", "")
 					.replaceAll("the", "")
 					.replaceAll("cents", "")
 					.replaceAll("million", "");
-				m = m.toLowerCase();
 				m = replaceSynonym(m);
 				if (m.contains("^^") || m.contains(" ") || m.contains("-") || m.contains("_")) {
 					String[] ms = m.split("(\\^\\^| |-|_)");
@@ -372,18 +372,21 @@ public class FeatureUtils {
 						_ms.add(stemming(_m));
 					}
 				} else {
+					if (StringUtils.isEmpty(m)) {
+						continue;
+					}
 					_ms.add(stemming(m));
 				}
 			}
 			HashSet<String> _cs = new HashSet<>();
 			for (String c : candit) {
+				c = c.toLowerCase();
 				c = c.replaceAll("@", "")
 					.replaceAll("\\$", "")
 					.replaceAll("%", "")
 					.replaceAll("the", "")
 					.replaceAll("cents", "")
 					.replaceAll("million", "");
-				c = c.toLowerCase();
 				c = replaceSynonym(c);
 				if (c.contains("^^") || c.contains(" ") || c.contains("-") || c.contains("_")) {
 					String[] cs = c.split("(\\^\\^| |-|_)");
@@ -394,6 +397,9 @@ public class FeatureUtils {
 						_cs.add(stemming(_c));
 					}
 				} else {
+					if (StringUtils.isEmpty(c)) {
+						continue;
+					}
 					_cs.add(stemming(c));
 				}
 			}
@@ -646,11 +652,8 @@ public class FeatureUtils {
 	
 	
 	public static void main(String[] args) {
-		String s = "You Look-From";
-		String[] strs = s.split("( |-)");
-		for (String str : strs) {
-			System.out.println(str);
-		}
+		String s = "You  ";
+		System.out.println(stemming(s));
 	}
 	
 	
