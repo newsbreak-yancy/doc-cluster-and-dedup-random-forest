@@ -300,7 +300,7 @@ public class ModelUtils {
     
     
     /**
-     * 基于 Feature V1(53) + Estimate Data => Model Estimate
+     * 基于 Feature V1(55) + Estimate Data => Model Estimate
      *
      */
     public static void predictEstimateDataFeatureV1(RandomForest forest, String docPairFile) throws Exception {
@@ -339,7 +339,7 @@ public class ModelUtils {
             double[] distribute = forest.distributionsForInstances(instances)[0];
             double difScr = distribute[0];
             double evtScr = distribute[1];
-            if (evtScr > 0.85) {
+            if (evtScr > 0.88) {
                 ppDUP++;
                 pCls = "DUP";
                 if (StringUtils.equals(rCls, pCls)) {
@@ -350,7 +350,7 @@ public class ModelUtils {
                 if (StringUtils.equals(rCls, "EVENT") || StringUtils.equals(rCls, "DUP")) {
                     tpEVT++;
                 }
-            } else if (evtScr > 0.4) {//EVENT
+            } else if (evtScr > 0.45) {//EVENT
                 ppEVT++;
                 pCls = "EVENT";
                 if (StringUtils.equals(rCls, "EVENT") || StringUtils.equals(rCls, "DUP")) {
@@ -606,26 +606,26 @@ public class ModelUtils {
     
     public static void main(String[] args) throws Exception {
         /** Model Training & Evaluation **/
-        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20201222/";
-        String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
-        String testARFFPath = Paths.get(rootDir, "train.arff").toString();
-        Instances trainingDataSet = getDataSet(trainARFFPath);
-        trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
-        Instances testingDataSet = getDataSet(testARFFPath);
-        testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
-        trainModel(rootDir, trainingDataSet, 4, 12, 10);
+//        String rootDir = "/Users/yuxi/NB/RandomForest/_local/train/20210303/";
+//        String trainARFFPath = Paths.get(rootDir, "train.arff").toString();
+//        String testARFFPath = Paths.get(rootDir, "train.arff").toString();
+//        Instances trainingDataSet = getDataSet(trainARFFPath);
+//        trainingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
+//        Instances testingDataSet = getDataSet(testARFFPath);
+//        testingDataSet.setClassIndex(trainingDataSet.numAttributes() - 1);
+//        trainModel(rootDir, trainingDataSet, 100, 12, 12);
     
     
         /** Model Inference STD Estimate */
         String onlineModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201117-deployed/forest.model";
-        String abtestModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20201222/forest.model";
+        String abtestModelPath = "/Users/yuxi/NB/RandomForest/_local/train/20210303/forest.model";
 //        RandomForest onlineForest = (RandomForest) SerializationHelper.read(onlineModelPath);
         RandomForest abtestForest = (RandomForest) SerializationHelper.read(abtestModelPath);
-        abtestForest.setPrintClassifiers(true);
-        abtestForest.setComputeAttributeImportance(false);
-        BufferedWriter bw = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/train/20201222/forest.out")));
-        bw.write(abtestForest.toString());
-        bw.close();
+//        abtestForest.setPrintClassifiers(true);
+//        abtestForest.setComputeAttributeImportance(false);
+//        BufferedWriter bw = new BufferedWriter(new FileWriter(new File("/Users/yuxi/NB/RandomForest/_local/train/20210303/forest.out")));
+//        bw.write(abtestForest.toString());
+//        bw.close();
         
 
         String estimateDataPath = "/Users/yuxi/NB/RandomForest/_local/estimate/estimate_doc_pair_fields";

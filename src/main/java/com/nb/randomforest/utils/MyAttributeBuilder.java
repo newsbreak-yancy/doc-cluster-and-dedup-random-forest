@@ -48,6 +48,10 @@ public class MyAttributeBuilder {
 		attributes.add(new Attribute("EpochSpan"));
 		attributes.add(new Attribute("InsertSpan"));
 		attributes.add(new Attribute("SimhashDist"));
+		//新增特征 - 2021-03-03 img,face hash dist
+		attributes.add(new Attribute("ImgHashDist"));
+		attributes.add(new Attribute("FaceHashDist"));
+		//
 		attributes.add(new Attribute("CKWSRatio"));
 		attributes.add(new Attribute("CKWSLength"));
 		attributes.add(new Attribute("TKWSRatio"));

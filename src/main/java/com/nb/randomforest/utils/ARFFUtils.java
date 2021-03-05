@@ -103,6 +103,6 @@ public class ARFFUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        buildARFFV1("/Users/yuxi/NB/RandomForest/_local/train/20201222/train_fields", "train");
+        buildARFFV1("/Users/yuxi/NB/RandomForest/_local/train/20210303/train_fields", "train");
     }
 }

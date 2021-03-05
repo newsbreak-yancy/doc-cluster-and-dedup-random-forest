@@ -2,6 +2,7 @@ package com.nb.randomforest.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import edu.stanford.nlp.process.Morphology;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
@@ -324,24 +325,48 @@ public class FeatureUtils {
 	
 	
 	/**
-	 * simhash,
+	 * simhash, images_phash, faces_phash
+	 *
+	 * "hashcode" or ["hashcode", ..., "hashcode"]
 	 */
 	public static Double simhashDist(JsonNode master, JsonNode candit) {
-		if (master == null || candit == null) {
+		if (master == null || candit == null || (master.isArray() && candit.isArray() && master.size() == 0 && candit.size() == 0)) {
 			return null;
 		}
-		byte[] a = master.asText().getBytes();
-		byte[] b = candit.asText().getBytes();
-		if (a.length != b.length) {
-			return null;
+		if (master.isArray()) {
+			int minRet = Integer.MAX_VALUE;
+			for (int i = 0; i < master.size(); i++) {
+				for (int j = 0; j < candit.size(); j++) {
+					byte[] a = master.get(i).asText().getBytes();
+					byte[] b = candit.get(j).asText().getBytes();
+					if (a.length == b.length) {
+						int ret = 0;
+						for (int k = 0; k < a.length; k++) {
+							int x = a[k] ^ b[k];
+							x = (x << 24) >>> 24;
+							ret += DIST_MAP[x];
+						}
+						if (ret < minRet) {
+							minRet = ret;
+						}
+					}
+				}
+			}
+			return new Double(minRet);
+		} else {
+			byte[] a = master.asText().getBytes();
+			byte[] b = candit.asText().getBytes();
+			if (a.length != b.length) {
+				return null;
+			}
+			int ret = 0;
+			for (int i = 0; i < a.length; i++) {
+				int x = a[i] ^ b[i];
+				x = (x << 24) >>> 24;
+				ret += DIST_MAP[x];
+			}
+			return new Double(ret);
 		}
-		int ret = 0;
-		for (int i = 0; i < a.length; i++) {
-			int x = a[i] ^ b[i];
-			x = (x << 24) >>> 24;
-			ret += DIST_MAP[x];
-		}
-		return new Double(ret);
 	}
 	
 	
@@ -658,8 +683,17 @@ public class FeatureUtils {
 	
 	
 	public static void main(String[] args) {
-		String s = "You  ";
-		System.out.println(stemming(s));
+		String[] images_phash_a = new String[]{"0xc64d2dc7076f89c1", "0xcc99e4e36c63388e", "0xc11f38f006e70cfd", "0xbdad27b7a8890760", "0xa590aaa943ed2e37"};
+		String[] images_phash_b = new String[]{"0xf8876a8996e89b85", "0xc64d2dc7076f89c1", "0xd0394cfcc6d684ce"};
+		ArrayNode nodesA = mapper.createArrayNode();
+		for (String s : images_phash_a) {
+			nodesA.add(s);
+		}
+		ArrayNode nodesB = mapper.createArrayNode();
+		for (String s : images_phash_b) {
+			nodesB.add(s);
+		}
+		System.out.println(simhashDist(nodesA, nodesB));
 	}
 	
 	
