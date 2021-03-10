@@ -3,6 +3,8 @@ package com.nb.randomforest.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nb.randomforest.entity.EventFeature;
+import com.nb.randomforest.entity.EventFeature.TokenizerType;
+
 import org.apache.commons.lang3.StringUtils;
 import weka.classifiers.trees.RandomForest;
 
@@ -210,7 +212,7 @@ public class ModelUtils {
             String rCls = docPairFields[2];
             JsonNode mNode = objectMapper.readTree(docPairFields[4]);
             JsonNode cNode = objectMapper.readTree(docPairFields[5]);
-            EventFeature feature = new EventFeature(mNode, cNode, rCls);
+            EventFeature feature = new EventFeature(mNode, cNode, rCls, Tokenizer.NE);
             Instances instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
             instances.setClassIndex(instances.numAttributes() - 1);
             instances.add(feature.toInstance());
@@ -296,7 +298,7 @@ public class ModelUtils {
         instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
         instances.setClassIndex(instances.numAttributes() - 1);
         for (JsonNode canditNode : canditNodes) {
-            EventFeature feature = new EventFeature(masterNode, canditNode, null);
+            EventFeature feature = new EventFeature(masterNode, canditNode, null, TokenizerType.NE);
             System.out.println(mapper.writeValueAsString(feature));
             instances.add(feature.toInstance());
         }

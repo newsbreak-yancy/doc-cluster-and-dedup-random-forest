@@ -1,6 +1,7 @@
 package com.nb.randomforest.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.nb.randomforest.config.AppConfig;
 import com.nb.randomforest.entity.EventFeature;
 import com.nb.randomforest.entity.resource.RFModelResult;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,9 @@ public class DocumentService {
 	@Autowired
 	RandomForest randomForest;
 	
-	
+	@Autowired
+	AppConfig appConfig;
+
 	/**
 	 */
 	public List<RFModelResult> calCandidatesClusterInfo(JsonNode masterNode, JsonNode canditNodes) {
@@ -57,7 +60,7 @@ public class DocumentService {
 			instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
 			instances.setClassIndex(instances.numAttributes() - 1);
 			for (JsonNode canditNode : canditNodes) {
-				instances.add(new EventFeature(masterNode, canditNode, null).toInstance());
+				instances.add(new EventFeature(masterNode, canditNode, null, appConfig.getFeatureTokenizerType()).toInstance());
 			}
 			// 3.
 			List<RFModelResult> cls = new ArrayList<>();

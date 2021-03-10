@@ -2,3 +2,9 @@
 .idea/
 target/
 _local/
+
+# VSCode auto generated files
+.classpath
+.project
+.vscode/
+.settings/

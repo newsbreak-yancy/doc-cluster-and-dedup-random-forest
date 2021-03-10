@@ -2,6 +2,8 @@ package com.nb.randomforest.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nb.randomforest.entity.EventFeature;
+import com.nb.randomforest.entity.EventFeature.TokenizerType;
+
 import weka.core.*;
 import java.io.*;
 import java.nio.file.Paths;
@@ -129,7 +131,7 @@ public class ARFFUtils {
                 String mStr = datas[4];
                 String cStr = datas[5];
                 try {
-                    EventFeature feature = new EventFeature(mapper.readTree(mStr), mapper.readTree(cStr), label);
+                    EventFeature feature = new EventFeature(mapper.readTree(mStr), mapper.readTree(cStr), label, TokenizerType.NE);
                     bw.write(feature.toString());
                     bw.write("\n");
                 } catch (Exception e) {
