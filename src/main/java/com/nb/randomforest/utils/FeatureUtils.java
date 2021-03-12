@@ -32,7 +32,6 @@ public abstract class FeatureUtils {
 		}
 	}
 	
-	
 	/**
 	 * media_id, src,
 	 */
@@ -49,8 +48,7 @@ public abstract class FeatureUtils {
 	 * stitle,
 	 */
 	public String preprocess(String pre) {
-		String post = pre.toLowerCase().replaceAll("[!-`]", ""); // ASC ii Table  :8)
-		return post;
+		return pre.toLowerCase().replaceAll("[!-`]", ""); // ASC ii Table  :8)
 	}
 	
 	

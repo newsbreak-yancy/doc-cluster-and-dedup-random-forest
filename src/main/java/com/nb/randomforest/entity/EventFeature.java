@@ -114,7 +114,9 @@ public class EventFeature {
 	    
         this.titleDist = featureUtils.levenshteinDistance(featureUtils.preprocess(getSegTitle(masterNode)), featureUtils.preprocess(getSegTitle(canditNode)));
         
-        this.sameSRC = featureUtils.isEqual(masterNode.hasNonNull("src") ? masterNode.get("src").textValue() : null, canditNode.hasNonNull("src") ? canditNode.get("src").textValue() : null);
+        this.sameSRC = featureUtils.isEqual(
+			masterNode.hasNonNull("src") ? masterNode.get("src").textValue() : null, 
+			canditNode.hasNonNull("src") ? canditNode.get("src").textValue() : null);
         
         this.cWordSpan = featureUtils.numSpan(masterNode.get("c_word"), canditNode.get("c_word"));
 	
