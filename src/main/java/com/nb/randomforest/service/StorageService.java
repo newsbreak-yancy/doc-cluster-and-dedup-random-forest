@@ -41,7 +41,7 @@ public class StorageService {
 			.append("c_word", 1)
 			.append("paragraph_count", 1)
 			.append("epoch", 1).append("insert_time", 1)
-			.append("simhash", 1)
+			.append("simhash", 1).append("images_phash", 1).append("faces_phash", 1)
 			.append("kws", 1).append("kw_title", 1).append("highlightkeyword_list", 1)
 			.append("channels", 1).append("channels_v2", 1)
 			// Content : ORG, LOC, PER, NUM, TIM
