@@ -106,7 +106,7 @@ public class DocumentService {
 				if ((isEconomyMarkets && evtScore > 0.98) ||
 					(isCelebrities && evtScore > 0.95) ||
 					//normal case 阈值
-					(!isEconomyMarkets && !isCelebrities && !aboutFauci && evtScore > 0.9) ||
+					(!isEconomyMarkets && !isCelebrities && !aboutFauci && evtScore > 0.88) ||
 //					//title 相似度豁免
 					(isWeather && feature.getTitleRatio() >= 0.7 && feature.getTitleLength() >= 5 && evtScore > 0.85) ||
 					(isSports && feature.getTitleRatio() >= 0.5 && feature.getTitleLength() >= 5 && evtScore > 0.85) ||
@@ -121,7 +121,7 @@ public class DocumentService {
 					(isWeather && evtScore > 0.6 && feature.getGeoRatio() != null && feature.getGeoRatio() > 0.5) ||
 					(isWeather && evtScore > 0.8 && feature.getGeoRatio() == null) ||
 					(aboutFauci && evtScore > 0.85) ||
-					(!isEconomyMarkets && !isSports && !isWeather && !aboutFauci && evtScore > 0.5)
+					(!isEconomyMarkets && !isSports && !isWeather && !aboutFauci && evtScore > 0.45)
 				) {
 					label = "EVENT";
 					score = evtScore;
