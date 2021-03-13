@@ -1,4 +1,4 @@
-doc-clu-dedup_random-forest:
+doc-cluster-and-dedup-random-forest-i18n:
   build:
     command: "mvn clean package -U"
     image: docker.particlenews.com:5000/ubuntu/java8:vimcron
