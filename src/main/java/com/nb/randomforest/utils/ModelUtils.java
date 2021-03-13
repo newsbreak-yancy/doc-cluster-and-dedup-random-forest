@@ -212,7 +212,7 @@ public class ModelUtils {
             String rCls = docPairFields[2];
             JsonNode mNode = objectMapper.readTree(docPairFields[4]);
             JsonNode cNode = objectMapper.readTree(docPairFields[5]);
-            EventFeature feature = new EventFeature(mNode, cNode, rCls, Tokenizer.NE);
+            EventFeature feature = new EventFeature(mNode, cNode, rCls, TokenizerType.NE);
             Instances instances = new Instances(UUID.randomUUID().toString(), attributes, 1);
             instances.setClassIndex(instances.numAttributes() - 1);
             instances.add(feature.toInstance());
