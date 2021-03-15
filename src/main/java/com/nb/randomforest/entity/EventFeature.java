@@ -165,7 +165,7 @@ public class EventFeature {
 		doubleList.add(tPrsOverlapRatio);
 		doubleList.add(catOverlapRatio);
 		doubleList.add(geoOverlapRatio);
-		doubleList.add((StringUtils.isEmpty(label) || StringUtils.equals(label, "DIFF")) ? 0d : StringUtils.equals(label, "DIFF") ? 1d : 2d);
+		doubleList.add((StringUtils.isEmpty(label) || StringUtils.equals(label, "DIFF")) ? 0d : (StringUtils.equals(label, "EVENT") ? 1d : 2d));
 		double[] doubleArray = doubleList.stream().mapToDouble(d -> d == null ? Utils.missingValue() : d.doubleValue()).toArray();
 		return new DenseInstance(1, doubleArray);
 	}
