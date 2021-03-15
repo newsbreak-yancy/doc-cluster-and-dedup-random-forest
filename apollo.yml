@@ -1,7 +1,7 @@
 doc-cluster-and-dedup-random-forest-i18n:
   build:
     command: "mvn clean package -U"
-    image: docker.particlenews.com:5000/ubuntu/java8:vimcron
+    image: registry2.nb.com/ubuntu/java8:vimcron
     volume:
       from: /data/cache/m2
       to: /root/.m2

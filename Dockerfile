@@ -1,4 +1,4 @@
-FROM docker.particlenews.com:5000/ubuntu/java8:vimcron
+FROM registry2.nb.com/ubuntu/java8:vimcron
 
 RUN mkdir -p /home/services/bin \
     && groupadd -g 1001 services \
