@@ -12,9 +12,7 @@ environment:
 server:
   autoscale:
     enabled: false
-    minReplicas: 1
-    maxReplicas: 3
-    targetCPUUtilizationPercentage: 60
+    replicaCount: 1
 
   image:
     repository: registry2.nb.com/doc-clu-dedup-random-forest
